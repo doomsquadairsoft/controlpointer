@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Operation Spring</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+    <link rel="stylesheet" type="text/css" href="mobi.min.css">
+    <script src="/zepto.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+     Zepto(function($) {
+         var socket = io();
+         socket.on('update', function(data) {
+             console.log('got update');
+             console.log(data);
+             
+             // validate data
+             if (
+                 typeof data.controlPoint !== 'string' ||
+                 typeof data.team !== 'string' ||
+                 typeof data.captureTime !== 'string'
+             ) {
+                 console.log('data failed validation');
+                 return false;
+             }
+
+             
+             var selector = '#' + data.controlPoint + ' > td:nth-child(2)';
+             $(selector).text(data.team.toUpperCase());
+
+         });
+         
+         $('button.capture').each(function() {
+             $(this).on('click', (function(e) {
+                 console.log('clicked %s', e.target.attributes.id.value);
+                 var value = e.target.attributes.id.value;
+                 var team = value.substring(0, 3);
+                 var controlPoint = value.substring(4, value.length);
+                 socket.emit('capture', {'team': team, 'controlPoint': controlPoint});
+                 return false;
+             }))
+         });
+     });
+    </script>
+  </head>
+  <body>
+      <h3>Capture Status</h3>
+      <table id="objectives">
+        <tr>
+            <th>Point Name</th>
+            <th>Controlling Team</th>
+            <th>Time controlled</th>
+            <th>BLU Capture</th>
+            <th>RED Capture</th>
+        </tr>
+        <tr id="town">
+            <td>Town</td>
+            <td>BLU</td>
+            <td>50</td>
+            <td><button class="capture" id="blu-town">BLU Capture</button></td>
+            <td><button class="capture" id="red-town">RED Capture</button></td>
+        </tr>
+        <tr id="tower">
+            <td>Tower</td>
+            <td>RED</td>
+            <td>50</td>
+            <td><button class="capture" id="blu-tower">BLU Capture</button></td>
+            <td><button class="capture" id="red-tower">RED Capture</button></td>            
+        </tr>
+        <tr id="firePit">
+            <td>Fire Pit</td>
+            <td>NONE</td>
+            <td>0</td>
+            <td><button class="capture" id="blu-firePit">BLU Capture</button></td>
+            <td><button class="capture" id="red-firePit">RED Capture</button></td>            
+        </tr>
+        <tr id="bridge">
+            <td>Bridge</td>
+            <td>NONE</td>
+            <td>0</td>
+            <td><button class="capture" id="blu-bridge">BLU Capture</button></td>
+            <td><button class="capture" id="red-bridge">RED Capture</button></td>            
+        </tr>
+      </table>
+      
+      <h3>Match History</h3>
+      <ul id="messages">
+          <li>sample</li>
+      </ul>
+  </body>
+</html>
