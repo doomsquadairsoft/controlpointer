@@ -11,7 +11,7 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
      #messages li:nth-child(odd) { background: #eee; }
-     #map { height: 300px; }
+     #map { height: 500px; }
     </style>
     <link rel="stylesheet" type="text/css" href="mobi.min.css">
     <link rel="stylesheet" type="text/css" href="leaflet.css">
@@ -20,6 +20,78 @@
     <script src="/leaflet.js"></script>
     <script>
      Zepto(function($) {
+         var gameMap = L.map('map', { yolo: true }).setView([47.62463825220757, -117.17959284771496], 18);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	maxZoom: 21,
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+	id: 'mapbox.streets'
+	}).addTo(gameMap);
+
+         var CPIcon = L.Icon.extend({
+             options: {
+                 iconUrl: 'marker_UNK_s.png',
+                 shadowUrl: 'marker_shadow.png',
+                 iconSize: [60, 61],
+                 shadowSize: [60, 61],
+                 iconAnchor: [33, 43],
+                 shadowAnchor: [33, 43],
+                 popupAnchor: [-3, -50]
+             }
+         });
+         
+
+         var redIcon = new CPIcon({iconUrl: 'marker_RED_s.png'})
+         var bluIcon = new CPIcon({iconUrl: 'marker_BLU_s.png'})
+         var unkIcon = new CPIcon({iconUrl: 'marker_UNK_s.png'});
+
+         var markers = [];
+         var popups = [];
+
+         var firePitDiv = L.DomUtil.create('div', 'content');
+         var firePitTitle = L.DomUtil.create('h1', 'CapturePointTitle', firePitDiv);
+         var firePitButton0 = L.DomUtil.create('button', 'CapturePointButton', firePitDiv);
+         var firePitButton1 = L.DomUtil.create('button', 'CapturePointButton', firePitDiv);
+
+
+         firePitTitle.innerHTML = 'Fire Pit';
+         firePitButton0.innerHTML = 'TEST BUTTON 0';
+         firePitButton1.innerHTML = 'TEST BUTTON 1';
+
+         
+         firePitButton0.onclick = function() {
+             console.log('clik 0');
+         }
+
+         firePitButton1.onclick = function() {
+             console.log('clik 1');
+         }
+
+
+         popups.firePit = L.popup()
+         .setContent(firePitDiv)
+         .on('click', function(ev) {
+             console.log('popup div was clicked');
+         });
+         
+         
+
+         // Goblin Fortress
+         markers['firePit'] = L.marker([47.624529, -117.180074], {icon: bluIcon})
+          .addTo(gameMap).bindPopup(popups['firePit']);
+
+         // City
+         markers['town'] = L.marker([47.625069, -117.180089], {icon: bluIcon})
+          .addTo(gameMap).bindPopup("Swamp City");
+
+         // Tower
+         markers['tower'] = L.marker([47.624497, -117.179235], {icon: redIcon})
+          .addTo(gameMap).bindPopup("King's Tower");
+         
+         // Bridge
+         markers['bridge'] = L.marker([47.624979, -117.179252], {icon: redIcon})
+          .addTo(gameMap).bindPopup("Troll Bridge");
+         
+
          var socket = io();
          socket.on('update', function(data) {
              console.log('got update');
@@ -39,6 +111,17 @@
              var selector = '#' + data.controlPoint + ' > td:nth-child(2)';
              $(selector).text(data.team.toUpperCase());
 
+             if (data.team === 'red') {
+                 markers[data.controlPoint].setIcon(redIcon);
+             }
+             else if (data.team === 'blu') {
+                 markers[data.controlPoint].setIcon(bluIcon);
+             }
+             else {
+                 markers[data.controlPoint].setIcon(unkIcon);
+             }
+
+
          });
          
          $('button.capture').each(function() {
@@ -51,48 +134,8 @@
                  return false;
              }))
          });
-        var gameMap = L.map('map').setView([47.62463825220757, -117.17959284771496], 18);
-        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	maxZoom: 21,
-	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-	id: 'mapbox.streets'
-	}).addTo(gameMap);
 
-         var redIcon = L.icon({
-             iconUrl: 'marker_RED_s.png',
-             shadowUrl: 'marker_shadow.png',
-             iconSize: [60, 61],
-             shadowSize: [60, 61],
-             iconAnchor: [33, 43],
-             shadowAnchor: [33, 43],
-             popupAnchor: [-3, -50]
-         });
 
-         var bluIcon = L.icon({
-             iconUrl: 'marker_BLU_s.png',
-             shadowUrl: 'marker_shadow.png',
-             iconSize: [60, 61],
-             shadowSize: [60, 61],
-             iconAnchor: [33, 43],
-             shadowAnchor: [33, 43],
-             popupAnchor: [-3, -50]
-         });
-
-         // Goblin Fortress
-         L.marker([47.624529, -117.180074], {icon: bluIcon})
-          .addTo(gameMap).bindPopup("Goblin Fortress");
-
-         // City
-         L.marker([47.625069, -117.180089], {icon: bluIcon})
-          .addTo(gameMap).bindPopup("Swamp City");
-
-         // Tower
-         L.marker([47.624497, -117.179235], {icon: redIcon})
-          .addTo(gameMap).bindPopup("King's Tower");
-         
-         // Bridge
-         L.marker([47.624979, -117.179252], {icon: redIcon})
-          .addTo(gameMap).bindPopup("Troll Bridge");
          
      });
     </script>
@@ -101,6 +144,7 @@
       <div id="map-section">
           <h3>Game Map</h3>
           <div id="map"></div>
+          <button id="buttontest">test button</button>
       </div>
       <h3>Capture Status</h3>
       <table id="objectives">
