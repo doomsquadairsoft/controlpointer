@@ -1,0 +1,36 @@
+<html>
+
+    <head>
+        <title>Green Fox DEBUG</title>
+    </head>
+    <body>
+        <button id='query'>Query State</button>
+        <div id="debug"></div>
+
+        <script src="/zepto.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/format-json-pretty.js"></script>
+
+        <script>
+            Zepto(function($) {
+                var socket = io();
+
+                $('#query').click(function(e) {
+                    socket.emit('querystate');
+                });
+                
+                socket.on('state', function(data) {
+                    console.log('got state');
+                    console.log(data);
+
+                    formattedData = formatJson(data);
+                    //brData = formattedData.replace(/(?:\r\n|\r|\n)/g, '<br />');
+                    htmlData = formattedData.split('\n').join('<br>').split(' ').join('&nbsp;');
+                    
+                    $("#debug").html(htmlData);
+                });
+            });
+
+        </script>
+    </body>
+</html>

@@ -1,21 +1,23 @@
 <!doctype html>
 <html>
   <head>
-    <title>Operation Spring</title>
+    <title>Operation: Green Fox</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
+     body { padding: 0; margin: 0; font: 13px Helvetica, Arial; }
+     html, body, #map { height: 100vh; width: 100vw; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
      #messages li:nth-child(odd) { background: #eee; }
-     #map { height: 500px; }
     </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" type="text/css" href="mobi.min.css">
     <link rel="stylesheet" type="text/css" href="leaflet.css">
     <script src="/zepto.min.js"></script>
+    <script src="/bluebird.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/leaflet.js"></script>
     <script>
@@ -42,9 +44,29 @@
              });
          
              
-             var redIcon = new CPIcon({iconUrl: 'marker_RED_s.png'})
-             var bluIcon = new CPIcon({iconUrl: 'marker_BLU_s.png'})
-             var unkIcon = new CPIcon({iconUrl: 'marker_UNK_s.png'});
+             var redIcon = new CPIcon({iconUrl: '/images/marker_RED_s.png'})
+             var bluIcon = new CPIcon({iconUrl: '/images/marker_BLU_s.png'})
+             var unkIcon = new CPIcon({iconUrl: '/images/marker_UNK_s.png'});
+             var conBluIcon = new CPIcon({iconUrl: '/images/marker_BLU_contest_s.png'});
+             var conRedIcon = new CPIcon({iconUrl: '/images/marker_RED_contest_s.png'});
+             var unkRed10Icon = new CPIcon({iconUrl: '/images/marker_UNK_red10_s.png'});
+             var unkRed20Icon = new CPIcon({iconUrl: '/images/marker_UNK_red20_s.png'});
+             var unkRed30Icon = new CPIcon({iconUrl: '/images/marker_UNK_red30_s.png'});
+             var unkRed40Icon = new CPIcon({iconUrl: '/images/marker_UNK_red40_s.png'});
+             var unkRed50Icon = new CPIcon({iconUrl: '/images/marker_UNK_red50_s.png'});
+             var unkRed60Icon = new CPIcon({iconUrl: '/images/marker_UNK_red60_s.png'});
+             var unkRed70Icon = new CPIcon({iconUrl: '/images/marker_UNK_red70_s.png'});
+             var unkRed80Icon = new CPIcon({iconUrl: '/images/marker_UNK_red80_s.png'});
+             var unkRed90Icon = new CPIcon({iconUrl: '/images/marker_UNK_red90_s.png'});
+             var unkBlu10Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu10_s.png'});
+             var unkBlu20Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu20_s.png'});
+             var unkBlu30Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu30_s.png'});
+             var unkBlu40Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu40_s.png'});
+             var unkBlu50Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu50_s.png'});
+             var unkBlu60Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu60_s.png'});
+             var unkBlu70Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu70_s.png'});
+             var unkBlu80Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu80_s.png'});
+             var unkBlu90Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu90_s.png'});
              
              
              var markers = {};
@@ -53,10 +75,61 @@
              console.log(cpdata)
              var capturePoints = cpdata['capture_points'];
 
+             function updateControlPoints(gameState) {
+                 return new Promise(function (resolve, reject) {
+                     console.log('updating control points');
+                     for (cpKey in gameState.controlPoints) {
+                         updateControlPoint(gameState.controlPoints[cpKey], cpKey);
+                     }
+                     resolve();
+                 });
+             }
 
-             function onClickedButton(cp, color) {
+
+             function updateControlPoint(cpData, cpKey) {
+                 console.log('updating control point');
+                 console.log(cpData);
+                 
+                 // validate data
+                 if (typeof cpData.title !== 'string') {
+                     console.log('data failed validation');
+                     return false;
+                 }
+                 
+                 
+                 // old table data update
+                 //var selector = '#' + cpKey + ' > td:nth-child(2)';
+                 //$(selector).text(data.team.toUpperCase());
+                 function calculatePercentageIcon(cpData) {
+                     
+                     return 
+                 })
+                 
+                 
+                 if (cpData.state === 'red')
+                     markers[cpKey].setIcon(redIcon);
+                 else if (cpData.state === 'blu')
+                     markers[cpKey].setIcon(bluIcon);
+                 else if (cpData.state === 'unk')
+                     markers[cpKey].setIcon(unkIcon);
+                 else if (cpData.state === 'dre' || cpData.state === 'fdr')
+                     markers[cpKey].setIcon(conRedIcon);
+                 else if (cpData.state === 'dbl' || cpData.state === 'fdb')
+                     markers[cpKey].setIcon(conBluIcon);
+                 else if (cpData.state === 'cbl' || cpData.state === 'fcb')
+                     markers[cpKey].setIcon(calculatePercentageIcon(cpData));
+                 else if (cpData.state === 'cre' || cpData.state === 'fcr')
+                     markers[cpKey].setIcon(calculatePercentageIcon(cpData));
+                 else
+                     markers[cpKey].setIcon(unkIcon);
+             }
+
+             function onClickedButton(key, cp, state) {
                  return function() {
-                     console.log('Setting ' + cp.title + ' to '+color);
+                     console.log('clicked %s with state %s', key, state);
+
+                     socket.emit('sitrep', {'state': state, 'controlPoint': key});
+                     return false;
                  }
              }
 
@@ -72,17 +145,58 @@
                      var popupHeading = L.DomUtil.create('h1', 'CapturePointTitle', popupDiv);
                      var popupButtonRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
                      var popupButtonBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     
+                     var popupButtonUnk = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonCon = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonFastDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonFastDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonFastCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                     var popupButtonFastCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
                      
                      popupHeading.innerHTML = cp.title;
                      popupButtonRed.innerHTML = 'RED Team';
                      popupButtonBlu.innerHTML = 'BLU Team';
+                     popupButtonUnk.innerHTML = 'UNKNOWN';
+                     popupButtonCon.innerHTML = 'CONTESTED';
+                     popupButtonDisBlu.innerHTML = 'DISMANTLE BLU';
+                     popupButtonDisRed.innerHTML = 'DISMANTLE RED'
+                     popupButtonFastDisBlu.innerHTML = 'FAST DISMANTLE BLU';
+                     popupButtonFastDisRed.innerHTML = 'FAST DISMANTLE RED';
+                     popupButtonCapBlu.innerHTML = 'CAPTURE BLU';
+                     popupButtonCapRed.innerHTML = 'CAPTURE RED';
+                     popupButtonFastCapBlu.innerHTML = 'FAST CAPTURE BLU';
+                     popupButtonFastCapRed.innerHTML = 'FAST CAPTURE RED';
+
+
                      popupButtonRed.setAttribute('id', key+'-red');
                      popupButtonBlu.setAttribute('id', key+'-blu');
+                     popupButtonUnk.setAttribute('id', key+'-unk');
+                     popupButtonCon.setAttribute('id', key+'-con');
+                     popupButtonDisBlu.setAttribute('id', key+'-dis-blu');
+                     popupButtonDisRed.setAttribute('id', key+'-dis-red');
+                     popupButtonFastDisBlu.setAttribute('id', key+'-fast-dis-blu');
+                     popupButtonFastDisRed.setAttribute('id', key+'-fast-dis-red');
+                     popupButtonCapBlu.setAttribute('id', key+'-cap-blu');
+                     popupButtonCapRed.setAttribute('id', key+'-cap-red');
+                     popupButtonFastCapBlu.setAttribute('id', key+'-fast-cap-blu');
+                     popupButtonFastCapRed.setAttribute('id', key+'-fast-cap-red');
+
                      
-                     
-                     popupButtonRed.onclick = onClickedButton(cp, 'red');
-                     popupButtonBlu.onclick = onClickedButton(cp, 'blu');
+                     popupButtonRed.onclick = onClickedButton(key, cp, 'red');
+                     popupButtonBlu.onclick = onClickedButton(key, cp, 'blu');
+                     popupButtonUnk.onclick = onClickedButton(key, cp, 'unk');
+                     popupButtonCon.onclick = onClickedButton(key, cp, 'con');
+                     popupButtonDisBlu.onclick = onClickedButton(key, cp, 'dbl');
+                     popupButtonDisRed.onclick = onClickedButton(key, cp, 'dre');
+                     popupButtonFastDisBlu.onclick = onClickedButton(key, cp, 'fdb');
+                     popupButtonFastDisRed.onclick = onClickedButton(key, cp, 'fdr');
+                     popupButtonCapBlu.onclick = onClickedButton(key, cp, 'cbl');
+                     popupButtonCapRed.onclick = onClickedButton(key, cp, 'cre');
+                     popupButtonFastCapBlu.onclick = onClickedButton(key, cp, 'fcb');
+                     popupButtonFastCapRed.onclick = onClickedButton(key, cp, 'fcr');
 
                      
                      popups[key] = L.popup().setContent(popupDiv);
@@ -111,36 +225,14 @@
              
              
              var socket = io();
-             socket.on('update', function(data) {
-                 console.log('got update');
+             socket.on('state', function(data) {
+                 console.log('got state update.');
                  console.log(data);
-                 
-                 // validate data
-                 if (
-                     typeof data.controlPoint !== 'string' ||
-                     typeof data.team !== 'string' ||
-                     typeof data.captureTime !== 'string'
-                 ) {
-                     console.log('data failed validation');
-                     return false;
-                 }
-                 
-                 
-                 var selector = '#' + data.controlPoint + ' > td:nth-child(2)';
-                 $(selector).text(data.team.toUpperCase());
-                 
-                 if (data.team === 'red') {
-                     markers[data.controlPoint].setIcon(redIcon);
-                 }
-                 else if (data.team === 'blu') {
-                     markers[data.controlPoint].setIcon(bluIcon);
-                 }
-                 else {
-                     markers[data.controlPoint].setIcon(unkIcon);
-                 }
-                 
-                 
+                 return updateControlPoints(data);
              });
+
+
+
          
              $('button.capture').each(function() {
                  $(this).on('click', (function(e) {
@@ -148,7 +240,7 @@
                      var value = e.target.attributes.id.value;
                      var team = value.substring(0, 3);
                      var controlPoint = value.substring(4, value.length);
-                     socket.emit('capture', {'team': team, 'controlPoint': controlPoint});
+                     socket.emit('sitrep', {'team': team, 'controlPoint': controlPoint});
                      return false;
                  }))
              });
@@ -159,53 +251,6 @@
     </script>
   </head>
   <body>
-      <div id="map-section">
-          <h3>Game Map</h3>
-          <div id="map"></div>
-          <button id="buttontest">test button</button>
-      </div>
-      <h3>Capture Status</h3>
-      <table id="objectives">
-        <tr>
-            <th>Point Name</th>
-            <th>Controlling Team</th>
-            <th>Time controlled</th>
-            <th>BLU Capture</th>
-            <th>RED Capture</th>
-        </tr>
-        <tr id="town">
-            <td>Town</td>
-            <td>BLU</td>
-            <td>50</td>
-            <td><button class="capture" id="blu-town">BLU Capture</button></td>
-            <td><button class="capture" id="red-town">RED Capture</button></td>
-        </tr>
-        <tr id="tower">
-            <td>Tower</td>
-            <td>RED</td>
-            <td>50</td>
-            <td><button class="capture" id="blu-tower">BLU Capture</button></td>
-            <td><button class="capture" id="red-tower">RED Capture</button></td>            
-        </tr>
-        <tr id="firePit">
-            <td>Fire Pit</td>
-            <td>NONE</td>
-            <td>0</td>
-            <td><button class="capture" id="blu-firePit">BLU Capture</button></td>
-            <td><button class="capture" id="red-firePit">RED Capture</button></td>            
-        </tr>
-        <tr id="bridge">
-            <td>Bridge</td>
-            <td>NONE</td>
-            <td>0</td>
-            <td><button class="capture" id="blu-bridge">BLU Capture</button></td>
-            <td><button class="capture" id="red-bridge">RED Capture</button></td>            
-        </tr>
-      </table>
-      
-      <h3>Match History</h3>
-      <ul id="messages">
-          <li>sample</li>
-      </ul>
+      <div id="map"></div>
   </body>
 </html>
