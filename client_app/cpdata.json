@@ -1,0 +1,24 @@
+{
+    "capture_points": {
+        "goblinFortress": {
+            "latLng": [47.624529, -117.180074],
+            "initialTeam": "unk",
+            "title": "Goblin Fortress"
+        },
+        "swampCity": {
+            "latLng": [47.625069, -117.180089],
+            "initialTeam": "blu",
+            "title": "Swamp City"
+        },
+        "trollBridge": {
+            "latLng": [47.624979, -117.179252],
+            "initialTeam": "unk",
+            "title": "Troll Bridge"
+        },
+        "kingsTower": {
+            "latLng": [47.624497, -117.179235],
+            "initialTeam": "red",
+            "title": "King's Tower"
+        }
+    }
+}
