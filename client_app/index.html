@@ -20,21 +20,22 @@
     <script src="/bluebird.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/leaflet.js"></script>
+    <script src="/moment.js"></script>
     <script>
      Zepto(function($) {
          var gameMap = L.map('map', { yolo: true }).setView([47.62463825220757, -117.17959284771496], 18);
-        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	maxZoom: 21,
-	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-	id: 'mapbox.streets'
-	}).addTo(gameMap);
+         L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	     maxZoom: 21,
+	     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+	     id: 'mapbox.streets'
+	 }).addTo(gameMap);
          
-         $.getJSON('/cpdata.json', function(cpdata) {
+         $.getJSON('/livedata.json', function(initialGameData) {
              
              var CPIcon = L.Icon.extend({
                  options: {
-                     iconUrl: 'marker_UNK_s.png',
-                     shadowUrl: 'marker_shadow.png',
+                     iconUrl: '/images/marker_UNK_s.png',
+                     shadowUrl: '/images/marker_shadow.png',
                      iconSize: [60, 61],
                      shadowSize: [60, 61],
                      iconAnchor: [33, 43],
@@ -42,86 +43,96 @@
                      popupAnchor: [-3, -50]
                  }
              });
-         
-             
-             var redIcon = new CPIcon({iconUrl: '/images/marker_RED_s.png'})
-             var bluIcon = new CPIcon({iconUrl: '/images/marker_BLU_s.png'})
-             var unkIcon = new CPIcon({iconUrl: '/images/marker_UNK_s.png'});
-             var conBluIcon = new CPIcon({iconUrl: '/images/marker_BLU_contest_s.png'});
-             var conRedIcon = new CPIcon({iconUrl: '/images/marker_RED_contest_s.png'});
-             var unkRed10Icon = new CPIcon({iconUrl: '/images/marker_UNK_red10_s.png'});
-             var unkRed20Icon = new CPIcon({iconUrl: '/images/marker_UNK_red20_s.png'});
-             var unkRed30Icon = new CPIcon({iconUrl: '/images/marker_UNK_red30_s.png'});
-             var unkRed40Icon = new CPIcon({iconUrl: '/images/marker_UNK_red40_s.png'});
-             var unkRed50Icon = new CPIcon({iconUrl: '/images/marker_UNK_red50_s.png'});
-             var unkRed60Icon = new CPIcon({iconUrl: '/images/marker_UNK_red60_s.png'});
-             var unkRed70Icon = new CPIcon({iconUrl: '/images/marker_UNK_red70_s.png'});
-             var unkRed80Icon = new CPIcon({iconUrl: '/images/marker_UNK_red80_s.png'});
-             var unkRed90Icon = new CPIcon({iconUrl: '/images/marker_UNK_red90_s.png'});
-             var unkBlu10Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu10_s.png'});
-             var unkBlu20Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu20_s.png'});
-             var unkBlu30Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu30_s.png'});
-             var unkBlu40Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu40_s.png'});
-             var unkBlu50Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu50_s.png'});
-             var unkBlu60Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu60_s.png'});
-             var unkBlu70Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu70_s.png'});
-             var unkBlu80Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu80_s.png'});
-             var unkBlu90Icon = new CPIcon({iconUrl: '/images/marker_UNK_blu90_s.png'});
+
+             var icons = {
+                 'redIcon': new CPIcon({iconUrl: '/images/marker_RED_s.png'}),
+                 'bluIcon': new CPIcon({iconUrl: '/images/marker_BLU_s.png'}),
+                 'unkIcon': new CPIcon({iconUrl: '/images/marker_UNK_s.png'}),
+                 'conBluIcon': new CPIcon({iconUrl: '/images/marker_BLU_contest_s.png'}),
+                 'conRedIcon': new CPIcon({iconUrl: '/images/marker_RED_contest_s.png'}),
+                 'unkRed10Icon': new CPIcon({iconUrl: '/images/marker_UNK_red10_s.png'}),
+                 'unkRed20Icon': new CPIcon({iconUrl: '/images/marker_UNK_red20_s.png'}),
+                 'unkRed30Icon': new CPIcon({iconUrl: '/images/marker_UNK_red30_s.png'}),
+                 'unkRed40Icon': new CPIcon({iconUrl: '/images/marker_UNK_red40_s.png'}),
+                 'unkRed50Icon': new CPIcon({iconUrl: '/images/marker_UNK_red50_s.png'}),
+                 'unkRed60Icon': new CPIcon({iconUrl: '/images/marker_UNK_red60_s.png'}),
+                 'unkRed70Icon': new CPIcon({iconUrl: '/images/marker_UNK_red70_s.png'}),
+                 'unkRed80Icon': new CPIcon({iconUrl: '/images/marker_UNK_red80_s.png'}),
+                 'unkRed90Icon': new CPIcon({iconUrl: '/images/marker_UNK_red90_s.png'}),
+                 'unkBlu10Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu10_s.png'}),
+                 'unkBlu20Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu20_s.png'}),
+                 'unkBlu30Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu30_s.png'}),
+                 'unkBlu40Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu40_s.png'}),
+                 'unkBlu50Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu50_s.png'}),
+                 'unkBlu60Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu60_s.png'}),
+                 'unkBlu70Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu70_s.png'}),
+                 'unkBlu80Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu80_s.png'}),
+                 'unkBlu90Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu90_s.png'})
+             };
              
              
              var markers = {};
              var popups = {};
              
-             console.log(cpdata)
-             var capturePoints = cpdata['capture_points'];
+             console.log(initialGameData)
+
 
              function updateControlPoints(gameState) {
-                 return new Promise(function (resolve, reject) {
-                     console.log('updating control points');
-                     for (cpKey in gameState.controlPoints) {
-                         updateControlPoint(gameState.controlPoints[cpKey], cpKey);
-                     }
-                     resolve();
-                 });
+                 console.log('updating control points');
+                 for (cpKey in gameState.controlPoints) {
+                     console.log(' (pre) updating %s', cpKey);
+                     updateControlPoint(gameState.controlPoints[cpKey], cpKey);
+                 }
              }
 
 
              function updateControlPoint(cpData, cpKey) {
-                 console.log('updating control point');
-                 console.log(cpData);
-                 
-                 // validate data
-                 if (typeof cpData.title !== 'string') {
-                     console.log('data failed validation');
-                     return false;
-                 }
-                 
-                 
-                 // old table data update
-                 //var selector = '#' + cpKey + ' > td:nth-child(2)';
-                 //$(selector).text(data.team.toUpperCase());
-                 function calculatePercentageIcon(cpData) {
+                 return function(cpData, cpKey) {
+                     console.log('updating control point %s', cpKey);
+                     console.log(cpData);
                      
-                     return 
-                 })
-                 
-                 
-                 if (cpData.state === 'red')
-                     markers[cpKey].setIcon(redIcon);
-                 else if (cpData.state === 'blu')
-                     markers[cpKey].setIcon(bluIcon);
-                 else if (cpData.state === 'unk')
-                     markers[cpKey].setIcon(unkIcon);
-                 else if (cpData.state === 'dre' || cpData.state === 'fdr')
-                     markers[cpKey].setIcon(conRedIcon);
-                 else if (cpData.state === 'dbl' || cpData.state === 'fdb')
-                     markers[cpKey].setIcon(conBluIcon);
-                 else if (cpData.state === 'cbl' || cpData.state === 'fcb')
-                     markers[cpKey].setIcon(calculatePercentageIcon(cpData));
-                 else if (cpData.state === 'cre' || cpData.state === 'fcr')
-                     markers[cpKey].setIcon(calculatePercentageIcon(cpData));
-                 else
-                     markers[cpKey].setIcon(unkIcon);
+                     // validate data
+                     if (typeof cpData.title !== 'string') {
+                         console.log('data failed validation');
+                         return false;
+                     }
+                     
+                     
+                     // old table data update
+                     //var selector = '#' + cpKey + ' > td:nth-child(2)';
+                     //$(selector).text(data.team.toUpperCase());
+                     function calculatePercentageIcon(cpData, state) {
+                         var lastUpdateMoment = moment(cpData.updateTime);
+                         var timerMs = initialGameData.timers[state];
+                         var nowMoment = moment();
+                         var msSinceLastUpdate = nowMoment.valueOf() - moment(lastUpdateMoment).valueOf();
+                         var percentageComplete = msSinceLastUpdate / timerMs * 100;
+                         var nearestTenthComplete = Math.ceil((percentageComplete+1)/10)*10;
+                         var color = state === 'cbl' || state === 'fcb' ? 'Blu' : 'Red';
+                         var iconName = nearestTenthComplete < 91 ? 'unk'+color+nearestTenthComplete+'Icon' : color.toLowerCase()+'Icon';
+                         console.log('choosing icon %s', iconName);
+                         return icons[iconName];
+                     }
+                     
+                     
+                     console.log('setting icon %s', cpKey);
+                     if (cpData.state === 'red')
+                         markers[cpKey].setIcon(icons['redIcon']);
+                     else if (cpData.state === 'blu')
+                         markers[cpKey].setIcon(icons['bluIcon']);
+                     else if (cpData.state === 'unk')
+                         markers[cpKey].setIcon(icons['unkIcon']);
+                     else if (cpData.state === 'dre' || cpData.state === 'fdr')
+                         markers[cpKey].setIcon(icons['conRedIcon']);
+                     else if (cpData.state === 'dbl' || cpData.state === 'fdb')
+                         markers[cpKey].setIcon(icons['conBluIcon']);
+                     else if (cpData.state === 'cbl' || cpData.state === 'fcb')
+                         markers[cpKey].setIcon(calculatePercentageIcon(cpData, cpData.state));
+                     else if (cpData.state === 'cre' || cpData.state === 'fcr')
+                         markers[cpKey].setIcon(calculatePercentageIcon(cpData, cpData.state));
+                     else
+                         markers[cpKey].setIcon(icons['unkIcon']);
+                 }(cpData, cpKey)
              }
 
              function onClickedButton(key, cp, state) {
@@ -134,9 +145,9 @@
              }
 
 
-             for (var key in capturePoints) {
-                 if (capturePoints.hasOwnProperty(key)) {
-                     var cp = capturePoints[key];
+             for (var key in initialGameData.controlPoints) {
+                 if (initialGameData.controlPoints.hasOwnProperty(key)) {
+                     var cp = initialGameData.controlPoints[key];
                      console.log('creating popup')
                      console.log(cp)
                      console.log(key)
@@ -204,20 +215,11 @@
                                      .addTo(gameMap)
                                      .bindPopup(popups[key]);
 
-                     if (cp.initialTeam === 'blu') {
-                         markers[key].setIcon(bluIcon)
-                     }
-
-                     else if (cp.initialTeam === 'red') {
-                         markers[key].setIcon(redIcon);
-                     }
-
-                     else {
-                         markers[key].setIcon(unkIcon);
-                     }                     
                  }
              }
 
+
+             updateControlPoints(initialGameData);
 
              // Goblin Fortress
              //markers['firePit'] = L.marker([47.624529, -117.180074], {icon: bluIcon})

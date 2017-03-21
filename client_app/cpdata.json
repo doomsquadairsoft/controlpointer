@@ -1,5 +1,15 @@
 {
-    "capture_points": {
+    "timers": {
+        "cbl": 1000,
+        "cre": 1000,
+        "fcr": 5000,
+        "fcb": 5000,
+        "dbl": 3000,
+        "dre": 3000,
+        "fdr": 200,
+        "fdb": 200
+    },
+    "controlPoints": {
         "goblinFortress": {
             "latLng": [47.624529, -117.180074],
             "initialTeam": "unk",

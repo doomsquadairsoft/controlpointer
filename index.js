@@ -8,7 +8,9 @@ var fs = require('fs');
 
 
 app.use(express.static('client_app'));
-
+app.get('/livedata.json', function(req, res) {
+    res.json(gameState);
+});
 
 
 var gameState = {
@@ -52,12 +54,15 @@ function loadControlPointData(cb) {
             return cb('the cpdata.json file did not contain valid JSON. using default data.');;
         }
 
-        if (typeof data.capture_points === 'undefined') {
-            return cb('the cpdata.json file did not contain a capture_points object. using default data.');
+        if (typeof data.controlPoints === 'undefined') {
+            return cb('the cpdata.json file did not contain a capturePoints object. using default data.');
         }
 
         // set the game state using control point data
-        gameState.controlPoints = data.capture_points;
+        gameState.controlPoints = data.controlPoints;
+
+        // set timers using values in json file
+        gameState.timers = data.timers;
         
         // for each control point, add some game state objects
         for (cp in gameState.controlPoints) {
