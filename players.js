@@ -32,6 +32,7 @@ console.log('%s BLU players, %s RED players', options.blu, options.red);
 var classes = require('./client_app/classes.json');
 var faker = require('faker');
 var _ = require('lodash');
+var fs = require('fs');
 
 
 // validate class data
@@ -148,12 +149,12 @@ var redPlayers = getPlayers(options.red, redClasses);
 var bluPlayers = getPlayers(options.blu, bluClasses);
 
 
-console.log('-- red players');
-console.log(redPlayers);
+// write player data to disk as JSON
+var data = {};
+data['red'] = redPlayers;
+data['blu'] = bluPlayers;
 
-
-console.log('-- blu players');
-console.log(bluPlayers);
+fs.writeFileSync('./client_app/players.json', JSON.stringify(data), { 'encoding': 'utf8' });
 
 
 
