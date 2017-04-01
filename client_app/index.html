@@ -44,6 +44,34 @@
                  }
              });
 
+             var timers = {};
+             var lastCpState;
+             
+             function updateIcon(cpKey, cpData) {
+
+                 if (cpData.state === 'cre')
+                     markers[cpKey].setIcon(icons['unkRed10Icon']);
+                 else if (cpData.state === 'cbl')
+                     markers[cpKey].setIcon(icons['unkBlu10Icon']);
+                 else if (cpData.state === 'fcr')
+                     markers[cpKey].setIcon(icons['unkRed30Icon']);
+                 else if (cpData.state === 'fcb')
+                     markers[cpKey].setIcon(icons['unkBlu30Icon']);
+                 else if(cpData.state === 'red')
+                     markers[cpKey].setIcon(icons['redIcon']);
+                 else if (cpData.state === 'blu')
+                     markers[cpKey].setIcon(icons['bluIcon']);
+                 else if (cpData.state === 'unk')
+                     markers[cpKey].setIcon(icons['unkIcon']);
+                 else if (cpData.state === 'dre' || cpData.state === 'fdr')
+                     markers[cpKey].setIcon(icons['conRedIcon']);
+                 else if (cpData.state === 'dbl' || cpData.state === 'fdb')
+                     markers[cpKey].setIcon(icons['conBluIcon']);
+                 else
+                     markers[cpKey].setIcon(icons['unkIcon']);
+
+             }
+             
              var icons = {
                  'redIcon': new CPIcon({iconUrl: '/images/marker_RED_s.png'}),
                  'bluIcon': new CPIcon({iconUrl: '/images/marker_BLU_s.png'}),
@@ -70,11 +98,27 @@
                  'unkBlu90Icon': new CPIcon({iconUrl: '/images/marker_UNK_blu90_s.png'})
              };
              
+             function calculatePercentageIcon(cpData, state) {
+                 var lastUpdateMoment = moment(cpData.updateTime);
+                 var timerMs = initialGameData.timers[state];
+                 var nowMoment = moment();
+                 var msSinceLastUpdate = nowMoment.valueOf() - moment(lastUpdateMoment).valueOf();
+                 var percentageComplete = msSinceLastUpdate / timerMs * 100;
+                 var nearestTenthComplete = Math.ceil((percentageComplete+1)/10)*10;
+                 var color = state === 'cbl' || state === 'fcb' ? 'Blu' : 'Red';
+                 var iconName = nearestTenthComplete < 91 ? 'unk'+color+nearestTenthComplete+'Icon' : 'unk'+color+'90Icon';
+                 console.log('choosing icon %s', iconName);
+                 return icons[iconName];
+             }
+
              
              var markers = {};
              var popups = {};
+             var localCpState = {};
              
              console.log(initialGameData)
+
+
 
 
              function updateControlPoints(gameState) {
@@ -101,37 +145,15 @@
                      // old table data update
                      //var selector = '#' + cpKey + ' > td:nth-child(2)';
                      //$(selector).text(data.team.toUpperCase());
-                     function calculatePercentageIcon(cpData, state) {
-                         var lastUpdateMoment = moment(cpData.updateTime);
-                         var timerMs = initialGameData.timers[state];
-                         var nowMoment = moment();
-                         var msSinceLastUpdate = nowMoment.valueOf() - moment(lastUpdateMoment).valueOf();
-                         var percentageComplete = msSinceLastUpdate / timerMs * 100;
-                         var nearestTenthComplete = Math.ceil((percentageComplete+1)/10)*10;
-                         var color = state === 'cbl' || state === 'fcb' ? 'Blu' : 'Red';
-                         var iconName = nearestTenthComplete < 91 ? 'unk'+color+nearestTenthComplete+'Icon' : color.toLowerCase()+'Icon';
-                         console.log('choosing icon %s', iconName);
-                         return icons[iconName];
-                     }
+
                      
                      
                      console.log('setting icon %s', cpKey);
-                     if (cpData.state === 'red')
-                         markers[cpKey].setIcon(icons['redIcon']);
-                     else if (cpData.state === 'blu')
-                         markers[cpKey].setIcon(icons['bluIcon']);
-                     else if (cpData.state === 'unk')
-                         markers[cpKey].setIcon(icons['unkIcon']);
-                     else if (cpData.state === 'dre' || cpData.state === 'fdr')
-                         markers[cpKey].setIcon(icons['conRedIcon']);
-                     else if (cpData.state === 'dbl' || cpData.state === 'fdb')
-                         markers[cpKey].setIcon(icons['conBluIcon']);
-                     else if (cpData.state === 'cbl' || cpData.state === 'fcb')
-                         markers[cpKey].setIcon(calculatePercentageIcon(cpData, cpData.state));
-                     else if (cpData.state === 'cre' || cpData.state === 'fcr')
-                         markers[cpKey].setIcon(calculatePercentageIcon(cpData, cpData.state));
-                     else
-                         markers[cpKey].setIcon(icons['unkIcon']);
+                     localCpState[cpKey] = cpData.state;
+
+                     updateIcon(cpKey, cpData);
+
+                     
                  }(cpData, cpKey)
              }
 

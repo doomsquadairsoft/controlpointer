@@ -1,0 +1,82 @@
+{
+    "medic":
+    {
+        "perTeam": 1,
+        "priority": 1,
+        "name": "Medic",
+        "loadout": [
+            "Assault Rifle",
+            "Pistol",
+            "Bandages"
+        ],
+        "abilities": [
+            "Teammate-heal"
+        ]
+    },
+
+    "captain":
+    {
+        "perTeam": 1,
+        "priority": 2,
+        "name": "Captain",
+        "loadout": [
+            "Assault Rifle",
+            "Pistol",
+            "Bandages"
+        ],
+        "abilities": [
+            "Self-heal"
+        ]
+    },
+
+    "sapper":
+    {
+        "perTeam": 1,
+        "priority": 3,
+        "name": "Sapper",
+        "loadout": [
+            "Assault Rifle",
+            "Pistol",
+            "Satchel charge",
+            "Trip-wire booby trap"
+        ],
+        "abilities": [
+            "Sabotage"
+        ]
+    },
+
+    "grenadier":
+    {
+        "perTeam": 1,
+        "priority": 4,
+        "name": "grenadier",
+        "tagline": "You have an unsatisfiable lust for throwing things that go boom.",
+        "loadout": [
+            "Assault Rifle",
+            "Pistol",
+            "High-output smoke grenade",
+            "Frag grenade"
+        ],
+        "abilities": [
+            "Smokescreen"
+        ]
+    },
+
+    "assault": 
+    {
+        "perTeam": -1,
+        "priority": 5,
+        "name": "assault",
+        "tagline": "Ace shooter extraordinaire! Your team relies on you for high speed, low drag tactical response.",
+        "loadout": [
+            "Assault Rifle",
+            "Pistol",
+            "Smoke grenade"
+        ],
+        "abilities": [
+            "Bounty"
+        ]
+    }
+}
+
+

@@ -1,13 +1,13 @@
 {
     "timers": {
-        "cbl": 1000,
-        "cre": 1000,
+        "cbl": 10000,
+        "cre": 10000,
         "fcr": 5000,
         "fcb": 5000,
-        "dbl": 3000,
-        "dre": 3000,
-        "fdr": 200,
-        "fdb": 200
+        "dbl": 10000,
+        "dre": 10000,
+        "fdr": 5000,
+        "fdb": 5000
     },
     "controlPoints": {
         "goblinFortress": {

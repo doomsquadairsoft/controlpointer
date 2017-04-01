@@ -5,12 +5,12 @@ var io = require('socket.io')(http);
 var Promise = require('bluebird');
 var moment = require('moment');
 var fs = require('fs');
+var cookieParser = require('cookie-parser');
 
-
+app.use(cookieParser())
 app.use(express.static('client_app'));
-app.get('/livedata.json', function(req, res) {
-    res.json(gameState);
-});
+
+
 
 
 var gameState = {
@@ -19,25 +19,24 @@ var gameState = {
         'red': true,
         'blu': true
     },
-    /* 'controlPoints': {}
-     *     'town': {
-     *         'controllingTeam': 'blu',
-     *         'capturedTime': this.gameStartTime
-     *     },
-     *     'tower': {
-     *         'controllingTeam': 'red',
-     *         'capturedTime': this.gameStartTime
-     *     },
-     *     'firePit': {
-     *         'controllingTeam': null,
-     *         'capturedTime': null
-     *     },
-     *     'bridge': {
-     *         'controllingTeam': null,
-     *         'capturedTime': null
-     *     }*/
-    //}
+    'players': {
+        
+    },
+    'deathTickets': {
+        'red': 50,
+        'blu': 50
+    },
+    // [controlPoints] is set using data from ./client_app/cpdata.json
 };
+
+
+var medic = require('./medic')(app, gameState);
+
+app.get('/livedata.json', function(req, res) {
+    console.log('Cookies: ', req.cookies);
+    res.json(gameState);
+});
+
 
 
 function loadControlPointData(cb) {
@@ -366,8 +365,8 @@ loadControlPointData(function(err) {
         });
     });
     
-    http.listen(3000, function(){
-        console.log('listening on *:3000');
+    http.listen(5000, function(){
+        console.log('listening on *:5000');
     });
 
 });
