@@ -26,13 +26,16 @@ if (typeof options.blu === 'undefined' || typeof options.red === 'undefined') {
 console.log('%s BLU players, %s RED players', options.blu, options.red);
 
 
-//var hb = require('handlebars');
 
 
+var Handlebars = require('handlebars');
 var classes = require('./client_app/classes.json');
 var faker = require('faker');
 var _ = require('lodash');
 var fs = require('fs');
+var path = require('path');
+var child_process = require('child_process');
+var os = require('os');
 
 
 // validate class data
@@ -98,7 +101,6 @@ function getClasses(teamCount, classes) {
 
 
 function getPlayers(teamCount, classes) {
-
     // for each player, assign them a random class
     classes = _.shuffle(classes);
     var players = [];
@@ -112,6 +114,10 @@ function getPlayers(teamCount, classes) {
         player.loadout = classes[i].loadout;
         player.abilities = classes[i].abilities;
         player.tagline = classes[i].tagline;
+        var command = path.join(os.homedir(), 'phantom/bin/phantomjs');;
+        var args = [path.resolve('./face.js')];
+        var picture = child_process.spawnSync(command, args).stdout;
+        player.picture = picture;
         players.push(player);
     }
     
@@ -153,14 +159,30 @@ var bluPlayers = getPlayers(options.blu, bluClasses);
 var data = {};
 data['red'] = redPlayers;
 data['blu'] = bluPlayers;
-
 fs.writeFileSync('./client_app/players.json', JSON.stringify(data), { 'encoding': 'utf8' });
 
 
+// use data to generate an html template (used for printing cards)
+console.log(data);
+Handlebars.registerHelper('uppercase', function(options) {
+    return options.fn(this).toUpperCase();
+});
+Handlebars.registerHelper('bullet', function(items, options) {
+    var out = "<ul>";
+    for (var i=0, l=items.length; i<l; i++) {
+        out = out + "<li>" + items[i] + "</li>";
+    }
+    out = out + "</ul>";
+    return new Handlebars.SafeString(out);
+});
+Handlebars.registerHelper('date', function(dateObject) {
+    return (dateObject.getMonth()+1)+'/'+dateObject.getDate()+'/'+dateObject.getFullYear();
+})
 
+var templateFile = fs.readFileSync('./templates/identity.hbs', { 'encoding': 'utf8' });
+var template = Handlebars.compile(templateFile);
+var html = template(data);
 
+fs.writeFileSync('./client_app/players.html', html, { 'encoding': 'utf8' });
 
-
-
-
-
+console.log('HTML written. Open this file in your browser and print. file://%s ', path.resolve('./client_app/players.html'));
