@@ -1,0 +1,36 @@
+        <div class="border-{{ color }} border">
+            <div class="headerzone"></div>
+            <div class="facecolumn">
+                <div class="face">
+                  <img src="{{ picture }}" />
+                </div>
+            </div>
+            <div class="list">
+                <table class="info">
+                    <tr>
+                        <td class="name_heading" class="heading">Name:</td>
+                        <td class="name_data">{{ firstName }} {{ lastName }}</td>
+                    </tr>
+                    <tr>
+                        <td class="dob_heading" class="heading">DOB:</td>
+                        <td class="dob_data">{{#date dob}}{{/date}}</td>
+                    </tr>
+                    <tr>
+                        <td class="id_heading" class="heading">ID No:</td>
+                        <td class="id_data">{{#uppercase}}{{ id }}{{/uppercase}}</td>
+                    </tr>
+                    <tr>
+                        <td class="loadout_heading" class="heading">Loadout:</td>
+                        <td class="loadout_data">{{#bullet loadout}}{{/bullet}}</td>
+                    </tr>
+                    <tr>
+                        <td class="abilities_heading" class="heading">Special Abilities:</td>
+                        <td class="abilities_data">{{#bullet abilities}}{{/bullet}}</td>
+                    </tr>
+                </table>
+
+                <div class="largename">{{#uppercase}}{{ lastName }}{{/uppercase}}, {{#uppercase}}{{ firstName }}{{/uppercase}}</div>
+                <div class="classname">{{#uppercase}}{{ class }}{{/uppercase}}</div>
+            </div>
+        </div>
+        <div class="break"></div>

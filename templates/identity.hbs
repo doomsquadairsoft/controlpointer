@@ -1,0 +1,33 @@
+<html>
+    <head>
+      <style>
+        @page {
+        size: 6in 4in;
+        margin: 3mm 3mm 3mm 3mm;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+         body { padding: 0; margin: 0; font: 13px Helvetica, Arial; }
+         .border { width: 100%; height: 95mm; }
+         .break { break-after: always; break-inside: avoid; margin-bottom: 10px; }
+         .border-red { border: 2px solid red; }
+         .border-blu { border: 2px solid blue; }
+         .border::after { content: ""; display: block; clear: both; }
+         .headerzone { width: 100%; height: 10vw;; }
+         .facecolumn { height: auto; margin-right: 2vw; margin-left: 1vw; margin-top: 3vw; }
+         .face { width: 1in; height: 1in; border: 1px solid grey; }
+         .heading { font-color: darkgrey; }
+         table { border-spacing: 2vw; table-layout: fixed; }
+         td { font-size: 2vw; vertical-align: top; list-style-position: inside; }
+         .largename { width: 100%; font-size: 4vw; text-align: center; margin-top: 1vw; }
+         .classname { width: 100%; font-size: 3vw; text-align: center; margin-bottom: 2vw; }
+        </style>
+    </head>
+    <body>
+      {{#each red}}
+      {{> idCard color="red" }}
+      {{/each}}
+      {{#each blu}}
+      {{> idCard color="blu" }}
+      {{/each}}
+    </body>
+</html>

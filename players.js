@@ -76,13 +76,13 @@ function getClasses(teamCount, classes) {
             for (i=0; i < thisClass.perTeam; i++) {
                 if (createdPlayerCount < teamCount) {
                     // create a new player if this team is not populated yet
-                    console.log('adding %s to output. i=%s, thisClass.perTeam=%s, createdPlayerCount=%s, teamCount=%s',
-                                thisClass.name,
-                                i,
-                                thisClass.perTeam,
-                                createdPlayerCount,
-                                teamCount
-                               );
+                    // console.log('adding %s to output. i=%s, thisClass.perTeam=%s, createdPlayerCount=%s, teamCount=%s',
+                    //             thisClass.name,
+                    //             i,
+                    //             thisClass.perTeam,
+                    //             createdPlayerCount,
+                    //             teamCount
+                    //            );
                     output.push(thisClass);
                     createdPlayerCount += 1;
                 }
@@ -117,7 +117,7 @@ function getPlayers(teamCount, classes) {
         var command = path.join(os.homedir(), 'phantom/bin/phantomjs');;
         var args = [path.resolve('./face.js')];
         var picture = child_process.spawnSync(command, args).stdout;
-        player.picture = picture;
+        player.picture = picture.toString().split(/\r\n|\r|\n/g)[0]
         players.push(player);
     }
     
@@ -164,6 +164,8 @@ fs.writeFileSync('./client_app/players.json', JSON.stringify(data), { 'encoding'
 
 // use data to generate an html template (used for printing cards)
 console.log(data);
+var idCardFile = fs.readFileSync('./templates/idcard.hbs', { 'encoding': 'utf8' });
+Handlebars.registerPartial('idCard', idCardFile);
 Handlebars.registerHelper('uppercase', function(options) {
     return options.fn(this).toUpperCase();
 });
