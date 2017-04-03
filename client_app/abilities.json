@@ -1,0 +1,7 @@
+{
+    "Self-heal": { "self_target": true },
+    "Smokescreen": { "self_target": true },
+    "Bounty": { "self_target": false },
+    "Sabotage": { "self_target": false },
+    "Teammate-heal": { "self_target": false }
+}

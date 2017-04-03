@@ -6,36 +6,38 @@ var Promise = require('bluebird');
 var moment = require('moment');
 var fs = require('fs');
 var cookieParser = require('cookie-parser');
+var gameState = require('./state');
+var path = require('path');
 
 app.use(cookieParser())
 app.use(express.static('client_app'));
 
 
 
-
-var gameState = {
-    'gameStartTime': moment(),
-    'teams': {
-        'red': true,
-        'blu': true
-    },
-    'players': {
-        
-    },
-    'deathTickets': {
-        'red': 50,
-        'blu': 50
-    },
-    // [controlPoints] is set using data from ./client_app/cpdata.json
-};
-
-
-var medic = require('./medic')(app, gameState);
-
 app.get('/livedata.json', function(req, res) {
     console.log('Cookies: ', req.cookies);
     res.json(gameState);
 });
+
+app.get('/qr', function(req, res) {
+    var Handlebars = require('handlebars');
+    fs.readFile(path.resolve('./templates/qr.hbs'), {'encoding': 'utf8'}, function(err, source) {
+        if (err) return res.send(err);
+        var context = gameState;
+        var template = Handlebars.compile(source);
+        res.send(template(context));
+    });
+});
+
+
+function loadAbilitiesData(cb) {
+    fs.readFile('./client_app/abilities.json', function(err, file) {
+        if (err) throw new Error('the abilities.json file was not readablle.');
+        var data;
+        try { data = JSON.parse(file); }
+        catch(e) { throw new Error('the abilities.json file did not contain valid JSON'); }
+    });
+}
 
 
 
@@ -70,12 +72,71 @@ function loadControlPointData(cb) {
             gameState.controlPoints[cp].capturedTime = null;
         }
 
-        console.log('game state initialized from JSON!');
+        console.log('++ control point data initialized from JSON!');
         console.log(gameState.controlPoints);
         return cb(null);
         
     });
 }
+
+function loadClassData(cb) {
+    fs.readFile('./client_app/classes.json', function(err, file) {
+        if (err) {
+            throw new Error('the classes.json file was not readable. BORKING!');
+        }
+        
+        var data;
+        try {
+            data = JSON.parse(file);
+        }
+        catch(e) {
+            throw new Error('the classes.json file did not contain valid JSON'+e);
+        }
+        gameState.classes = data;
+
+        console.log('++ classes data initialized from JSON!');
+        console.log(gameState.classes);
+        return cb(null);
+
+    })
+}
+    
+
+function loadPlayerData(cb) {
+    fs.readFile('./client_app/players.json', function(err, file) {
+        if (err) {
+            throw new Error('the players.json file was not readable. BORKING!');
+        }
+
+        var data;
+        try {
+            data = JSON.parse(file);
+        }
+        catch(e) {
+            throw new Error('the players.json file did not contain valid JSON'+e);
+        }
+        if (typeof data.red === 'undefined') {
+            throw new Error('the players.json file did not contain red player data');
+        }
+        if (typeof data.blu === 'undefined') {
+            throw new Error('the players.json file did not contain blu player data');
+        }
+        gameState.players = data;
+
+        // for each player, add an affiliation property
+        for (pl in gameState.players.red)
+            gameState.players.red[pl].affiliation = 'red';
+        for (pl in gameState.players.blu)
+            gameState.players.blu[pl].affiliation = 'blu';
+
+
+        console.log('++ player data initialized from JSON!');
+        console.log(gameState.players);
+        return cb(null);
+        
+    });
+}
+
 
 function validateStateChange(oldState, reportedState) {
     return new Promise(function (resolve, reject) {
@@ -291,84 +352,101 @@ function endGame(controlPoint, team, captureTime, message) {
 
 
 loadControlPointData(function(err) {
-
-    if (err) {
-        console.error(err);
-    }
-
-    io.on('connection', function(socket){
-        console.log('a user connected');
-        
-        socket.on('querystate', function(data) {
-            io.emit('state', { state: gameState });
-        });
-        
-        socket.on('sitrep', function(data) {
-            console.log('state update report received');
-            console.log(data);
+    if (err) console.error(err);
+    loadPlayerData(function(err) {
+        if (err) console.error(err);
+        loadClassData(function(err) {
+            if (err) console.error(err);
+            loadAbilitiesData(function(err) {
+                if (err) console.error(err);
             
-            var controlPoint, state;
-            typeof data.controlPoint === 'undefined' ? controlPoint = null : controlPoint = data.controlPoint;
-            typeof data.state === 'undefined' ? state = null : state = data.state;
-            
-            return updateState(controlPoint, state)
-                .then(function(result) {
-                    var controlPoint = result.controlPoint;
-                    var state = result.state
-                    var updateTime = result.updateTime;
+                io.on('connection', function(socket){
+                    console.log('a user connected');
                     
-                    console.log('control point %s changed to state %s at %s', controlPoint, state, updateTime.format());
-                    io.emit('state', gameState);
-
-                    //checkWinConditions(controlPoint, , updateTime)
-                    //.then(function(res) {
-                    //    endGame(res.controlPoint, res.team, res.updateTime, res.message);
-                    //})
-                    //.catch(function(reason) {
-                    //    console.log('no win condition satisfied. reason is "%s"', reason);
-                    //});
-                })
-                .catch(function(reason) {
-                    console.log('no state change condition satisfied. reason is "%s"', reason);
-                });
-        });
-
-        socket.on('capture', function(data) {
-            console.log('capture report received');
-            console.log(data);
-            var controlPoint = data.controlPoint;
-            var team = data.team;
-            capture(controlPoint, team)
-                .then(function(result) {
-                    var controlPoint = result.controlPoint;
-                    var team = result.team;
-                    var captureTime = result.captureTime;
-                    console.log('control point %s captured by team %s at %s', controlPoint, team, captureTime.format());
-                    io.emit('update', {'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
+                    socket.on('querystate', function(data) {
+                        io.emit('state', { state: gameState });
+                    });
                     
-                    // check win conditions
-                    checkWinConditions(controlPoint, team, captureTime)
-                        .then(function(res) {
-                            endGame(res.controlPoint, res.team, res.captureTime, res.message);
-                        })
-                        .catch(function(reason) {
-                            console.log('no win condition satisfied. reason is "%s"', reason);
-                        });
-                })
-                .catch(function(reason) {
-                    console.log('no capture condition satisfied. reason is "%s"', reason);
+                    socket.on('sitrep', function(data) {
+                        console.log('state update report received');
+                        console.log(data);
+                        
+                        var controlPoint, state;
+                        typeof data.controlPoint === 'undefined' ? controlPoint = null : controlPoint = data.controlPoint;
+                        typeof data.state === 'undefined' ? state = null : state = data.state;
+                        
+                        return updateState(controlPoint, state)
+                            .then(function(result) {
+                                var controlPoint = result.controlPoint;
+                                var state = result.state
+                                var updateTime = result.updateTime;
+                                
+                                console.log('control point %s changed to state %s at %s', controlPoint, state, updateTime.format());
+                                io.emit('state', gameState);
+                                
+                                //checkWinConditions(controlPoint, , updateTime)
+                                //.then(function(res) {
+                                //    endGame(res.controlPoint, res.team, res.updateTime, res.message);
+                                //})
+                                //.catch(function(reason) {
+                                //    console.log('no win condition satisfied. reason is "%s"', reason);
+                                //});
+                            })
+                            .catch(function(reason) {
+                                console.log('no state change condition satisfied. reason is "%s"', reason);
+                            });
+                    });
+                    
+                    socket.on('capture', function(data) {
+                        console.log('capture report received');
+                        console.log(data);
+                        var controlPoint = data.controlPoint;
+                        var team = data.team;
+                        capture(controlPoint, team)
+                            .then(function(result) {
+                                var controlPoint = result.controlPoint;
+                                var team = result.team;
+                                var captureTime = result.captureTime;
+                                console.log('control point %s captured by team %s at %s', controlPoint, team, captureTime.format());
+                                io.emit('update', {'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
+                                
+                                // check win conditions
+                                checkWinConditions(controlPoint, team, captureTime)
+                                    .then(function(res) {
+                                        endGame(res.controlPoint, res.team, res.captureTime, res.message);
+                                    })
+                                    .catch(function(reason) {
+                                        console.log('no win condition satisfied. reason is "%s"', reason);
+                                    });
+                            })
+                            .catch(function(reason) {
+                                console.log('no capture condition satisfied. reason is "%s"', reason);
+                            });
+                    });
+                    
+                    socket.on('disconnect', function() {
+                        console.log('user disconnected');
+                    });
                 });
-        });
-        
-        socket.on('disconnect', function() {
-            console.log('user disconnected');
+                
+                http.listen(5000, function(){
+                    console.log('listening on *:5000');
+                });
+                
+                
+                // API initialization
+                var become = require('./become');
+                var medic = require('./medic');
+                become.api(app);
+                medic.api(app, become);
+            });
         });
     });
-    
-    http.listen(5000, function(){
-        console.log('listening on *:5000');
-    });
-
 });
+
+
+
+
+
 
 

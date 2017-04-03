@@ -30,12 +30,14 @@ console.log('%s BLU players, %s RED players', options.blu, options.red);
 
 var Handlebars = require('handlebars');
 var classes = require('./client_app/classes.json');
+var abilities = require('./client_app/abilities.json');
 var faker = require('faker');
 var _ = require('lodash');
 var fs = require('fs');
 var path = require('path');
 var child_process = require('child_process');
 var os = require('os');
+var qr = require('./qr');
 
 
 // validate class data
@@ -109,6 +111,7 @@ function getPlayers(teamCount, classes) {
         player.id = faker.random.alphaNumeric(12);
         player.firstName = faker.name.firstName();
         player.lastName = faker.name.lastName();
+        player.affiliation = 
         player.dob = faker.date.between(new Date('1 Jan 1970'), new Date('25 Dec 1995'));
         player['class'] = classes[i].name;
         player.loadout = classes[i].loadout;
@@ -118,6 +121,10 @@ function getPlayers(teamCount, classes) {
         var args = [path.resolve('./face.js')];
         var picture = child_process.spawnSync(command, args).stdout;
         player.picture = picture.toString().split(/\r\n|\r|\n/g)[0]
+
+        // assign the player QR codes which they can use to interact with the game
+        player.scans = qr.compilePlayer(player);
+        
         players.push(player);
     }
     
@@ -126,6 +133,7 @@ function getPlayers(teamCount, classes) {
     // generate player list like this--
     // {
     //   shu7zojjm67t: {
+    //     affiliation: 'blu',
     //     id: 'shu7zojjm67t',
     //     firstName: Mariam,
     //     lastName: Gusikowski,
