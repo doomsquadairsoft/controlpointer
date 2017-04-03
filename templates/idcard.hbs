@@ -1,11 +1,18 @@
         <div class="border-{{ color }} border">
             <div class="headerzone"></div>
+            <div class="scans-wrapper">
+                <ul class="scans">
+                    {{#scanlist scans}}{{/scanlist}}
+                </ul>
+            </div>
+
+            
             <div class="facecolumn">
                 <div class="face">
                   <img src="{{ picture }}" />
                 </div>
             </div>
-            <div class="list">
+            <div class="data">
                 <table class="info">
                     <tr>
                         <td class="name_heading" class="heading">Name:</td>
@@ -28,6 +35,7 @@
                         <td class="abilities_data">{{#bullet abilities}}{{/bullet}}</td>
                     </tr>
                 </table>
+
 
                 <div class="largename">{{#uppercase}}{{ lastName }}{{/uppercase}}, {{#uppercase}}{{ firstName }}{{/uppercase}}</div>
                 <div class="classname">{{#uppercase}}{{ class }}{{/uppercase}}</div>

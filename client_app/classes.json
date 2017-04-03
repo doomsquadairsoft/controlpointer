@@ -58,7 +58,8 @@
             "Frag grenade"
         ],
         "abilities": [
-            "Smokescreen"
+            "Smokescreen",
+            "bounty"
         ]
     },
 

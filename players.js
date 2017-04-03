@@ -102,7 +102,7 @@ function getClasses(teamCount, classes) {
 }
 
 
-function getPlayers(teamCount, classes) {
+function getPlayers(colour, teamCount, classes) {
     // for each player, assign them a random class
     classes = _.shuffle(classes);
     var players = [];
@@ -111,19 +111,23 @@ function getPlayers(teamCount, classes) {
         player.id = faker.random.alphaNumeric(12);
         player.firstName = faker.name.firstName();
         player.lastName = faker.name.lastName();
-        player.affiliation = 
+        player.affiliation = colour;
         player.dob = faker.date.between(new Date('1 Jan 1970'), new Date('25 Dec 1995'));
         player['class'] = classes[i].name;
         player.loadout = classes[i].loadout;
         player.abilities = classes[i].abilities;
         player.tagline = classes[i].tagline;
-        var command = path.join(os.homedir(), 'phantom/bin/phantomjs');;
-        var args = [path.resolve('./face.js')];
-        var picture = child_process.spawnSync(command, args).stdout;
-        player.picture = picture.toString().split(/\r\n|\r|\n/g)[0]
+        
+        // disabling temporarily because its slow
+        //var command = path.join(os.homedir(), 'phantom/bin/phantomjs');
+        //var args = [path.resolve('./face.js')];
+        //var picture = child_process.spawnSync(command, args).stdout;
+        //player.picture = picture.toString().split(/\r\n|\r|\n/g)[0];
+        player.picture = 'placekitten.com/150/150';
 
         // assign the player QR codes which they can use to interact with the game
         player.scans = qr.compilePlayer(player);
+        console.log(player.scans);
         
         players.push(player);
     }
@@ -159,8 +163,8 @@ var redClasses = getClasses(options.red, classes);
 var bluClasses = getClasses(options.blu, classes);
 
 
-var redPlayers = getPlayers(options.red, redClasses);
-var bluPlayers = getPlayers(options.blu, bluClasses);
+var redPlayers = getPlayers('red', options.red, redClasses);
+var bluPlayers = getPlayers('blu', options.blu, bluClasses);
 
 
 // write player data to disk as JSON
@@ -174,6 +178,13 @@ fs.writeFileSync('./client_app/players.json', JSON.stringify(data), { 'encoding'
 console.log(data);
 var idCardFile = fs.readFileSync('./templates/idcard.hbs', { 'encoding': 'utf8' });
 Handlebars.registerPartial('idCard', idCardFile);
+Handlebars.registerHelper('scanlist', function(items) {
+    var out = '';
+    for (var i=0; i<items.length; i++) {
+        out += '<li class="scan"><span>'+items[i].caption+'</span><div class="img-wrapper"><img src="'+items[i].image+'" /></div></li>';
+    }
+    return new Handlebars.SafeString(out);
+});
 Handlebars.registerHelper('uppercase', function(options) {
     return options.fn(this).toUpperCase();
 });
