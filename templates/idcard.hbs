@@ -2,7 +2,9 @@
             <div class="headerzone"></div>
             <div class="scans-wrapper">
                 <ul class="scans">
-                    {{#scanlist scans}}{{/scanlist}}
+                    {{#each scans}}
+                        {{>qrFigure}}
+                    {{/each}}
                 </ul>
             </div>
 

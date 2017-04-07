@@ -12,6 +12,9 @@ var gameState = require('./state');
 
 module.exports.authorize = function authorize(req, res, next) {
 
+    if (typeof req.controlpointer === 'undefined')
+        req.controlpointer = {};
+
     if (typeof req.query.sourceid === 'undefined')
         return res.send('The request query must contain a sourceid. Did you scan a correct QR code?');
     if (typeof req.query.action === 'undefined')
@@ -22,7 +25,10 @@ module.exports.authorize = function authorize(req, res, next) {
 
     console.log('authing');
     console.log(gameState);
+
     if (typeof req.cookies.auth !== 'undefined') {
+        // the requester has a cookie
+
         var playerData = gameState.players.red.concat(gameState.players.blu);
         var player = _.find(playerData, 'auth');
         if (typeof player === 'undefined') {
@@ -31,7 +37,7 @@ module.exports.authorize = function authorize(req, res, next) {
         else {
             // client is registered as a player in the current game
             // determine if their player can do the action they are wanting to do
-            // do do this, we look up the classes object in game state
+            // to do this, we look up the classes object in game state
             // the classes object should have an array of strings which list the abilities the class can do.
             if (_.indexOf(player.abilities, action) === -1) {
                 return res.send('You cannot do that action because your player identity does not have that ability!');
@@ -75,6 +81,11 @@ module.exports.api = function api(app) {
         
         var playerData = gameState.players.red.concat(gameState.players.blu);
         var player = _.find(playerData, ['id', id]);
+
+        if (typeof player === 'undefined') {
+            // requested player does not exist in this game
+            return res.send('the requesting player does not exist in this round. This can happen if your phone is still registered as an identity from last round. Have you scanned your new ID for this round?');
+        }
 
         var token;
         if (typeof player.token !== 'undefined')

@@ -1,0 +1,32 @@
+        <div class="border">
+            <div class="largename">{{#uppercase}}{{ title }}{{/uppercase}}</div>
+            <hr />
+            <div class="data">
+                <table class="info">
+                    <tr>
+                        <td class="name_heading" class="heading">Lat Lng:</td>
+                        <td class="latlng_data">{{ latLng }}</td>
+                    </tr>
+                    <tr>
+                        <td class="owner_heading" class="heading">Initial Ownership:</td>
+                        <td class="owner_data">{{#uppercase}}{{ initialTeam }}{{/uppercase}}</td>
+                    </tr>
+                    <tr>
+                        <td class="dismantle_heading" class="heading">Dismantle Time:</td>
+                        <td class="dismantle_data">{{#humanize}}{{ dismantleTime }}{{/humanize}}</td>
+                    </tr>
+                    <tr>
+                        <td class="capture_heading" class="heading">Capture Time:</td>
+                        <td class="capture_data">{{#humanize}}{{ captureTime }}{{/humanize}}</td>
+                    </tr>
+                </table>
+                <hr />
+                <div class="scans">
+                    <figure class="scan">
+                        <img src="{{ qr.image }}" />
+                        <figcaption>{{ qr.caption }}</figcaption>
+                    </figure>
+                </div>
+            </div>
+        </div>
+

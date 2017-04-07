@@ -32,10 +32,20 @@ app.get('/qr', function(req, res) {
 
 function loadAbilitiesData(cb) {
     fs.readFile('./client_app/abilities.json', function(err, file) {
-        if (err) throw new Error('the abilities.json file was not readablle.');
+        if (err) {
+            return cb('the abilities.json file was not readable.');
+        }
         var data;
-        try { data = JSON.parse(file); }
-        catch(e) { throw new Error('the abilities.json file did not contain valid JSON'); }
+        try { 
+            data = JSON.parse(file); 
+        }
+        catch(e) { 
+            return cb('the abilities.json file did not contain valid JSON');
+        }
+        gameState.abilities = data;
+        console.log('++ abilities data initialized from JSON!');
+        console.log(gameState.abilities);
+        return cb(null);
     });
 }
 
@@ -402,7 +412,7 @@ loadControlPointData(function(err) {
                         console.log(data);
                         var controlPoint = data.controlPoint;
                         var team = data.team;
-                        capture(controlPoint, team)
+                        capture.capmantle(controlPoint, team)
                             .then(function(result) {
                                 var controlPoint = result.controlPoint;
                                 var team = result.team;
@@ -411,7 +421,7 @@ loadControlPointData(function(err) {
                                 io.emit('update', {'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
                                 
                                 // check win conditions
-                                checkWinConditions(controlPoint, team, captureTime)
+                                capture.checkWinConditions(controlPoint, team, captureTime)
                                     .then(function(res) {
                                         endGame(res.controlPoint, res.team, res.captureTime, res.message);
                                     })
@@ -437,8 +447,10 @@ loadControlPointData(function(err) {
                 // API initialization
                 var become = require('./become');
                 var medic = require('./medic');
+                var capture = require('./capture');
                 become.api(app);
                 medic.api(app, become);
+                capture.api(app);
             });
         });
     });

@@ -1,0 +1,26 @@
+<html>
+    <head>
+      <style>
+        @page {
+        size: 6in 4in;
+        margin: 3mm 3mm 3mm 3mm;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { padding: 0; margin: 0; font: 13px Helvetica, Arial; }
+        .border { width: 100%; height: 95mm; position: relative }
+        .border-red { border: 2px solid red; }
+        .border-blu { border: 2px solid blue; }
+        .border::after { content: ""; display: block; clear: both; }
+        table { border-spacing: 2vw; table-layout: fixed; }
+        td { font-size: 2vw; vertical-align: top; list-style-position: inside; }
+        .largename { width: 100%; font-size: 4vw; text-align: center; margin-top: 1vw; margin-bottom: 3em; }
+        div.scans { margin-top: 2em; }
+        figure.scan { display: block; margin-left: auto; margin-right: auto }
+        </style>
+    </head>
+    <body>
+      {{#each controlPoints}}
+      {{> controlpoint }}
+      {{/each}}
+    </body>
+</html>
