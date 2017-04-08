@@ -1,11 +1,11 @@
         <div class="border-{{ color }} border">
             <div class="headerzone"></div>
             <div class="scans-wrapper">
-                <ul class="scans">
-                    {{#each scans}}
-                        {{>qrFigure}}
-                    {{/each}}
-                </ul>
+                <div class="columns">
+                {{#each scans}}
+                    {{>qrFigure}}
+                {{/each}}
+                </div>
             </div>
 
             

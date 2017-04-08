@@ -36,18 +36,40 @@ var compilePlayer = module.exports.compilePlayer = function compilePlayer(player
             break;
         }
         
+        var ability = abilities[player.abilities[i].toLowerCase()];
+        if (typeof ability.endpoint === 'undefined') {
+            console.error('ability %s must have an endpoint property, but got %s. Breaking!', ability, ability.endpoint);
+            break;
+        }
 
         var scan = {};
         var sourceid = player.id;
-        var action = player.abilities[i];
+        var action = player.abilities[i].toLowerCase();
+        var affiliation = player.affiliation;
+        var cls = player['class'];
 
         scan.caption = player.abilities[i];
-        scan.data = url.resolve(gameState.url, '/interact?sourceid='+sourceid+'&action='+action);
+        
+        if (action === 'register') {
+            scan.data = url.resolve(gameState.url, '/'+ability.endpoint+
+                                                   '?sourceid='+sourceid+
+                                                   '&affiliation='+affiliation+
+                                                   '&class='+cls
+            );
+        }
+
+        else {
+            scan.data = url.resolve(gameState.url, '/'+ability.endpoint+
+                                                   '?sourceid='+sourceid
+            );
+        }
+        
         scan.image = create(scan.data);
-        scan.selfTarget = abilities[player.abilities[i].toLowerCase()].selfTarget;
+        scan.selfSource = abilities[player.abilities[i].toLowerCase()].selfSource;
 
         scans.push(scan);
     }
+
     
     return scans;
 }

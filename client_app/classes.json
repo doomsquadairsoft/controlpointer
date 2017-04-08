@@ -10,7 +10,10 @@
             "Bandages"
         ],
         "abilities": [
-            "Teammate-heal"
+            "Teammate-heal",
+            "capmantle",
+            "register",
+            "healable"
         ]
     },
 
@@ -25,7 +28,10 @@
             "Bandages"
         ],
         "abilities": [
-            "Self-heal"
+            "Self-heal",
+            "capmantle",
+            "healable",
+            "register"
         ]
     },
 
@@ -41,7 +47,10 @@
             "Trip-wire booby trap"
         ],
         "abilities": [
-            "Sabotage"
+            "Sabotage",
+            "capmantle",
+            "register",
+            "healable"
         ]
     },
 
@@ -59,7 +68,10 @@
         ],
         "abilities": [
             "Smokescreen",
-            "bounty"
+            "bounty",
+            "capmantle",
+            "healable",
+            "register"
         ]
     },
 
@@ -75,7 +87,10 @@
             "Smoke grenade"
         ],
         "abilities": [
-            "Bounty"
+            "Bounty",
+            "capmantle",
+            "healable",
+            "register"
         ]
     }
 }

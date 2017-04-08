@@ -180,14 +180,6 @@ var idCardFile = fs.readFileSync('./templates/idcard.hbs', { 'encoding': 'utf8' 
 var qrFigureFile = fs.readFileSync('./templates/qrfigure.hbs', { 'encoding': 'utf8' });
 Handlebars.registerPartial('idCard', idCardFile);
 Handlebars.registerPartial('qrFigure', qrFigureFile);
-Handlebars.registerHelper('scanlist', function(items) {
-    var out = '';
-    for (var i=0; i<items.length; i++) {
-        out += '<li class="scan"><span>'+items[i].caption+'</span><div class="img-wrapper"><a href="'+items[i].data+'"><img src="'+items[i].image+'" /></a></div></li>';
-    }
-    out += '<li class="scan">'+'heal'+'</li>';
-    return new Handlebars.SafeString(out);
-});
 Handlebars.registerHelper('uppercase', function(options) {
     return options.fn(this).toUpperCase();
 });

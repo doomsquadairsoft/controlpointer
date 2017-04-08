@@ -1,7 +1,34 @@
 {
-    "self-heal": { "selfTarget": true },
-    "smokescreen": { "selfTarget": true },
-    "bounty": { "selfTarget": false },
-    "sabotage": { "selfTarget": false },
-    "teammate-heal": { "selfTarget": false }
+    "self-heal": { 
+        "selfSource": true,
+        "endpoint": "heal"
+    },
+    "smokescreen": {
+        "selfSource": true,
+        "endpoint": "smokescreen"
+    },
+    "bounty": { 
+        "selfSource": false,
+        "endpoint": "bounty"
+    },
+    "sabotage": { 
+        "selfSource": false,
+        "endpoint": "sabotage"
+    },
+    "teammate-heal": {
+        "selfSource": false,
+        "endpoint": "heal"
+    },
+    "capmantle": { 
+        "selfSource": false,
+        "endpoint": "capture"
+    },
+    "register": { 
+        "selfSource": true,
+        "endpoint": "become"
+    },
+    "healable": { 
+        "selfSource": true,
+        "endpoint": "heal"
+    }
 }

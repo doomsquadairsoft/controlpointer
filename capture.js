@@ -9,41 +9,120 @@
 var _ = require('lodash');
 var gameState = require('./state');
 var become = require('./become');
+var errors = require('./errors');
 
+
+
+var middlewareCapmantle = function middlewareCapmantle(req, res) {
+    capmantle(req.controlpointer.controlPoint, req.controlpointer.affiliation, req.controlpointer.player)
+        .then(function(result) {
+            return res.send(result);
+        })
+        .catch(function(err) {
+            return res.send(err);
+        });
+}                                                                                                      
+
+
+/**
+* setAction
+*
+*   - sets the action variable in req.controlpointer
+*     which is used by become.authenticate
+*     to determine if a player is allowed to complete this action
+*/
+var setAction = function setAction(req, res, next) {
+
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    req.controlpointer.action = 'capmantle';
+
+    return next();
+
+};
+
+
+
+/**
+ * setPlayer
+ *
+ * using the 
+ */
+var setPlayer = function setPlayer(req, res, next) {
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    
+}
+
+
+
+
+var setAuth = function setAuth(req, res, next) {
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    if (typeof req.cookie.auth === 'undefined')
+        return res.send('You are not authorized. Have you registered as an in-game identity?');
+
+    req.controlpointer.auth = req.cookie.auth
+};
+
+
+var setPlayerFromCookie = function setPlayerFromCookie(req, res, next) {
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    if (typeof req.controlpointer.auth === 'undefined')
+        return res.send("no auth exists on the controlpointer object.");
+
+
+};
+
+
+
+/**
+ * setAffiliation
+ *
+ * sets affiliation var in req.controlpointer
+ */
+var setAffiliation = function setAffiliation(req, res, next) {
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    if (typeof req.query.affiliation === 'undefined')
+        throw new Error('AFFILIATION was missing from the query parameters! Did you scan a QR code?');
+
+    req.controlpointer.affiliation = req.query.affiliation;
+    next();
+}
+
+
+set
+
+/**
+* setControlPoint
+*
+*   - inserts controlPoint variable into req.controlpointer
+*     used later on in this middleware chain in the middlewareCapmantle middleware
+*/
+var setControlPoint = function setControlPoint(req, res, next) {
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+    
+    if (typeof req.query.cp === 'undefined')
+        return res.send('No controlpoint (cp) was in the querystring. did you scan the correct QR code?');
+
+    req.controlpointer.controlPoint = req.query.cp;
+
+    next();
+};
 
 
 
 module.exports.api = function api(app) {
-    app.get('/capture', become.authorize, function(req, res) {
-
-        // make sure there is a cookie.
-        // this is redundant but here for safety
-        // (req.cookie.auth is also checked in become.authorize)
-        if (typeof req.cookie.auth === 'undefined')
-            return res.send('Your phone is not registered as an in-game identity. Did you scan your player ID card?')
-
-        
-        if (typeof req.query.cp === 'undefined') {
-            return res.send('Which capture point are you trying to dismantle/capture? There was no cp in the query parameter.');
-        }
-
-
-        else {
-            var cp = req.query.cp;
-            var authToken = req.cookie.auth;
-            var playerData = gameState.players.red.concat(gameState.players.blu);
-            var player = _.find(playerData, ['auth', authToken]);
-            if (typeof player === 'undefined') {
-                return res.send('The registration data on this phone doesnt match any in-game identities. This can happen if your phone is still registered to an identity from last round. Have you scanned your player ID card this round?');
-            }
-            else {
-                // dismantle/capture the point
-                capmantle(player, player.affiliation, cp).then(function(result) {
-                    return res.send(result);
-                })
-            }
-        }
-    });
+    app.get('/capture', become.init, setAction, setControlPoint, become.authorize, middlewareCapmantle);
 }
 
 
@@ -187,7 +266,7 @@ module.exports.updateState = function updateState(controlPoint, reportedState) {
 }
 
 
-module.exports.capmantle = function capture(controlPoint, team, player) {
+var capmantle = module.exports.capmantle = function capmantle(controlPoint, team, player) {
     return new Promise(function (resolve, reject) {
         
         // make sure controlpoint exists in game state
@@ -195,6 +274,7 @@ module.exports.capmantle = function capture(controlPoint, team, player) {
             return reject('The controlpoint the client claims to have captured does not exist in the game!');
 
         // make sure team exists in game state
+        console.log('>capture ::::: checking team %s', team);
         if (typeof gameState.teams[team] === 'undefined')
             return reject('The team the client claims to belong to does not exist in the game!');
 
