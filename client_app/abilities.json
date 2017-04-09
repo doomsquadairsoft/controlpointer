@@ -1,4 +1,8 @@
 {
+    "claim": {
+        "selfSource": false,
+        "endpoint": null
+    },
     "self-heal": { 
         "selfSource": true,
         "endpoint": "heal"
@@ -21,7 +25,7 @@
     },
     "capmantle": { 
         "selfSource": false,
-        "endpoint": "capture"
+        "endpoint": null
     },
     "register": { 
         "selfSource": true,

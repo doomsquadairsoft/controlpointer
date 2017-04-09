@@ -23,6 +23,25 @@ var init = module.exports.init = function init(req, res, next) {
     return next();
 }
 
+/**
+* setAction
+*
+*   - sets the action variable in req.controlpointer
+*     which is used by become.authenticate
+*     to determine if a player is allowed to complete this action
+*/
+var setAction = module.exports.setAction = function setAction(req, res, next) {
+
+    if (typeof req.controlpointer === 'undefined')
+        throw new controlpointerUndefinedErr;
+
+    req.controlpointer.action = 'capmantle';
+
+    return next();
+
+};
+
+
 
 /**
  * become.authorize
@@ -37,7 +56,7 @@ var init = module.exports.init = function init(req, res, next) {
 var authorize = module.exports.authorize = function authorize(req, res, next) {
 
     if (typeof req.controlpointer === 'undefined')
-        throw new errors.controlpointerMissing;
+        throw errors.controlpointerUndefinedErr;
 
     if (typeof req.controlpointer.action === 'undefined')
         return res.send('The request query must contain an action. Did you scan a correct QR code?');

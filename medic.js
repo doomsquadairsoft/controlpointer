@@ -50,7 +50,7 @@ var healPlayer = function healPlayer(player) {
 
 
 module.exports.api = function api(app, become) {
-    app.get('/medic/heal', become.authorize, function(req, res) {
+    app.get('/medic/heal', become.init, become.setAction, become.authorize, function(req, res) {
         
         if (typeof req.query.targetid === 'undefined') {
             res.send('Heal? Heal WHO? Did you scan the QR code or are you A HAXXOR!?');

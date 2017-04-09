@@ -8,6 +8,7 @@ var fs = require('fs');
 var cookieParser = require('cookie-parser');
 var gameState = require('./state');
 var path = require('path');
+var timer = require('./timer');
 
 app.use(cookieParser())
 app.use(express.static('client_app'));
@@ -77,9 +78,10 @@ function loadControlPointData(cb) {
         
         // for each control point, add some game state objects
         for (cp in gameState.controlPoints) {
-            gameState.controlPoints[cp].state = null;
-            gameState.controlPoints[cp].controllingTeam = null;
-            gameState.controlPoints[cp].capturedTime = null;
+            var c = gameState.controlPoints[cp];
+            c.state = c.initialTeam;
+            c.controllingTeam = null;
+            c.capturedTime = null;
         }
 
         console.log('++ control point data initialized from JSON!');
@@ -369,6 +371,8 @@ loadControlPointData(function(err) {
             if (err) console.error(err);
             loadAbilitiesData(function(err) {
                 if (err) console.error(err);
+
+                timer.start();
             
                 io.on('connection', function(socket){
                     console.log('a user connected');
@@ -406,7 +410,7 @@ loadControlPointData(function(err) {
                                 console.log('no state change condition satisfied. reason is "%s"', reason);
                             });
                     });
-                    
+
                     socket.on('capture', function(data) {
                         console.log('capture report received');
                         console.log(data);
