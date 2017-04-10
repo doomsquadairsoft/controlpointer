@@ -34,12 +34,28 @@ var tick = module.exports.tick = function tick() {
     var cps = gameState.controlPoints;
     for (var c in cps) {
         var state = cps[c].state;
-        var updateTime    = moment(cps[c].updateTime);
-        var relevantTimer = gameState.timers['cbl'];
-        var dueTime       = moment(updateTime).add(relevantTimer, 'ms');
-        if (moment().isAfter(dueTime)) {
-            console.log('%s is overdue for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state);
-            return capture.advance(c);
+        if (state === 'unk' || state === 'red' || state === 'blu') {
+            console.log('state=%s cp=%s so doing nothing', state, c);
+        }
+        else {
+            var updateTime    = moment(cps[c].updateTime);
+            var relevantTimer = gameState.timers[state];
+            var dueTime       = moment(updateTime).add(relevantTimer, 'ms');
+            var direction     = cps[c].direction;
+            if (moment().isAfter(dueTime)) {
+                console.log('%s is overdue for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
+                
+                return capture.advance(c, direction)
+                              .then(function(result) {
+                                  console.log(result);
+                              })
+                              .catch(function(err) {
+                                  console.error(err);
+                              })
+            }
+            else {
+                console.log('%s is not due for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
+            }
         }
     }
 }

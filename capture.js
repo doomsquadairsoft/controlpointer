@@ -157,11 +157,15 @@ var advance = module.exports.advance = function advance(cpName, player) {
         if (typeof gameState.controlPoints[cpName] === 'undefined')
             return reject('cannot advance controlpoint %s because that name is not in the game state', cpName);
 
-        if (typeof player === 'undefined')
-            return reject('second param to capture.advance must be a player object');
+        if (typeof player === 'undefined' || !player)
+            return reject('second param to capture.advance must be a player object or {string} team name. got '+player);
         
-        if (typeof player.affiliation === 'undefined')
-            return reject('the player object must have an affilation property. got undefined');
+        if (typeof player.affiliation === 'undefined') {
+            if (player !== 'red' && player !== 'blu')
+                return reject('the player object must have an affilation property. got undefined');
+            // special case where a teamname is given instead of player object
+            player = { 'affiliation': player, 'abilities': ['capmantle'], 'firstName': 'game', 'lastName': 'timer' };
+        }
 
         if (typeof player.abilities === 'undefined')
             return reject('the player object must have an abilities property. got undefined');
@@ -319,7 +323,9 @@ var advance = module.exports.advance = function advance(cpName, player) {
 
         }
         cp.state = state;
-        return resolve({'state': state, 'controlpoint': cp, 'gameState': gameState});
+        cp.direction = team;
+        cp.updateTime = moment();
+        return resolve({'state': state, 'controlpoint': cp, 'gameState': gameState });
 
     });
 };
@@ -329,7 +335,7 @@ module.exports.api = function api(app) {
 }
 
 
-module.exports.validateStateChange = function validateStateChange(oldState, reportedState) {
+var validateStateChange = module.exports.validateStateChange = function validateStateChange(oldState, reportedState) {
     return new Promise(function (resolve, reject) {
 
         if (oldState === null) oldState = 'unk';
@@ -586,3 +592,118 @@ module.exports.endGame = function endGame(controlPoint, team, captureTime, messa
 }
 
 
+function validateStateChange(oldState, reportedState) {
+    return new Promise(function (resolve, reject) {
+        var possibleStates = [
+            'red', // RED, uncontested
+            'blu', // BLU, uncontested
+            'unk', // UNCAPTURED
+            'dbl', // BLU, dismantling
+            'dre', // RED, dismantling
+            'fdb', // BLU, fast dismantling
+            'fdr', // RED, fast dismantling
+            'cbl', // BLU, capturing
+            'cre', // RED, capturing
+            'fcb', // BLU, fast capturing
+            'fcr', // RED, fast capturing
+        ];
+
+        if (oldState === null) oldState = 'unk';
+
+        // UNCAPTURED can change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'
+        if (oldState === 'unk') {
+            if (reportedState === 'cbl' || reportedState === 'cre' || reportedState === 'fcb' || reportedState === 'fcr')
+                resolve(reportedState);
+            else
+                reject("UNCAPTURED must change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'.");
+        }
+                    
+        // 'BLU, uncontested' can change to 'BLU, dismantling', or 'BLU, fast dismantling'
+        if (oldState === 'blu') {
+            if (reportedState === 'dbl' || reportedState === 'fdb')
+                resolve(reportedState);
+            else 
+                reject("BLU must change to 'BLU, dismantling', or 'BLU, fast dismantling'");
+        }
+
+        // 'RED, uncontested' can change to 'RED, dismantling', or 'RED, fast dismantling'
+        if (oldState === 'red') {
+            if (reportedState === 'dre' || reportedState === 'fdr')
+                resolve(reportedState);
+            else
+                reject("RED must change to 'RED, dismantling', or 'RED, fast dismantling'");
+        }
+
+
+        // 'BLU, dismantling' can change to 'BLU, uncontested', or UNCAPTURED
+        if (oldState === 'dbl') {
+            if (reportedState === 'blu' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'BLU, dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
+        }
+
+        // 'RED, dismantling' can change to 'RED, uncontested', or UNCAPTURED
+        if (oldState === 'dre') {
+            if (reportedState === 'red' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'RED, dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
+        }
+
+        // 'BLU, fast dismantling' can change to 'BLU, uncontested', or UNCAPTURED
+        if (oldState === 'fdb') {
+            if (reportedState === 'blu' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'BLU, fast dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
+        }
+
+        // 'RED, fast dismantling' can change to 'RED, uncontested', or UNCAPTURED
+        if (oldState === 'fdr') {
+            if (reportedState === 'red' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'RED, fast dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
+        }
+
+
+        // 'BLU, capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
+        if (oldState === 'cbl') {
+            if (reportedState === 'blu' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'BLU, capturing' must change to 'BLU, uncontested' or UNCAPTURED");
+        }
+
+
+        // 'RED, capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
+        if (oldState === 'cre') {
+            if (reportedState === 'red' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'RED, capturing' must change to 'RED, uncontested' or UNCAPTURED");
+        }
+
+
+        // 'BLU, fast capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
+        if (oldState === 'fcb') {
+            if (reportedState === 'blu' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'BLU, fast capturing' must change to 'BLU, uncontested' or UNCAPTURED");
+        }
+
+
+        // 'RED, fast capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
+        if (oldState === 'fcr') {
+            if (reportedState === 'red' || reportedState === 'unk')
+                resolve(reportedState);
+            else
+                reject("'RED, fast capturing' must change to 'RED, uncontested' or UNCAPTURED");
+        }
+
+        reject("oldState "+oldState+" is not a valid state. (reportedState="+reportedState+")");
+        
+    })
+}

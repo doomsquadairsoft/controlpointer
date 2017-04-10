@@ -82,6 +82,7 @@ function loadControlPointData(cb) {
             c.state = c.initialTeam;
             c.controllingTeam = null;
             c.capturedTime = null;
+            c.direction = null;
         }
 
         console.log('++ control point data initialized from JSON!');
@@ -150,168 +151,11 @@ function loadPlayerData(cb) {
 }
 
 
-function validateStateChange(oldState, reportedState) {
-    return new Promise(function (resolve, reject) {
-        var possibleStates = [
-            'red', // RED, uncontested
-            'blu', // BLU, uncontested
-            'unk', // UNCAPTURED
-            'dbl', // BLU, dismantling
-            'dre', // RED, dismantling
-            'fdb', // BLU, fast dismantling
-            'fdr', // RED, fast dismantling
-            'cbl', // BLU, capturing
-            'cre', // RED, capturing
-            'fcb', // BLU, fast capturing
-            'fcr', // RED, fast capturing
-        ];
-
-        if (oldState === null) oldState = 'unk';
-
-        // UNCAPTURED can change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'
-        if (oldState === 'unk') {
-            if (reportedState === 'cbl' || reportedState === 'cre' || reportedState === 'fcb' || reportedState === 'fcr')
-                resolve(reportedState);
-            else
-                reject("UNCAPTURED must change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'.");
-        }
-                    
-        // 'BLU, uncontested' can change to 'BLU, dismantling', or 'BLU, fast dismantling'
-        if (oldState === 'blu') {
-            if (reportedState === 'dbl' || reportedState === 'fdb')
-                resolve(reportedState);
-            else 
-                reject("BLU must change to 'BLU, dismantling', or 'BLU, fast dismantling'");
-        }
-
-        // 'RED, uncontested' can change to 'RED, dismantling', or 'RED, fast dismantling'
-        if (oldState === 'red') {
-            if (reportedState === 'dre' || reportedState === 'fdr')
-                resolve(reportedState);
-            else
-                reject("RED must change to 'RED, dismantling', or 'RED, fast dismantling'");
-        }
 
 
-        // 'BLU, dismantling' can change to 'BLU, uncontested', or UNCAPTURED
-        if (oldState === 'dbl') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'RED, dismantling' can change to 'RED, uncontested', or UNCAPTURED
-        if (oldState === 'dre') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'BLU, fast dismantling' can change to 'BLU, uncontested', or UNCAPTURED
-        if (oldState === 'fdb') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, fast dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'RED, fast dismantling' can change to 'RED, uncontested', or UNCAPTURED
-        if (oldState === 'fdr') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, fast dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
-        }
 
 
-        // 'BLU, capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
-        if (oldState === 'cbl') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, capturing' must change to 'BLU, uncontested' or UNCAPTURED");
-        }
 
-
-        // 'RED, capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
-        if (oldState === 'cre') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, capturing' must change to 'RED, uncontested' or UNCAPTURED");
-        }
-
-
-        // 'BLU, fast capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
-        if (oldState === 'fcb') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, fast capturing' must change to 'BLU, uncontested' or UNCAPTURED");
-        }
-
-
-        // 'RED, fast capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
-        if (oldState === 'fcr') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, fast capturing' must change to 'RED, uncontested' or UNCAPTURED");
-        }
-
-        reject("oldState "+oldState+" is not a valid state. (reportedState="+reportedState+")");
-        
-    })
-}
-
-
-function updateState(controlPoint, reportedState) {
-    return new Promise(function (resolve, reject) {
-
-        // make sure controlpoint exists in game state
-        if (typeof gameState.controlPoints[controlPoint] === 'undefined')
-            return reject('The controlpoint the client claims to have updated does not exist in the game!');
-        
-        // validate that the state change is allowed according to the game's rules
-        return validateStateChange(gameState.controlPoints[controlPoint].state, reportedState)
-            .then(function(newState) {
-                console.log('validated. changing to state %s', newState);
-                gameState.controlPoints[controlPoint].state = newState;
-
-                gameState.controlPoints[controlPoint].updateTime = moment();
-                console.log(gameState.controlPoints[controlPoint]);
-
-
-                resolve(gameState.controlPoints[controlPoint]);
-            })
-    })
-}
-
-
-function capture(controlPoint, team) {
-    return new Promise(function (resolve, reject) {
-        
-        // make sure controlpoint exists in game state
-        if (typeof gameState.controlPoints[controlPoint] === 'undefined')
-            return reject('The controlpoint the client claims to have captured does not exist in the game!');
-
-        // make sure team exists in game state
-        if (typeof gameState.teams[team] === 'undefined')
-            return reject('The team the client claims to belong to does not exist in the game!');
-
-        // make sure this is a valid capture (must satisfy game-wide capture conditions)
-        // @todo
-        
-        // set new game state
-        var captureTime = moment();
-        gameState.controlPoints[controlPoint].controllingTeam = team;
-        gameState.controlPoints[controlPoint].capturedTime = captureTime;
-
-        return resolve({'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
-    });
-}
 
 
 function checkWinConditions(controlPoint, team, captureTime) {
@@ -389,7 +233,7 @@ loadControlPointData(function(err) {
                         typeof data.controlPoint === 'undefined' ? controlPoint = null : controlPoint = data.controlPoint;
                         typeof data.state === 'undefined' ? state = null : state = data.state;
                         
-                        return updateState(controlPoint, state)
+                        return capture.updateState(controlPoint, state)
                             .then(function(result) {
                                 var controlPoint = result.controlPoint;
                                 var state = result.state
