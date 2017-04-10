@@ -216,7 +216,7 @@ loadControlPointData(function(err) {
             loadAbilitiesData(function(err) {
                 if (err) console.error(err);
 
-                timer.start();
+                //timer.start();
             
                 io.on('connection', function(socket){
                     console.log('a user connected');
@@ -239,7 +239,7 @@ loadControlPointData(function(err) {
                                 var state = result.state
                                 var updateTime = result.updateTime;
                                 
-                                console.log('control point %s changed to state %s at %s', controlPoint, state, updateTime.format());
+                                console.log('INDEX:: control point %s changed to state %s at %s', controlPoint, state, updateTime.format());
                                 io.emit('state', gameState);
                                 
                                 //checkWinConditions(controlPoint, , updateTime)

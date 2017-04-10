@@ -35,7 +35,7 @@ var tick = module.exports.tick = function tick() {
     for (var c in cps) {
         var state = cps[c].state;
         if (state === 'unk' || state === 'red' || state === 'blu') {
-            console.log('state=%s cp=%s so doing nothing', state, c);
+            //console.log('state=%s cp=%s so doing nothing', state, c);
         }
         else {
             var updateTime    = moment(cps[c].updateTime);
@@ -43,15 +43,13 @@ var tick = module.exports.tick = function tick() {
             var dueTime       = moment(updateTime).add(relevantTimer, 'ms');
             var direction     = cps[c].direction;
             if (moment().isAfter(dueTime)) {
-                console.log('%s is overdue for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
+                //console.log('%s is overdue for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
                 
-                return capture.advance(c, direction)
+                return capture.adminAdvance(c, direction)
                               .then(function(result) {
                                   console.log(result);
-                              })
-                              .catch(function(err) {
-                                  console.error(err);
-                              })
+                              });
+
             }
             else {
                 console.log('%s is not due for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
