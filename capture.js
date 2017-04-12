@@ -37,9 +37,7 @@ var stateAdvanceMid = function stateAdvanceMid(req, res, next) {
             console.log('capture::stateAdvanceMid::THEN!!!!! state advance middleware complete with data %s', result);
             res.send(result);
         })
-        .catch(function(e) {
-            res.send(e)
-        })
+
 };
 
 
@@ -230,19 +228,19 @@ var advance = module.exports.advance = function advance(cpName, player) {
         console.log('capture::advance');
         
         if (typeof gameState.controlPoints[cpName] === 'undefined')
-            return reject(new Error('cannot advance controlpoint '+cpName+' because that name is not in the game state'));
+            throw new Error('cannot advance controlpoint '+cpName+' because that name is not in the game state');
 
         if (typeof player === 'undefined' || !player)
-            return reject(new Error('second param to capture.advance must be a player object or {string} team name. got '+player));
+            throw new Error('second param to capture.advance must be a player object or {string} team name. got '+player);
         
         if (typeof player.affiliation === 'undefined')
-            return reject(new Error('the player object must have an affilation property. got undefined'));
+            throw new Error('the player object must have an affilation property. got undefined');
 
         if (typeof player.abilities === 'undefined')
-            return reject(new Error('the player object must have an abilities property. got undefined'));
+            throw (new Error('the player object must have an abilities property. got undefined');
 
         if (_.indexOf(player.abilities, 'capmantle') === -1)
-            return reject(new Error('the player does not have the ability to capture or dismantle control points'));
+            throw new Error('the player does not have the ability to capture or dismantle control points');
 
         var hasSabotage, hasClaim;
         // see if the player can fast capture or fast dismantle
@@ -257,7 +255,7 @@ var advance = module.exports.advance = function advance(cpName, player) {
         var team = player.affiliation;
 
         if (typeof cp === 'undefined')
-            return reject(new Error('the control point the player is trying to capture does not exist in the game state!'));
+            throw new Error('the control point the player is trying to capture does not exist in the game state!');
 
         console.log('player %s %s on team %s is capturing point %s', 
                     player.firstName, 
@@ -571,9 +569,9 @@ var updateState = module.exports.updateState = function updateState(controlPoint
                 console.log('control point updating. direction=%s, state=%s, updateTime=%s', cp.direction, cp.state, cp.updateTime);
 
                 return resolve('ok');
-            })
-    })
-}
+            });
+    });
+};
 
 /**
  * stateAdvance
