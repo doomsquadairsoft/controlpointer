@@ -1,4 +1,4 @@
-#!/Users/lol/.nvm/versions/node/v4.5.0/bin/node
+#!/usr/bin/env node
 
 
 // players subsystem
