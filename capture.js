@@ -237,7 +237,7 @@ var advance = module.exports.advance = function advance(cpName, player) {
             throw new Error('the player object must have an affilation property. got undefined');
 
         if (typeof player.abilities === 'undefined')
-            throw (new Error('the player object must have an abilities property. got undefined');
+            throw new Error('the player object must have an abilities property. got undefined');
 
         if (_.indexOf(player.abilities, 'capmantle') === -1)
             throw new Error('the player does not have the ability to capture or dismantle control points');
