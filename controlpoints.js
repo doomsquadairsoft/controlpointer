@@ -1,4 +1,4 @@
-#!/Users/lol/.nvm/versions/node/v4.5.0/bin/node
+#!/usr/bin/env node
 
 
 // generates HTML pages for printing control point QR codes
@@ -90,3 +90,4 @@ var html = template(cpdata);
 fs.writeFileSync('./client_app/controlpoints.html', html, { 'encoding': 'utf8' });
 
 console.log('HTML written. Open this file in your browser and print. file://%s ', path.resolve('./client_app/controlpoints.html'));
+

@@ -29,15 +29,43 @@ var possibleStates = [
 ];
 
 
+/**
+ * stateAdvanceMid
+ *
+ * express middleware for advancing a control point to the next logical
+ * state. for example, earlier middleware populates req.controlpointer.controlPoint.name
+ * with 'goblinFortress', and req.controlpointer.player with a red medic.
+ * this middleware will find the state of the goblinFortress control point, say 'unk',
+ * and because a red medic is interacting with the controlpoint, stateAdvanceMid will
+ * determine that the next state will be 'cre' or 'red is capturing'.
+ * 
+ * @param req
+ * @param {object} req.controlpointer.controlPoint
+ * @param {string} req.controlpointer.controlPoint.name
+ * @param {object} req.controlpointer.player
+ * @param {string} req.controlpointer.player.affiliation
+ * @param res
+ * @param next
+ */
 var stateAdvanceMid = function stateAdvanceMid(req, res, next) {
     console.log('capture::stateAdvanceMid');
-
-    advance(req.controlpointer.controlPoint, req.controlpointer.player)
-        .then(function(result) {
-            console.log('capture::stateAdvanceMid::THEN!!!!! state advance middleware complete with data %s', result);
-            res.send(result);
-        })
-
+    
+    console.log(req.controlpointer);
+    var cpName = req.controlpointer.controlPoint;
+    var player = req.controlpointer.player;
+    var team = player.affiliation;
+    
+    console.log('advancing cpName=%s for team=%s', cpName, team);
+    
+    advance(cpName, player)
+	.then(function(result) {
+	    res.send(result);
+	})
+	.catch(function(err) {
+	    console.error(err);
+	    res.send(err.message);
+	})
+    
 };
 
 
@@ -52,7 +80,7 @@ var middlewareCapmantle = function middlewareCapmantle(req, res) {
         .catch(function(err) {
             console.log('there was an error');
             console.error(err);
-            return res.send(err);
+            return res.send(err.message);
         });
 }                                                                                                      
 
@@ -210,7 +238,10 @@ var adminAdvance = module.exports.adminAdvance = function adminAdvance(cpName, t
                 state = 'unk';
         }
 
-        return updateState(cpName, state);
+        return updateState(cpName, state)
+	    .then(function(result) {
+		console.log('really done updating state');
+	    })
         
     })
 }
@@ -408,6 +439,7 @@ module.exports.api = function api(app) {
 var validateStateChange = module.exports.validateStateChange = function validateStateChange(oldState, reportedState) {
     return new Promise(function (resolve, reject) {
 
+	console.log('capture::validateStateChange oldState=%s, reportedState=%s', oldState, reportedState);
         if (oldState === null) oldState = 'unk';
 
         // UNCAPTURED can change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'
@@ -503,7 +535,7 @@ var validateStateChange = module.exports.validateStateChange = function validate
                 return reject(new Error("'RED, fast capturing' must change to 'RED, uncontested' or UNCAPTURED"));
         }
 
-        return reject(new Error("oldState "+oldState+" is not a valid state. (reportedState="+reportedState+")"));
+        throw new Error("oldState "+oldState+" is not a valid state. (reportedState="+reportedState+")");
         
     })
 }
@@ -517,26 +549,24 @@ var validateStateChange = module.exports.validateStateChange = function validate
  */
 var updateState = module.exports.updateState = function updateState(controlPoint, reportedState) {
     console.log('capture::updateState');
-    return new Promise(function (resolve, reject) {
-
-        console.log('updateState controlPoint=%s reportedState=%s', controlPoint, reportedState);
-        
-        // make sure controlpoint exists in game state
-        if (typeof gameState.controlPoints[controlPoint] === 'undefined')
-            return reject(new Error('The controlpoint the client claims to have updated does not exist in the game!'));
-        
-        // validate that the state change is allowed according to the game's rules
-        return validateStateChange(gameState.controlPoints[controlPoint].state, reportedState)
-            .then(function(newState) {
-                console.log('validated. changing to state %s', newState);
-
-                var cp = gameState.controlPoints[controlPoint];
-
-                // find the direction the controlpoint is going in (red or blu's favor?)
-                var oldState = cp.state;
-                var direction;
-                if (
-                    (oldState === 'red' && newState === 'dre') || 
+    console.log('updateState controlPoint=%s reportedState=%s', controlPoint, reportedState);
+    
+    // make sure controlpoint exists in game state
+    if (typeof gameState.controlPoints[controlPoint] === 'undefined')
+        return reject(new Error('The controlpoint the client claims to have updated does not exist in the game!'));
+    
+    // validate that the state change is allowed according to the game's rules
+    return validateStateChange(gameState.controlPoints[controlPoint].state, reportedState)
+        .then(function(newState) {
+            console.log('validated. changing to state %s', newState);
+	    
+            var cp = gameState.controlPoints[controlPoint];
+	    
+            // find the direction the controlpoint is going in (red or blu's favor?)
+            var oldState = cp.state;
+            var direction;
+            if (
+                (oldState === 'red' && newState === 'dre') || 
                     (oldState === 'red' && newState === 'fdr') ||
                     (oldState === 'unk' && newState === 'cbl') ||
                     (oldState === 'unk' && newState === 'fcb') ||
@@ -546,10 +576,10 @@ var updateState = module.exports.updateState = function updateState(controlPoint
                     (oldState === 'fcb' && newState === 'blu') ||
                     (oldState === 'cre' && newState === 'unk') ||
                     (oldState === 'fcr' && newState === 'unk')
-                )
-                    direction = 'blu';
-                else if (
-                    (oldState === 'blu' && newState === 'dbl') ||
+            )
+                direction = 'blu';
+            else if (
+                (oldState === 'blu' && newState === 'dbl') ||
                     (oldState === 'blu' && newState === 'fdb') ||
                     (oldState === 'unk' && newState === 'cre') ||
                     (oldState === 'unk' && newState === 'fcr') ||
@@ -559,19 +589,19 @@ var updateState = module.exports.updateState = function updateState(controlPoint
                     (oldState === 'fcr' && newState === 'red') ||
                     (oldState === 'cbl' && newState === 'unk') ||
                     (oldState === 'fcb' && newState === 'unk')
-                )
-                    direction = 'red';
-
-                cp.direction = direction;
-                cp.state = newState;
-                cp.updateTime = moment();
-
-                console.log('control point updating. direction=%s, state=%s, updateTime=%s', cp.direction, cp.state, cp.updateTime);
-
-                return resolve('ok');
-            });
-    });
+            )
+                direction = 'red';
+	    
+            cp.direction = direction;
+            cp.state = newState;
+            cp.updateTime = moment();
+	    
+            console.log('control point updating. direction=%s, state=%s, updateTime=%s', cp.direction, cp.state, cp.updateTime);
+	    
+	    
+        });
 };
+
 
 /**
  * stateAdvance
@@ -704,119 +734,4 @@ module.exports.endGame = function endGame(controlPoint, team, captureTime, messa
 }
 
 
-var validateStateChange = function validateStateChange(oldState, reportedState) {
-    console.log('capture::validateStateChange');
-    return new Promise(function (resolve, reject) {
-        var possibleStates = [
-            'red', // RED, uncontested
-            'blu', // BLU, uncontested
-            'unk', // UNCAPTURED
-            'dbl', // BLU, dismantling
-            'dre', // RED, dismantling
-            'fdb', // BLU, fast dismantling
-            'fdr', // RED, fast dismantling
-            'cbl', // BLU, capturing
-            'cre', // RED, capturing
-            'fcb', // BLU, fast capturing
-            'fcr', // RED, fast capturing
-        ];
 
-        if (oldState === null) oldState = 'unk';
-
-        // UNCAPTURED can change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'
-        if (oldState === 'unk') {
-            if (reportedState === 'cbl' || reportedState === 'cre' || reportedState === 'fcb' || reportedState === 'fcr')
-                resolve(reportedState);
-            else
-                reject(new Error("UNCAPTURED must change to 'BLU, capturing', 'BLU, fast capturing', 'RED, capturing', or 'RED, fast capturing'."));
-        }
-                    
-        // 'BLU, uncontested' can change to 'BLU, dismantling', or 'BLU, fast dismantling'
-        if (oldState === 'blu') {
-            if (reportedState === 'dbl' || reportedState === 'fdb')
-                resolve(reportedState);
-            else 
-                reject(new Error("BLU must change to 'BLU, dismantling', or 'BLU, fast dismantling'"));
-        }
-
-        // 'RED, uncontested' can change to 'RED, dismantling', or 'RED, fast dismantling'
-        if (oldState === 'red') {
-            if (reportedState === 'dre' || reportedState === 'fdr')
-                resolve(reportedState);
-            else
-                reject("RED must change to 'RED, dismantling', or 'RED, fast dismantling'");
-        }
-
-
-        // 'BLU, dismantling' can change to 'BLU, uncontested', or UNCAPTURED
-        if (oldState === 'dbl') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'RED, dismantling' can change to 'RED, uncontested', or UNCAPTURED
-        if (oldState === 'dre') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'BLU, fast dismantling' can change to 'BLU, uncontested', or UNCAPTURED
-        if (oldState === 'fdb') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, fast dismantling' must change to 'BLU, uncontested', or 'UNCAPTURED'");
-        }
-
-        // 'RED, fast dismantling' can change to 'RED, uncontested', or UNCAPTURED
-        if (oldState === 'fdr') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, fast dismantling' must change to 'RED, uncontested', or 'UNCAPTURED'");
-        }
-
-
-        // 'BLU, capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
-        if (oldState === 'cbl') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, capturing' must change to 'BLU, uncontested' or UNCAPTURED");
-        }
-
-
-        // 'RED, capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
-        if (oldState === 'cre') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, capturing' must change to 'RED, uncontested' or UNCAPTURED");
-        }
-
-
-        // 'BLU, fast capturing' can change to 'BLU, uncontested', or 'UNCAPTURED'
-        if (oldState === 'fcb') {
-            if (reportedState === 'blu' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'BLU, fast capturing' must change to 'BLU, uncontested' or UNCAPTURED");
-        }
-
-
-        // 'RED, fast capturing' can change to 'RED, uncontested', or 'UNCAPTURED'
-        if (oldState === 'fcr') {
-            if (reportedState === 'red' || reportedState === 'unk')
-                resolve(reportedState);
-            else
-                reject("'RED, fast capturing' must change to 'RED, uncontested' or UNCAPTURED");
-        }
-
-        reject(new Error("oldState "+oldState+" is not a valid state. (reportedState="+reportedState+")"));
-        
-    })
-}
