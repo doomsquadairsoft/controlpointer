@@ -24,12 +24,14 @@ var timerHandle = '';
 
 
 
-var start = module.exports.start = function start() {
-    timerHandle = setInterval(tick, 200);
+var start = module.exports.start = function start(io) {
+    timerHandle = setInterval(tick, 200, io);
 }
 
 
-var tick = module.exports.tick = function tick() {
+var tick = module.exports.tick = function tick(io) {
+    if (typeof io === 'undefined') throw new Error('sole argument to tick() must be a socket io handle');
+    
     // for each controlpoint, find out if a state update is due.
     var cps = gameState.controlPoints;
     for (var c in cps) {
@@ -46,9 +48,15 @@ var tick = module.exports.tick = function tick() {
                 //console.log('%s is overdue for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
                 
                 return capture.adminAdvance(c, direction)
-                              .then(function(result) {
-                                  console.log(result);
-                              });
+                    .then(function(result) {
+			console.log(result);
+			console.log('timer sending socket update.');
+			console.log(io.emit);
+			io.emit('state', { state: gameState.controlPoints });
+                    })
+		    .catch(function(e) {
+			console.error(e);
+		    })
 
             }
             else {

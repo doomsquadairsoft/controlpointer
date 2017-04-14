@@ -241,6 +241,10 @@ var adminAdvance = module.exports.adminAdvance = function adminAdvance(cpName, t
         return updateState(cpName, state)
 	    .then(function(result) {
 		console.log('really done updating state');
+		resolve(result);
+	    })
+	    .catch(function(e) {
+		reject(e)
 	    })
         
     })

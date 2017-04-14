@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var liveStatus = require('./livestatus')(io);
 var Promise = require('bluebird');
 var moment = require('moment');
 var fs = require('fs');
@@ -9,6 +10,7 @@ var cookieParser = require('cookie-parser');
 var gameState = require('./state');
 var path = require('path');
 var timer = require('./timer');
+
 
 app.use(cookieParser())
 app.use(express.static('client_app'));
@@ -216,7 +218,7 @@ loadControlPointData(function(err) {
             loadAbilitiesData(function(err) {
                 if (err) console.error(err);
 
-                //timer.start();
+                timer.start(io);
             
                 io.on('connection', function(socket){
                     console.log('a user connected');
