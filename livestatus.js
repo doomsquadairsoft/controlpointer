@@ -1,16 +1,34 @@
 var gameState = require('./state');
+var radio = require('radio');
+var capture = require('./capture');
 
 
-module.exports = function liveStatus(http) {
 
-    var io = require('socket.io')(http);
+module.exports = LiveStatus;
+
+function LiveStatus(io) {
+    if (!(this instanceof LiveStatus)) return new LiveStatus(io);
+    this.io = io;
+}
 
 
-    io.on('connection', function(socket){
+LiveStatus.prototype.start = function start() {
+    var self = this;
+
+    // when receiving a radio message telling us to update the client map, update the client map.
+    radio('update').subscribe(function update() {
+        console.log('>> received radio transmission UPDATE');
+        self.io.emit('state', gameState);
+    });
+
+    self.io.on('connection', function(socket){
         console.log('a user connected');
         
+        // send up-to-date map data to new connections
+        socket.emit('state', gameState);
+        
         socket.on('querystate', function(data) {
-            io.emit('state', { state: gameState });
+            self.io.to('/').emit('state', gameState );
         });
         
         socket.on('sitrep', function(data) {
@@ -21,25 +39,12 @@ module.exports = function liveStatus(http) {
             typeof data.controlPoint === 'undefined' ? controlPoint = null : controlPoint = data.controlPoint;
             typeof data.state === 'undefined' ? state = null : state = data.state;
             
-            return capture.updateState(controlPoint, state)
+            capture.adminAbsolute(controlPoint, state)
                 .then(function(result) {
-                    var controlPoint = result.controlPoint;
-                    var state = result.state
-                    var updateTime = result.updateTime;
-                    
-                    console.log('INDEX:: control point %s changed to state %s at %s', controlPoint, state, updateTime.format());
-                    io.emit('state', gameState);
-                    
-                    //checkWinConditions(controlPoint, , updateTime)
-                    //.then(function(res) {
-                    //    endGame(res.controlPoint, res.team, res.updateTime, res.message);
-                    //})
-                    //.catch(function(reason) {
-                    //    console.log('no win condition satisfied. reason is "%s"', reason);
-                    //});
+                    console.log('livestatus::sitrep control point %s changed to state %s', controlPoint, state);
                 })
                 .catch(function(reason) {
-                    console.log('no state change condition satisfied. reason is "%s"', reason);
+                    console.log('livestatus::sitrep error. no state change condition satisfied. reason is "%s"', reason);
                 });
         });
 	
@@ -54,7 +59,7 @@ module.exports = function liveStatus(http) {
                     var team = result.team;
                     var captureTime = result.captureTime;
                     console.log('control point %s captured by team %s at %s', controlPoint, team, captureTime.format());
-                    io.emit('update', {'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
+                    self.io.emit('update', {'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime});
                     
                     // check win conditions
                     capture.checkWinConditions(controlPoint, team, captureTime)
@@ -75,3 +80,4 @@ module.exports = function liveStatus(http) {
         });
     });
 };
+

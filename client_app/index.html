@@ -47,6 +47,18 @@
              var timers = {};
              var lastCpState;
              
+             function getParameterByName(name, url) {
+                 if (!url) {
+                     url = window.location.href;
+                 }
+                 name = name.replace(/[\[\]]/g, "\\$&");
+                 var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                     results = regex.exec(url);
+                 if (!results) return null;
+                 if (!results[2]) return '';
+                 return decodeURIComponent(results[2].replace(/\+/g, " "));
+             }
+             
              function updateIcon(cpKey, cpData) {
 
                  if (cpData.state === 'cre')
@@ -122,11 +134,19 @@
 
 
              function updateControlPoints(gameState) {
-                 console.log('updating control points');
-                 for (cpKey in gameState.controlPoints) {
-                     console.log(' (pre) updating %s', cpKey);
-                     updateControlPoint(gameState.controlPoints[cpKey], cpKey);
-                 }
+                 return function(gameState) {
+                     console.log('updating control points');
+                     console.log(gameState);
+                     console.log(gameState.state);
+                     console.log(gameState.controlPoints);
+                     console.log('---')
+                     for (cpKey in gameState.controlPoints) {
+                         if (gameState.controlPoints.hasOwnProperty(cpKey)) {
+                             console.log(' (pre) updating %s', cpKey);
+                             updateControlPoint.call(this, gameState.controlPoints[cpKey], cpKey);
+                         }
+                     }
+                 }(gameState);
              }
 
 
@@ -167,75 +187,88 @@
              }
 
 
+
              for (var key in initialGameData.controlPoints) {
                  if (initialGameData.controlPoints.hasOwnProperty(key)) {
+                     
+                     
                      var cp = initialGameData.controlPoints[key];
-                     console.log('creating popup')
+                     console.log('creating markers')
                      console.log(cp)
                      console.log(key)
+                     
+                     
+                     // add markers to map
+                     markers[key] = L.marker(cp.latLng)
+                                     .addTo(gameMap);
 
+                     // add general popups to map
                      var popupDiv = L.DomUtil.create('div', 'content');
                      var popupHeading = L.DomUtil.create('h1', 'CapturePointTitle', popupDiv);
-                     var popupButtonRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonUnk = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonCon = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonFastDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonFastDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonFastCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     var popupButtonFastCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
-                     
-                     popupHeading.innerHTML = cp.title;
-                     popupButtonRed.innerHTML = 'RED Team';
-                     popupButtonBlu.innerHTML = 'BLU Team';
-                     popupButtonUnk.innerHTML = 'UNKNOWN';
-                     popupButtonCon.innerHTML = 'CONTESTED';
-                     popupButtonDisBlu.innerHTML = 'DISMANTLE BLU';
-                     popupButtonDisRed.innerHTML = 'DISMANTLE RED'
-                     popupButtonFastDisBlu.innerHTML = 'FAST DISMANTLE BLU';
-                     popupButtonFastDisRed.innerHTML = 'FAST DISMANTLE RED';
-                     popupButtonCapBlu.innerHTML = 'CAPTURE BLU';
-                     popupButtonCapRed.innerHTML = 'CAPTURE RED';
-                     popupButtonFastCapBlu.innerHTML = 'FAST CAPTURE BLU';
-                     popupButtonFastCapRed.innerHTML = 'FAST CAPTURE RED';
+                     popupHeading.innerHTML = cp.title;                     
 
+                     // add admin specific controls to popups only if admin query param exists
+                     if (getParameterByName('admin')) {
+                         
+                         var popupButtonRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonUnk = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonCon = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonFastDisBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonFastDisRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonFastCapBlu = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         var popupButtonFastCapRed = L.DomUtil.create('button', 'CapturePointButton', popupDiv);
+                         
 
-                     popupButtonRed.setAttribute('id', key+'-red');
-                     popupButtonBlu.setAttribute('id', key+'-blu');
-                     popupButtonUnk.setAttribute('id', key+'-unk');
-                     popupButtonCon.setAttribute('id', key+'-con');
-                     popupButtonDisBlu.setAttribute('id', key+'-dis-blu');
-                     popupButtonDisRed.setAttribute('id', key+'-dis-red');
-                     popupButtonFastDisBlu.setAttribute('id', key+'-fast-dis-blu');
-                     popupButtonFastDisRed.setAttribute('id', key+'-fast-dis-red');
-                     popupButtonCapBlu.setAttribute('id', key+'-cap-blu');
-                     popupButtonCapRed.setAttribute('id', key+'-cap-red');
-                     popupButtonFastCapBlu.setAttribute('id', key+'-fast-cap-blu');
-                     popupButtonFastCapRed.setAttribute('id', key+'-fast-cap-red');
+                         popupButtonRed.innerHTML = 'RED';
+                         popupButtonBlu.innerHTML = 'BLU';
+                         popupButtonUnk.innerHTML = 'UNKNOWN';
+                         popupButtonDisBlu.innerHTML = 'DISMANTLE BLU';
+                         popupButtonDisRed.innerHTML = 'DISMANTLE RED'
+                         popupButtonFastDisBlu.innerHTML = 'FAST DISMANTLE BLU';
+                         popupButtonFastDisRed.innerHTML = 'FAST DISMANTLE RED';
+                         popupButtonCapBlu.innerHTML = 'CAPTURE BLU';
+                         popupButtonCapRed.innerHTML = 'CAPTURE RED';
+                         popupButtonFastCapBlu.innerHTML = 'FAST CAPTURE BLU';
+                         popupButtonFastCapRed.innerHTML = 'FAST CAPTURE RED';
+                         
+                         
+                         popupButtonRed.setAttribute('id', key+'-red');
+                         popupButtonBlu.setAttribute('id', key+'-blu');
+                         popupButtonUnk.setAttribute('id', key+'-unk');
+                         popupButtonDisBlu.setAttribute('id', key+'-dis-blu');
+                         popupButtonDisRed.setAttribute('id', key+'-dis-red');
+                         popupButtonFastDisBlu.setAttribute('id', key+'-fast-dis-blu');
+                         popupButtonFastDisRed.setAttribute('id', key+'-fast-dis-red');
+                         popupButtonCapBlu.setAttribute('id', key+'-cap-blu');
+                         popupButtonCapRed.setAttribute('id', key+'-cap-red');
+                         popupButtonFastCapBlu.setAttribute('id', key+'-fast-cap-blu');
+                         popupButtonFastCapRed.setAttribute('id', key+'-fast-cap-red');
+                         
+                         
+                         popupButtonRed.onclick = onClickedButton(key, cp, 'red');
+                         popupButtonBlu.onclick = onClickedButton(key, cp, 'blu');
+                         popupButtonUnk.onclick = onClickedButton(key, cp, 'unk');
+                         popupButtonDisBlu.onclick = onClickedButton(key, cp, 'dbl');
+                         popupButtonDisRed.onclick = onClickedButton(key, cp, 'dre');
+                         popupButtonFastDisBlu.onclick = onClickedButton(key, cp, 'fdb');
+                         popupButtonFastDisRed.onclick = onClickedButton(key, cp, 'fdr');
+                         popupButtonCapBlu.onclick = onClickedButton(key, cp, 'cbl');
+                         popupButtonCapRed.onclick = onClickedButton(key, cp, 'cre');
+                         popupButtonFastCapBlu.onclick = onClickedButton(key, cp, 'fcb');
+                         popupButtonFastCapRed.onclick = onClickedButton(key, cp, 'fcr');
+                         
+                         
+                     }
 
-                     
-                     popupButtonRed.onclick = onClickedButton(key, cp, 'red');
-                     popupButtonBlu.onclick = onClickedButton(key, cp, 'blu');
-                     popupButtonUnk.onclick = onClickedButton(key, cp, 'unk');
-                     popupButtonCon.onclick = onClickedButton(key, cp, 'con');
-                     popupButtonDisBlu.onclick = onClickedButton(key, cp, 'dbl');
-                     popupButtonDisRed.onclick = onClickedButton(key, cp, 'dre');
-                     popupButtonFastDisBlu.onclick = onClickedButton(key, cp, 'fdb');
-                     popupButtonFastDisRed.onclick = onClickedButton(key, cp, 'fdr');
-                     popupButtonCapBlu.onclick = onClickedButton(key, cp, 'cbl');
-                     popupButtonCapRed.onclick = onClickedButton(key, cp, 'cre');
-                     popupButtonFastCapBlu.onclick = onClickedButton(key, cp, 'fcb');
-                     popupButtonFastCapRed.onclick = onClickedButton(key, cp, 'fcr');
-
-                     
                      popups[key] = L.popup().setContent(popupDiv);
-                     markers[key] = L.marker(cp.latLng)
-                                     .addTo(gameMap)
-                                     .bindPopup(popups[key]);
+                     markers[key].bindPopup(popups[key]);
+                         
+
 
                  }
              }
@@ -246,13 +279,12 @@
              // Goblin Fortress
              //markers['firePit'] = L.marker([47.624529, -117.180074], {icon: bluIcon})
              // .addTo(gameMap).bindPopup(popups['firePit']);
-             
-             
+
              var socket = io();
              socket.on('state', function(data) {
                  console.log('got state update.');
                  console.log(data);
-                 return updateControlPoints(data);
+                 updateControlPoints(data);
              });
 
 

@@ -12,6 +12,7 @@ var become = require('./become');
 var errors = require('./errors');
 var moment = require('moment');
 var Promise = require('bluebird');
+var radio = require('radio');
 
 
 var possibleStates = [
@@ -65,7 +66,6 @@ var stateAdvanceMid = function stateAdvanceMid(req, res, next) {
 	    console.error(err);
 	    res.send(err.message);
 	})
-    
 };
 
 
@@ -170,6 +170,30 @@ var setControlPoint = function setControlPoint(req, res, next) {
     req.controlpointer.controlPoint = req.query.cp;
 
     next();
+};
+
+
+/**
+ * adminAbsolute
+ *
+ * the administrator is administratively changing a state.
+ * Do not confirm that the state change is Kosher according to the game rules, just change it!
+ *
+ * @param {string} cpName
+ * @param {sring} state
+ */
+var adminAbsolute = module.exports.adminAbsolute = function adminAbsolute(cpName, state) {
+    return new Promise(function(resolve, reject) {
+        console.log('capture::adminAbsolute changing controlPoint %s to state %s', cpName, state);
+        if (_.find(possibleStates, state) === -1)
+            reject('the state '+state+' is not in the list of possible states');
+        
+        return updateState(cpName, state).then(function(result) {
+            resolve(result);
+        }).catch(function(e) {
+            reject(e);
+        });
+    })
 };
 
 
@@ -320,7 +344,7 @@ var advance = module.exports.advance = function advance(cpName, player) {
 var determineNextPlayerState = module.exports.determineNextPlayerState = function determineNextPlayerState(state, player) {
     return new Promise(function (resolve, reject) {
 	
-	console.log('capture::determineNextPlayerState');
+	console.log('capture::determineNextPlayerState state=%s player.affiliation=%s', state, player.affiliation);
 	var team = player.affiliation;
         var hasSabotage, hasClaim;
         // see if the player can fast capture or fast dismantle
@@ -333,7 +357,7 @@ var determineNextPlayerState = module.exports.determineNextPlayerState = functio
         if (team === 'red') {
             if (hasClaim) {
                 if (state === 'red')
-                    new Error('this controlpoint is already yours!');
+                    new Error('this controlpoint is already yours!!');
                 else if (state === 'blu')
                     state = 'dbl';
                 else if (state === 'unk')
@@ -355,7 +379,7 @@ var determineNextPlayerState = module.exports.determineNextPlayerState = functio
             }
             else if (hasSabotage) {
                 if (state === 'red')
-                    throw new Error('this controlpoint is already yours!');
+                    throw new Error('this control point is already yours!');
                 else if (state === 'blu')
                     state = 'fdb';
                 else if (state === 'unk')
@@ -377,7 +401,7 @@ var determineNextPlayerState = module.exports.determineNextPlayerState = functio
             }
             else {
                 if (state === 'red')
-                    throw new Error('this controlpoint is already yours!');
+                    throw new Error('this control-point is already yours!');
                 else if (state === 'blu')
                     state = 'dbl';
                 else if (state === 'unk')
@@ -635,6 +659,8 @@ var updateState = module.exports.updateState = function updateState(controlPoint
             cp.updateTime = moment();
 	    
             console.log('control point updating. direction=%s, state=%s, updateTime=%s', cp.direction, cp.state, cp.updateTime);
+            
+            radio('update').broadcast();
 	    
 	    return newState;
         });

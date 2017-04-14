@@ -1,5 +1,6 @@
 node_modules
 client_app/images/faces/
 client_app/images/qr/*.png
+client_app/images/qr/*.svg
 client_app/players.json
 client_app/players.html

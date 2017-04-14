@@ -19,18 +19,16 @@ var capture = require('./capture');
 var moment = require('moment');
 
 
-
 var timerHandle = '';
 
 
 
-var start = module.exports.start = function start(io) {
-    timerHandle = setInterval(tick, 200, io);
+var start = module.exports.start = function start() {
+    timerHandle = setInterval(tick, 200);
 }
 
 
-var tick = module.exports.tick = function tick(io) {
-    if (typeof io === 'undefined') throw new Error('sole argument to tick() must be a socket io handle');
+var tick = module.exports.tick = function tick() {
     
     // for each controlpoint, find out if a state update is due.
     var cps = gameState.controlPoints;
@@ -51,8 +49,6 @@ var tick = module.exports.tick = function tick(io) {
                     .then(function(result) {
 			console.log(result);
 			console.log('timer sending socket update.');
-			console.log(io.emit);
-			io.emit('state', { state: gameState.controlPoints });
                     })
 		    .catch(function(e) {
 			console.error(e);
@@ -60,7 +56,7 @@ var tick = module.exports.tick = function tick(io) {
 
             }
             else {
-                console.log('%s is not due for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
+                //console.log('%s is not due for a state update. (updateTime=%s, relevantTimer=%s, dueTime=%s state=%s direction=%s)', c, updateTime.format(), relevantTimer, dueTime.format(), state, direction);
             }
         }
     }

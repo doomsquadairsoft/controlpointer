@@ -11,7 +11,7 @@ var errors = require('./errors');
 
 
 var interact = module.exports.interact = function interact(req, res, next) {
-    if (typeof req.query.sourceid === 'undefined')n
+    if (typeof req.query.sourceid === 'undefined')
         return res.send('The request query must contain a sourceid. Did you scan a correct QR code?');
     var sourceid = req.query.sourceid;
 }
@@ -67,7 +67,8 @@ var authorize = module.exports.authorize = function authorize(req, res, next) {
         // the requester has a cookie
 
         var playerData = gameState.players.red.concat(gameState.players.blu);
-        var player = _.find(playerData, 'auth');
+        var player = _.find(playerData, ['auth', req.cookies.auth]);
+
         if (typeof player === 'undefined') {
             return res.status(401).send('You cannot do this action because you are registered to an identity that does not exist in the current game. Please register a new identity.');
         }
@@ -76,6 +77,8 @@ var authorize = module.exports.authorize = function authorize(req, res, next) {
             // determine if their player can do the action they are wanting to do
             // to do this, we look up the classes object in game state
             // the classes object should have an array of strings which list the abilities the class can do.
+            console.log('requesting player is holding a cookie for %s %s %s', player.affiliation, player.firstName, player.lastName);
+
             if (_.indexOf(player.abilities, action) === -1) {
                 return res.send('You cannot do that action because your player identity does not have that ability!');
             }
