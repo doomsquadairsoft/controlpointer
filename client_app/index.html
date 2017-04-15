@@ -12,6 +12,9 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
      #messages li:nth-child(odd) { background: #eee; }
+     .dt-control { width: 8em; height: 3em; border: 1px solid grey; background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+     .dt-red { border-bottom-left-radius: 4px; border-top-left-radius: 4px; width: 50%; height: 100%; border: 1px solid red; border-right: 2px solid red; color: red; font-size: 18px; font-style: bold; text-align: center; float: left; }
+     .dt-blu { border-bottom-right-radius: 4px; border-top-right-radius: 4px; width: 50%; height: 100%; border: 1px solid blue; border-left: 2px solid blue; color: blue; font-size: 18px; font-style: bold; text-align: center; margin-left: 50% }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <link rel="stylesheet" type="text/css" href="mobi.min.css">
@@ -131,15 +134,13 @@
              console.log(initialGameData)
 
 
-
+             function updateDeathTickets(gameState) {
+                 $('.dt-red').text(gameState.deathTickets.red);
+                 $('.dt-blu').text(gameState.deathTickets.blu);
+             }
 
              function updateControlPoints(gameState) {
                  return function(gameState) {
-                     console.log('updating control points');
-                     console.log(gameState);
-                     console.log(gameState.state);
-                     console.log(gameState.controlPoints);
-                     console.log('---')
                      for (cpKey in gameState.controlPoints) {
                          if (gameState.controlPoints.hasOwnProperty(cpKey)) {
                              console.log(' (pre) updating %s', cpKey);
@@ -187,6 +188,23 @@
              }
 
 
+             // add death ticket display (leaflet custom control)
+             var DTControl = L.Control.extend({
+                 options: {
+                     position: 'topright'
+                 },
+
+                 onAdd: function(map) {
+                     var dtContainer = L.DomUtil.create('div', 'dt-control');
+                     var dtRed = L.DomUtil.create('div', 'dt-red', dtContainer);
+                     var dtBlu = L.DomUtil.create('div', 'dt-blu', dtContainer);
+                     return dtContainer;
+                 }
+             });
+
+             gameMap.addControl(new DTControl());
+             
+
 
              for (var key in initialGameData.controlPoints) {
                  if (initialGameData.controlPoints.hasOwnProperty(key)) {
@@ -196,7 +214,6 @@
                      console.log('creating markers')
                      console.log(cp)
                      console.log(key)
-                     
                      
                      // add markers to map
                      markers[key] = L.marker(cp.latLng)
@@ -275,6 +292,7 @@
 
 
              updateControlPoints(initialGameData);
+             updateDeathTickets(initialGameData);
 
              // Goblin Fortress
              //markers['firePit'] = L.marker([47.624529, -117.180074], {icon: bluIcon})
@@ -285,6 +303,7 @@
                  console.log('got state update.');
                  console.log(data);
                  updateControlPoints(data);
+                 updateDeathTickets(data);
              });
 
 

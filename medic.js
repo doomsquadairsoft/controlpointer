@@ -8,7 +8,7 @@
 var _ = require('lodash');
 var randmember = require('./probability').randmember;
 var gameState = require('./state');
-
+var radio = require('radio');
 
 
 
@@ -41,6 +41,9 @@ var healPlayer = function healPlayer(player) {
     // deduct death ticket
     gameState.deathTickets[affiliation] -= 1;
 
+    // update death ticket counter on player's phones
+    radio('update').broadcast();
+
     return firstName+' '+lastName;
 }
 
@@ -53,7 +56,7 @@ module.exports.api = function api(app, become) {
     app.get('/medic/heal', become.init, become.setAction, become.authorize, function(req, res) {
         
         if (typeof req.query.targetid === 'undefined') {
-            res.send('Heal? Heal WHO? Did you scan the QR code or are you A HAXXOR!?');
+            res.send('Your query is missing a target. Heal who? targetid query parameter was undefined.');
         }
         else {
             var targetid = req.query.targetid;

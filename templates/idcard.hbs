@@ -3,11 +3,14 @@
             <div class="scans-wrapper">
                 <div class="columns">
                 {{#each scans}}
-                    {{>qrFigure}}
+                    {{#if selfSource}}
+                        {{>qrFigure}}
+                    {{/if}}
                 {{/each}}
                 </div>
             </div>
 
+            <div class="team team-{{ affiliation }}">{{#uppercase}}{{ affiliation }}{{/uppercase}} TEAM</div>
             
             <div class="facecolumn">
                 <div class="face">

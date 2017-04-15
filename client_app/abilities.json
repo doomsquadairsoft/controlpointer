@@ -21,7 +21,7 @@
     },
     "teammate-heal": {
         "selfSource": false,
-        "endpoint": "heal"
+        "endpoint": "medic/heal"
     },
     "capmantle": { 
         "selfSource": false,
@@ -33,6 +33,6 @@
     },
     "healable": { 
         "selfSource": true,
-        "endpoint": "heal"
+        "endpoint": "medic/heal"
     }
 }

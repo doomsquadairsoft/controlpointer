@@ -10,9 +10,11 @@ var gameState = require('./state.js');
 var create = module.exports.create = function create(data) {
     qr_svg = qr.image(data, {type: 'png', size: 2 });
     var randomString = proba.randstring();
-    var imagePath = path.resolve('./client_app/images/qr/'+randomString+'.png');
+    var fileName = ''+randomString+'.png';
+    var imagePath = path.resolve('./client_app/images/qr/'+fileName);
+    var url = '/images/qr/'+fileName;
     qr_svg.pipe(fs.createWriteStream(imagePath));
-    return imagePath;
+    return url;
 }
 
 /**
