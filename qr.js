@@ -71,6 +71,14 @@ var compilePlayer = module.exports.compilePlayer = function compilePlayer(player
 
         scans.push(scan);
     }
+    
+    // create one last scan which contains a link to the map website
+    mapScan = {};
+    mapScan.data = url.resolve(gameState.url, '/');
+    mapScan.image = create(mapScan.data);
+    mapScan.selfSource = true;
+    mapScan.caption = 'map';
+    scans.push(mapScan);
 
     
     return scans;
