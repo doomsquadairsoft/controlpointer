@@ -1,7 +1,11 @@
 {
   "name": "operation-spring-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Airsoft Field Control Point State Manager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doomsquadairsoft/controlpointer.git"
+  },
   "main": "index.js",
   "dependencies": {
     "bluebird": "^3.4.7",
@@ -22,10 +26,37 @@
     "socket.io": "^1.7.2"
   },
   "devDependencies": {
+    "babel-loader": "^7.1.4",
     "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "clean-webpack-plugin": "^0.1.19",
+    "css-loader": "^0.28.10",
+    "eslint": "^4.18.2",
+    "eslint-loader": "^2.0.0",
+    "eslint-plugin-vue": "^4.3.0",
+    "extract-text-webpack-plugin": "3.0.2",
+    "file-loader": "^1.1.11",
+    "html-webpack-plugin": "^3.0.6",
+    "mocha": "^3.2.0",
+    "style-loader": "^0.20.2",
+    "vue": "^2.5.13",
+    "vue-loader": "^14.2.1",
+    "vue-template-compiler": "^2.5.13",
+    "webpack": "3.10.0",
+    "webpack-dev-server": "^2.11.1",
+    "webpack-serve": "0.1.5"
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ]
   },
   "scripts": {
+    "start": "node index.js",
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "dev": "webpack-serve --config ./webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
