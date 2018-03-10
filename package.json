@@ -1,64 +1,35 @@
 {
-  "name": "operation-spring-app",
+  "name": "Controlpointer",
   "version": "1.0.0",
   "description": "Airsoft Field Control Point State Manager",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/doomsquadairsoft/controlpointer.git"
   },
-  "main": "index.js",
-  "dependencies": {
-    "bluebird": "^3.4.7",
-    "command-line-args": "^4.0.2",
-    "command-line-usage": "^4.0.0",
-    "commander": "^2.9.0",
-    "cookie-parser": "^1.4.3",
-    "express": "^4.14.1",
-    "faker": "^4.1.0",
-    "handlebars": "^4.0.6",
-    "leaflet": "^1.0.3",
-    "lodash": "^4.17.4",
-    "mobi.css": "^1.1.0",
-    "moment": "^2.17.1",
-    "qr-image": "^3.2.0",
-    "qrcode-js": "0.0.2",
-    "radio": "^0.2.0",
-    "socket.io": "^1.7.2"
-  },
-  "devDependencies": {
-    "babel-loader": "^7.1.4",
-    "chai": "^3.5.0",
-    "clean-webpack-plugin": "^0.1.19",
-    "css-loader": "^0.28.10",
-    "eslint": "^4.18.2",
-    "eslint-loader": "^2.0.0",
-    "eslint-plugin-vue": "^4.3.0",
-    "extract-text-webpack-plugin": "3.0.2",
-    "file-loader": "^1.1.11",
-    "html-webpack-plugin": "^3.0.6",
-    "mocha": "^3.2.0",
-    "style-loader": "^0.20.2",
-    "vue": "^2.5.13",
-    "vue-loader": "^14.2.1",
-    "vue-template-compiler": "^2.5.13",
-    "webpack": "3.10.0",
-    "webpack-dev-server": "^2.11.1",
-    "webpack-serve": "0.1.5"
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ]
-  },
   "scripts": {
-    "start": "node index.js",
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "dev": "webpack-serve --config ./webpack.config.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "NODE_ENV=development webpack-dev-server --open --hot",
+    "build": "NODE_ENV=production webpack --progress --hide-modules"
   },
-  "author": "",
-  "license": "MIT"
+  "dependencies": {
+    "vue": "^2.5.11"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "clean-webpack-plugin": "^0.1.19",
+    "css-loader": "^0.28.7",
+    "file-loader": "^1.1.4",
+    "html-webpack-plugin": "^3.0.6",
+    "vue-loader": "^13.0.5",
+    "vue-template-compiler": "^2.4.4",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.9.1"
+  }
 }
