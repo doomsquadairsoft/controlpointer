@@ -1,9 +1,67 @@
 <template>
-  <div id="controlpointer">
-    <img src="./assets/logo.png">
-    <Welcome msg="Welcome to Controlpointer App"/>
-    <Welcome msg="Takko boii"/>
-  </div>
+    <v-app>
+        <v-toolbar flat>
+            <v-toolbar-side-icon @click.stop="drawer = !drawer">
+            </v-toolbar-side-icon>
+            <v-toolbar-title>Controlpointer</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items class="hidden-sm-and-down">
+                <v-btn flat>Link One</v-btn>
+                <v-btn flat>Link Two</v-btn>
+                <v-btn flat>Link Three</v-btn>
+            </v-toolbar-items>
+        </v-toolbar>
+
+        <v-navigation-drawer
+            fixed
+            v-model="drawer"
+            absolute
+            app
+        >
+            <v-list class="pa-1">
+
+                <v-list-tile>
+                    <v-list-tile-title class="title">
+                        Controlpointer
+                    </v-list-tile-title>
+                </v-list-tile>
+
+                <v-list-tile avatar>
+                    <v-list-tile-avatar>
+                        <img src="https://randomuser.me/api/portraits/men/85.jpg">
+                    </v-list-tile-avatar>
+                    <v-list-tile-content>
+                        <v-list-tile-title>John Leider</v-list-tile-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+
+            </v-list>
+
+            <v-list class="pt-0" dense>
+                <v-divider></v-divider>
+                <v-list-tile v-for="item in menuItems" :key="item.title" :to="item.path" @click="">
+                    <v-list-tile-action>
+                        <v-icon>{{ item.icon }}</v-icon>
+                    </v-list-tile-action>
+                    <v-list-tile-content>
+                        <v-list-tile-title>
+                            {{ item.text }}
+                        </v-list-tile-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+            </v-list>
+            </v-toolbar>
+            <v-divider></v-divider>
+        </v-navigation-drawer>
+
+
+        <v-content>
+            <v-container>
+                <router-view></router-view>
+            </v-container>
+        </v-content>
+        <v-footer app></v-footer>
+    </v-app>
 </template>
 
 <script>
@@ -13,7 +71,17 @@ export default {
   name: 'Controlpointer',
   components: {
     Welcome
-  }
+  },
+  data: () => ({
+    drawer: true,
+    menuItems: [
+      { icon: 'trending_up', text: 'About', path: '/about' },
+      { icon: 'trending_up', text: 'Home', path: '/'},
+      { icon: 'trending_up', text: 'Administration', path: '/admin'},
+    ]
+  })
+
+
 }
 </script>
 
