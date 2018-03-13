@@ -65,19 +65,16 @@
 </template>
 
 <script>
-import Welcome from './components/Welcome.vue'
 
 export default {
   name: 'Controlpointer',
-  components: {
-    Welcome
-  },
   data: () => ({
     drawer: true,
     menuItems: [
-      { icon: 'trending_up', text: 'About', path: '/about' },
-      { icon: 'trending_up', text: 'Home', path: '/'},
-      { icon: 'trending_up', text: 'Administration', path: '/admin'},
+      { icon: 'home', text: 'Home', path: '/'},
+      { icon: 'map', text: 'Map', path: '/map'},
+      { icon: 'lock', text: 'Administration', path: '/admin'},
+      { icon: 'code', text: 'About', path: '/about' },
     ]
   })
 
