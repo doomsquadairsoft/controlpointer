@@ -26,7 +26,7 @@ Start the game server
 
 ## Feedback
 
-    If you have used and enjoy this code base, I'd love to hear from you!
+If you have used and enjoy this code base, I'd love to hear from you!
 
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/insanity54)
 
