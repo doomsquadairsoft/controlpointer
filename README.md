@@ -28,7 +28,7 @@ Start the game server
 
     If you have used and enjoy this code base, I'd love to hear from you!
 
-    [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/insanity54)]
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/insanity54)
 
 
 ## Special Thanks
