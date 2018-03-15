@@ -29,11 +29,11 @@
     "file-loader": "^1.1.4",
     "html-webpack-plugin": "^3.0.6",
     "material-design-icons-iconfont": "^3.0.3",
-    "vue-loader": "^13.0.5",
+    "vue-loader": "^14.2.1",
     "vue-router": "^3.0.1",
     "vue-template-compiler": "^2.4.4",
     "vuetify": "^1.0.6",
-    "webpack": "^3.6.0",
-    "webpack-dev-server": "^2.9.1"
+    "webpack": "^4.1.1",
+    "webpack-dev-server": "^3.1.1"
   }
 }
