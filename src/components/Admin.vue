@@ -25,14 +25,7 @@ export default {
       Device
   },
   data: () => ({
-      deviceList: [
-        { did: 'impactful-badger', controllingTeam: true, image: di },
-        { did: 'shameful-tortoise', controllingTeam: false, image: di },
-        { did: 'vertical-ramrod', controllingTeam: true, image: di },
-        { did: 'nonchalant-goose', controllingTeam: true, image: di },
-        { did: 'mutinous-mouse', controllingTeam: true },
-        { did: 'frightened-moat', controllingTeam: true },
-      ]
+      deviceList: []
   })
 }
 </script>

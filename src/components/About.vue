@@ -15,5 +15,18 @@
       Controlpointer uses DooM Devices
       <a href="https://github.com/doomsquadairsoft/d3vice-controlpoint-xbee" target="_blank">DooM D3VICE Code Repository</a>
     </p>
+    <counter></counter>
+
   </div>
 </template>
+
+<script>
+    import Counter from './Counter.vue'
+
+    export default {
+      name: 'About',
+      components: {
+          Counter
+      }
+    }
+</script>
