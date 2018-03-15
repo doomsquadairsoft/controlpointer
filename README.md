@@ -1,5 +1,7 @@
 # operation-spring-app
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/doomsquadairsoft/controlpointer.svg)](https://greenkeeper.io/)
+
 
 Airsoft Field Control Point State Manager
 
