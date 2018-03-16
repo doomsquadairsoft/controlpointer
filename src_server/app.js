@@ -1,3 +1,5 @@
+
+const path = require('path');
 const compress = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,6 +10,7 @@ const configuration = require('@feathersjs/configuration');
 const express = require('@feathersjs/express');
 const socketio = require('@feathersjs/socketio');
 
+
 const middleware = require('./middleware');
 const services = require('./services');
 const appHooks = require('./app.hooks');
@@ -17,7 +20,6 @@ const authentication = require('./authentication');
 
 const app = express(feathers());
 
-
 // Load app configuration
 app.configure(configuration());
 // Enable CORS, security, compression, favicon and body parsing
@@ -26,9 +28,8 @@ app.use(helmet());
 app.use(compress());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 // Host the public folder
-app.use('/', express.static(app.get('dist')));
+app.use('/', express.static(app.get('public')));
 
 // Set up Plugins and providers
 app.configure(express.rest());
