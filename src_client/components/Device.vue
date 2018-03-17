@@ -26,7 +26,7 @@
                                 <v-text-field
                                     name="input-3-4"
                                     label="Location of the D3VICE on the field"
-                                    :value="location"
+                                    v-bind:value="location"
                                     single-line
                                 ></v-text-field>
                             </v-flex>
@@ -66,7 +66,10 @@ export default {
   name: 'device',
   props: {
     did: String,
-    controllingTeam: Boolean,
+    controllingTeam: {
+        type: Boolean,
+        default: false
+    },
     location: {
         type: String,
         default: "Safe Zone"

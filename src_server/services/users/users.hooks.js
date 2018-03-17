@@ -1,8 +1,7 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-
 const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
-
 const gravatar = require('../../hooks/gravatar');
+
 
 module.exports = {
   before: {
