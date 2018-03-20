@@ -1,34 +1,26 @@
 <template>
-  <div class="admin">
-    <h1>Controlpointer Administration</h1>
-    <v-container grid-list-lg>
-        <v-layout row wrap>
-            <device
-                v-for="device in devices"
-                v-bind:key="device.did"
-                v-bind:did="device.did"
-                v-bind:controlling-team="device.controllingTeam"
-                v-bind:image="device.image"
-            ></device>
-            <new-device
-                v-bind:createDevice="createDevice"
-                v-bind:devices="devices.data"
-            ></new-device>
-        </v-layout>
-    </v-container>
-  </div>
+    <div class="admin">
+        <h1>Controlpointer Administration</h1>
+        <device-list
+            v-bind:devices="devices.data"
+            v-bind:findDevices="findDevices"
+        ></device-list>
+        <new-device
+            v-bind:createDevice="createDevice"
+        ></new-device>
+    </div>
 </template>
 
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
-import Device from '../Device.vue'
+import DeviceList from '../DeviceList.vue'
 import NewDevice from './NewDevice.vue'
 import di from '../../assets/futuristic_ammo_box_01.png'
 
 export default {
   name: 'Admin',
   components: {
-      Device,
+      DeviceList,
       NewDevice
   },
   computed: {
@@ -39,7 +31,7 @@ export default {
       findDevicesInStore: 'find'
     }),
     devices () {
-      return this.findDevicesInStore({query: { $sort: {createdAt: 1} }})
+        return this.findDevicesInStore({ query: { $sort: { createdAt: 1 }}})
     }
   },
   methods: {

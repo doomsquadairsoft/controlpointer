@@ -5,6 +5,8 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
   return async context => {
     const { data } = context;
 
+    console.log('ima hook!')
+
     // Throw an error if we didn't get a text
     if(!data.did) {
       throw new Error('A device must have an id');

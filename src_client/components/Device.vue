@@ -35,7 +35,9 @@
                             <span>ID: </span>
                             <span>{{ did }}</span><br>
                             <span>Location: </span>
-                            <span>{{ location }}</span>
+                            <span>{{ location }}</span><br>
+                            <span>CreatedAt: </span>
+                            <span>{{ createdAt | formatDate }}</span>
                         </div>
                     </v-container>
                 </v-card-title>
@@ -77,7 +79,8 @@ export default {
     image: {
         type: String,
         default: di
-    }
+    },
+    createdAt: Number
   }
 }
 </script>

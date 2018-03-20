@@ -1,6 +1,8 @@
 //const { authenticate } = require('@feathersjs/authentication').hooks;
 const processDevice = require('../../hooks/process-device');
 const populateUser = require('../../hooks/populate-user');
+const populateDevice = require('../../hooks/populate-device');
+
 
 module.exports = {
   before: {
@@ -17,7 +19,7 @@ module.exports = {
   after: {
     //all: [populateUser()],
     all: [],
-    find: [],
+    find: [populateDevice()],
     get: [],
     create: [],
     update: [],

@@ -15,14 +15,8 @@ const debug = process.env.NODE_ENV !== 'production'
 
 export default new Vuex.Store({
     plugins: [
-        service('devices'),
-        service('things', {
-            state: {
-                count: 0,
-                deviceList: [
-                    { did: 'impactful-badger', controllingTeam: true, image: di }
-                ]
-            }
+        service('devices', {
+            idField: '_id'
         }),
         service('messages'),
         //auth()
