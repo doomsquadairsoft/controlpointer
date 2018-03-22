@@ -1,7 +1,9 @@
 <template>
         <v-flex xs12 sm6 md6 lg3>
+
+
             <v-card
-                :color="controllingTeam ? 'red' : 'green'"
+
             >
                 <v-card-media
                     height="200px"
@@ -16,45 +18,116 @@
                     </v-container>
                 </v-card-media>
 
-                <v-card-title primary-title>
+                <v-slide-y-transition>
+                    <v-card-text v-show="editMode" >
+                        <v-form :value="editMode">
+                            <v-text-field
+                                label="Location"
+                                v-model="location"
+                                :counter="40"
+                                required
+                            ></v-text-field>
+                            <v-text-field
+                                label="Device ID"
+                                v-model="did"
+                                :counter="16"
+                                required
+                            ></v-text-field>
+                        </v-form>
+                    </v-card-text>
+                </v-slide-y-transition>
+
+                <v-card-title primary-title v-show="!editMode" >
                     <v-container fluid>
-                        <v-layout row>
-                            <v-flex xs4>
-                                <v-subheader>Location</v-subheader>
-                            </v-flex>
-                            <v-flex xs8>
-                                <v-text-field
-                                    name="input-3-4"
-                                    label="Location of the D3VICE on the field"
-                                    v-bind:value="location"
-                                    single-line
-                                ></v-text-field>
-                            </v-flex>
-                        </v-layout>
+
+
                         <div>
-                            <span>ID: </span>
-                            <span>{{ did }}</span><br>
                             <span>Location: </span>
                             <span>{{ location }}</span><br>
+                            <span>ID: </span>
+                            <span>{{ did }}</span><br>
                             <span>CreatedAt: </span>
                             <span>{{ createdAt | formatDate }}</span>
                         </div>
                     </v-container>
+
+                    <v-container>
+                        <div class="text-xs-center">
+                            <v-chip v-bind:color="controllingColor" text-color="white">
+                                <v-avatar>
+                                    <v-icon>group</v-icon>
+                                </v-avatar>
+                                {{ controllingTeam ? 'Controlled by Green Team' : 'Controlled by Red Team'}}
+                            </v-chip>
+                        </div>
+                    </v-container>
+
                 </v-card-title>
 
 
 
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn color="green">
+                    <v-btn
+                        color="green"
+                        @click="changeControllingTeamGreen"
+                    >
                         GRN
                     </v-btn>
-                    <v-btn color="red">
+                    <v-btn
+                        color="red"
+                        @click="changeControllingTeamRed"
+                    >
                         RED
                     </v-btn>
-                    <v-btn icon @click.native="show = !show">
+
+
+
+
+                    <v-menu
+                      offset-x
+                      v-bind:close-on-content-click="false"
+                      v-bind:nudge-width="200"
+                      v-model="menu"
+                    >
+                    <v-btn icon slot="activator">
                         <v-icon>more_vert</v-icon>
                     </v-btn>
+
+
+                      <v-card>
+                        <v-list>
+                          <v-list-tile>
+                            <v-list-tile-content>
+                              <v-list-tile-title>{{ did }}</v-list-tile-title>
+                              <v-list-tile-sub-title>{{ location }}</v-list-tile-sub-title>
+                            </v-list-tile-content>
+                          </v-list-tile>
+                        </v-list>
+                        <v-divider></v-divider>
+                        <v-list>
+                            <v-list-tile @click="showEditor">
+                              <v-list-tile-title>Edit</v-list-tile-title>
+                            </v-list-tile>
+                          <v-list-tile>
+                            <v-list-tile-action>
+                              <v-switch v-model="deletable" color="red"></v-switch>
+                            </v-list-tile-action>
+                            <v-list-tile-title>Enable deletion</v-list-tile-title>
+                          </v-list-tile>
+                          <v-list-tile color="red" :disabled="!deletable" @click="deleteDevice">
+                            <v-list-tile-title>Delete D3VICE</v-list-tile-title>
+                          </v-list-tile>
+                        </v-list>
+                        <v-card-actions>
+                          <v-spacer></v-spacer>
+                          <v-btn flat @click="menu = false">Cancel</v-btn>
+                        </v-card-actions>
+
+                    </v-card>
+                </v-menu>
+
+
                 </v-card-actions>
 
             </v-card>
@@ -65,23 +138,51 @@
 import di from '../assets/futuristic_ammo_box_01.png'
 
 export default {
-  name: 'device',
-  props: {
-    did: String,
-    controllingTeam: {
-        type: Boolean,
-        default: false
+    name: 'device',
+    props: {
+        did: String,
+        controllingTeam: {
+            type: Boolean,
+            default: false
+        },
+        location: {
+            type: String,
+            default: "Safe Zone"
+        },
+        image: {
+            type: String,
+            default: di
+        },
+        _id: String,
+        createdAt: Number,
+        patchDevice: Function,
+        removeDevice: Function
     },
-    location: {
-        type: String,
-        default: "Safe Zone"
+    computed: {
+        controllingColor: function () {
+            return this.controllingTeam ? 'green' : 'red'
+        }
     },
-    image: {
-        type: String,
-        default: di
+    methods: {
+        changeControllingTeamGreen: function () {
+            this.patchDevice([this._id, {controllingTeam: true}, undefined])
+        },
+        changeControllingTeamRed: function () {
+            this.patchDevice([this._id, {controllingTeam: false}, undefined])
+        },
+        deleteDevice: function() {
+            this.removeDevice(this._id)
+        },
+        showEditor: function() {
+            this.editMode = !this.editMode
+            this.menu = false
+        }
     },
-    createdAt: Number
-  }
+    data: () => ({
+        editMode: false,
+        menu: 0,
+        deletable: 0
+    })
 }
 </script>
 

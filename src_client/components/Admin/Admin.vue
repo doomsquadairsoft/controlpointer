@@ -17,6 +17,7 @@ import DeviceList from '../DeviceList.vue'
 import NewDevice from './NewDevice.vue'
 import di from '../../assets/futuristic_ammo_box_01.png'
 
+
 export default {
   name: 'Admin',
   components: {
