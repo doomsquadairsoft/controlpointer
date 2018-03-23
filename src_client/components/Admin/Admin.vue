@@ -8,6 +8,8 @@
         <new-device
             v-bind:createDevice="createDevice"
         ></new-device>
+
+
     </div>
 </template>
 

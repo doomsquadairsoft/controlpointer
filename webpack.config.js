@@ -2,6 +2,8 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const config = require('config');
+
 
 
 module.exports = {
@@ -60,11 +62,20 @@ module.exports = {
         hints: false
     },
     devtool: '#eval-source-map',
-    // plugins: [
-    //       new CleanWebpackPlugin(['dist/**.js'], {
-    //           beforeEmit: true
-    //       }),
-    // ]
+    plugins: [
+        new CleanWebpackPlugin(['dist/**.js'], {
+            beforeEmit: true
+        }),
+        new webpack.DefinePlugin({
+            'websocketURIsetByWepack':
+                path.join(
+                    process.env.NODE_ENV === 'production' ? 'https://' : 'http://',
+                    config.get('host'),
+                    ':',
+                    config.get('port').toString()
+                )
+        })
+    ]
 }
 
 

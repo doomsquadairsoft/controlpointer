@@ -18,51 +18,54 @@
                     </v-container>
                 </v-card-media>
 
-                <v-slide-y-transition>
-                    <v-card-text v-show="editMode" >
-                        <v-form :value="editMode">
-                            <v-text-field
-                                label="Location"
-                                v-model="location"
-                                :counter="40"
-                                required
-                            ></v-text-field>
-                            <v-text-field
-                                label="Device ID"
-                                v-model="did"
-                                :counter="16"
-                                required
-                            ></v-text-field>
-                        </v-form>
-                    </v-card-text>
-                </v-slide-y-transition>
-
-                <v-card-title primary-title v-show="!editMode" >
-                    <v-container fluid>
+                <v-card-text v-show="editMode">
+                    <v-form :value="editMode">
+                        <v-text-field
+                            label="Location"
+                            v-model="location"
+                            :counter="40"
+                            required
+                        ></v-text-field>
+                        <v-text-field
+                            label="Device ID"
+                            v-model="did"
+                            :counter="16"
+                            required
+                        ></v-text-field>
+                    </v-form>
+                </v-card-text>
 
 
-                        <div>
-                            <span>Location: </span>
-                            <span>{{ location }}</span><br>
-                            <span>ID: </span>
-                            <span>{{ did }}</span><br>
-                            <span>CreatedAt: </span>
-                            <span>{{ createdAt | formatDate }}</span>
-                        </div>
-                    </v-container>
+                <v-card-text
+                    v-show="!editMode"
+                >
+                    <div>
+                        <span>Location: </span>
+                        <span>{{ location }}</span><br>
+                        <span>ID: </span>
+                        <span>{{ did }}</span><br>
+                        <span>CreatedAt: </span>
+                        <span>{{ createdAt | formatDate }}</span>
+                    </div>
+                </v-card-text>
 
-                    <v-container>
+                <v-card-text>
+                    <v-container fluid class="my-0 py-0">
                         <div class="text-xs-center">
-                            <v-chip v-bind:color="controllingColor" text-color="white">
-                                <v-avatar>
-                                    <v-icon>group</v-icon>
-                                </v-avatar>
-                                {{ controllingTeam ? 'Controlled by Green Team' : 'Controlled by Red Team'}}
-                            </v-chip>
+                            <v-layout row>
+                                <v-flex xs12>
+                                    <v-chip v-bind:color="controllingColor" text-color="white">
+                                        <v-avatar>
+                                            <v-icon>group</v-icon>
+                                        </v-avatar>
+                                        {{ controllingTeam ? 'Controlled by Green Team' : 'Controlled by Red Team'}}
+                                    </v-chip>
+                                </v-flex>
+                            </v-layout>
                         </div>
                     </v-container>
+                </v-card-text>
 
-                </v-card-title>
 
 
 
@@ -188,6 +191,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.icon {
+    height: 1em;
+}
 h3 {
   margin: 40px 0 0;
 }
