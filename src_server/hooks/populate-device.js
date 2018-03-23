@@ -19,15 +19,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     //
     //   device.user = user;
     // }));
-    console.log('populate device hook is running!')
-    //console.log(app);
-    console.log(method);
-    console.log(result);
-    console.log(params);
-    console.log(devices);
-    console.log(context.path)
-    console.log(context.id)
-    console.log(result.data)
+
 
     // Best practise, hooks should always return the context
     return context;

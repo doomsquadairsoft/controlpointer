@@ -2,12 +2,13 @@ const path = require('path')
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const config = require('config');
 
 
 
 module.exports = {
-    entry: './src_client/index.js',
+    entry: [
+        './src_client/index.js',
+    ],
     output: {
         path: path.resolve(__dirname, './dist'),
         publicPath: '/',
@@ -46,18 +47,18 @@ module.exports = {
         },
         extensions: ['*', '.js', '.vue', '.json']
     },
-    devServer: {
-        historyApiFallback: true,
-        noInfo: true,
-        overlay: true,
-        contentBase: path.join(__dirname, "dist"),
-        hot: true,
-        open: true,
-        watchContentBase: true,
-        watchOptions: {
-            poll: true
-        }
-    },
+    // devServer: {
+    //     historyApiFallback: true,
+    //     noInfo: true,
+    //     overlay: true,
+    //     contentBase: path.join(__dirname, "dist"),
+    //     hot: true,
+    //     open: true,
+    //     watchContentBase: true,
+    //     watchOptions: {
+    //         poll: true
+    //     }
+    // },
     performance: {
         hints: false
     },
@@ -66,15 +67,15 @@ module.exports = {
         new CleanWebpackPlugin(['dist/**.js'], {
             beforeEmit: true
         }),
-        new webpack.DefinePlugin({
-            'websocketURIsetByWepack':
-                path.join(
-                    process.env.NODE_ENV === 'production' ? 'https://' : 'http://',
-                    config.get('host'),
-                    ':',
-                    config.get('port').toString()
-                )
-        })
+        // new webpack.DefinePlugin({
+        //     'websocketURIsetByWepack':
+        //         path.join(
+        //             process.env.NODE_ENV === 'production' ? 'https://' : 'http://',
+        //             config.get('host'),
+        //             ':',
+        //             config.get('port').toString()
+        //         )
+        // }),
     ]
 }
 
