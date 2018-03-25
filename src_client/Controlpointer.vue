@@ -2,13 +2,13 @@
     <v-app>
 
 
-        <v-toolbar flat>
+        <v-toolbar flat fixed app>
             <v-toolbar-side-icon @click.stop="drawer = !drawer">
             </v-toolbar-side-icon>
             <v-toolbar-title>DooM Squad Airsoft</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items class="hidden-sm-and-down">
-                <v-btn flat><a href="http://google.com">Link One</a></v-btn>
+                <v-btn flat>Link One</v-btn>
                 <v-btn flat>Link Two</v-btn>
                 <v-btn flat>Link Three</v-btn>
             </v-toolbar-items>
@@ -69,7 +69,7 @@
 <script>
 
 export default {
-  name: 'DooM Squad Airsoft',
+  name: 'Controlpointer',
   data: () => ({
     drawer: true,
     menuItems: [
@@ -78,7 +78,7 @@ export default {
       { icon: 'announcement', text: 'Operation: Green Fox II', path: '/green-fox-ii'},
       { icon: 'map', text: 'Map', path: '/map'},
       { icon: 'lock', text: 'Administration', path: '/admin'},
-      { icon: 'code', text: 'TechnicalInfo', path: '/technical-info' },
+      { icon: 'code', text: 'Technical Info', path: '/technical-info' },
     ]
   })
 

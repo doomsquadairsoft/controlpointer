@@ -12,6 +12,7 @@
                     <p>DooM Squad has created an electronic control point solution dubbed, "DooM D3vices". The devices are small boxes with arcade buttons which wirelessly connect together and enable videogame-style gameplay, capture point stracking, statistics gathering, post-game reporting, etc. During OP: Green Fox II, each control point will have one of these doom devices which players can interact with. The device has color coded pushbuttons which players can press to capture the control point for their team, REDFOR or BLUEFOR. Players can use their smartphones to see the status of each control point by viewing the map page on this website. Players can respawn at any point controlled by their own team.</p>
                     <h3 id="class-based-combat">Class-Based Combat</h3>
                     <p>Just like many First Person Shooter (FPS) games, where players operate as a type of combatant with specific traits, there are four classes in Operation: Green Fox.
+
                     <h5>Grenadier</h5>
                     <p>Grenadier carries a high-output smoke grenade and a frag grenade.</p>
                     <h5>Medic</h5>
@@ -31,6 +32,8 @@
                     <v-data-table
                         :headers="headers"
                         :items="items"
+                        total-items=50
+                        disable-initial-sort=true
                     >
                         <template slot="items" slot-scope="props">
                             <td>{{ props.item.time }}</td>
@@ -45,107 +48,51 @@
                     <p>We hope to see you on the battlefield for this fun event! This is a free event, but we do have a donation jar which funds field improvements. We are looking to have a good turnout so definately bring your friends! </p>
 
 
-                    <h2 id="mission">Mission</h2>
-                    <h3 id="aas-advance-and-secure-">AAS - Advance And Secure.</h3>
-                    <p>Both teams start with 50 death tickets each. When a player dies, they must go to one of their team&#39;s control points and expend one death ticket to respawn. The first team to exhaust all their death tickets loses.</p>
-                    <h4 id="special-classes">Special classes</h4>
-                    <p>There are a number of special classes which can greatly influence the outcome of the game.</p>
-                    <h5 id="medics">Medics</h5>
-                    <p>A medic can revive dead players in the field, expending one death ticket in the process.</p>
-                    <h5 id="captains">Captains</h5>
-                    <p>Captains can self-heal after two minutes. Captains can capture downed enemy captains.</p>
-                    <h5 id="grenadiers">Grenadiers</h5>
-                    <p>Grenadiers carry anti-personnel explosive grenades, and concealment signal smokes.</p>
-                    <h5 id="sapper">Sapper</h5>
-                    <p>Sappers can sabotage enemy control points, preventing them from spawning.</p>
-                    <h3 id="loss-conditions">Loss Conditions</h3>
-                    <h4 id="blufor">BLUFOR</h4>
-                    <p>Fulfill any of the following conditions</p>
-                    <ul>
-                    <li>[ ] Exhaust all death tickets</li>
-                    </ul>
-                    <h4 id="opfor">OPFOR</h4>
-                    <p>Fulfill any of the following conditions</p>
-                    <ul>
-                    <li>[ ] Exhaust all death tickets</li>
-                    </ul>
-                    <h3 id="win-conditions">Win Conditions</h3>
-                    <h4 id="blufor">BLUFOR</h4>
-                    <p>Fulfill all conditions</p>
-                    <ul>
-                    <li>[ ] Eliminate OPFOR Spy</li>
-                    <li>[ ] Capture OPFOR FOB</li>
-                    </ul>
-                    <h4 id="opfor">OPFOR</h4>
-                    <p>Fulfill any condition</p>
-                    <ul>
-                    <li>[ ] Capture OPFOR FOB</li>
-                    <li>[ ]</li>
-                    </ul>
-                    <p>Secondary objectives</p>
-                    <ul>
-                    <li>[ ] Sapper Sabotage (must complete all 2)<ul>
-                    <li>[ ] Sabotage Control Point Alpha</li>
-                    <li>[ ] Sabotage Control Point Bravo</li>
-                    </ul>
-                    </li>
-                    </ul>
-                    <h3 id="todo-list">TODO List</h3>
-                    <ul>
-                    <li>[-] Map<ul>
-                    <li>[x] ?admin=1 on the map</li>
-                    <li>[ ] streaming animations</li>
-                    </ul>
-                    </li>
-                    <li>[x] Medic<ul>
-                    <li>[x] Healability</li>
-                    <li>[x] Cookie-based authentication (per round)</li>
-                    </ul>
-                    </li>
-                    <li>[x] Identity<ul>
-                    <li>[x] QR codes generated</li>
-                    </ul>
-                    </li>
-                    <li>[x] Capture points<ul>
-                    <li>[x] Sapper quick takedown</li>
-                    <li>[x] Captain quick capture</li>
-                    </ul>
-                    </li>
-                    </ul>
-                    <h3 id="event-checklist">Event Checklist</h3>
-                    <ul>
-                    <li>[ ] cooler</li>
-                    <li>[ ] ice</li>
-                    <li>[x] bottled water</li>
-                    <li>[x] Enola Gaye frags</li>
-                    <li>[x] pen &amp; paper pad (for registration)</li>
-                    <li>[-] zipties (for chrono)</li>
-                    <li>[x] chrono</li>
-                    <li>[x] donation jar</li>
-                    <li>[-] raffle tickets</li>
-                    <li>[x] airsoft --&gt; sign</li>
-                    <li>[x] Tape or stickers to identify teams the players belong to</li>
-                    </ul>
-                    <h3 id="briefing">Briefing</h3>
-                    <h4 id="introductions">Introductions</h4>
-                    <h4 id="safety-rules">Safety &amp; Rules</h4>
-                    <p>Our number one focus is safety, because it&#39;s all fun and games until someone gets hurt.</p>
-                    <ul>
-                    <li>[ ] player safety check &amp; sign-in</li>
-                    <li>[ ] eye protection check</li>
-                    <li>[ ] chrono &amp; ziptie</li>
-                    <li>[ ] raffle ticket</li>
-                    </ul>
+                    <h2 id="mission">Mission: AAS - Advance And Secure.</h2>
+                    <p>The mission is field domination. Capture all four control points for your team to win the round. (5 points)</p>
+
+                    <h3 id="death-tickets">Death Tickets</h3>
+                    <p>Both teams start with 50 death tickets. When a player dies, they must go to one of their team&#39;s control points and expend one death ticket to respawn. If a team exhausts all their death tickets, that team loses.</p>
+                    <p>Death ticket deduction only applies when players respawn at a control point. (Medics and Captain abilities do not deduct death tickets.)
+
+
+                    <h3>Secondary objectives</h3>
+                    <p>Winning the round isn't the only way to gain points for your team. Each player class has secondary objectives which grant their team one additional point if completed.</p>
+
+                    <h4>Grenadier</h4>
+                    <p>(1 point) Use a grenade to aid in the capture of a control point</p>
+
+                    <h4>Medic</h4>
+                    <p>(1 point) Heal 5 teammates</p>
+
+                    <h4>Sapper</h4>
+                    <p>(1 point) Use satchel charge to prevent the opposing team from capturing a control point</p>
+
+                    <h4>Captain</h4>
+                    <p>(1 point) Posess a self-heal token card at the end of the round</p>
+
+                    <h4>Assault</h4>
+                    <p>(1 point) Get 5 confirmed kills</p>
+
+                    <h4>Hacker</h4>
+                    <p>(1 point) Hack 2 controlpoints</p>
+
+
+                    <h2>Rules</h2>
+                    <p>Player safety is of utmost importance. Please follow these rules for everyone's safety.</p>
+
+
+
 
                     <ul>
+                    <li>All guns must chrono at or below 400 Feet per second with 0.20g BBs. (1.49 Joules max)</li>
+                    <li>Sniper rifles allowed under special conditions only (Ask Russell or Chris)</li>
                     <li>Do not blind fire. Blind firing is any time you are shooting and are not clearly looking down your gun. There is one exception for if you are using a gun camera :)</li>
-                    <li>Max FPS on all airsoft guns is 400 FPS for all players, or 550 FPS for players holding Spokane Airsoft sniper cards (or equivalent safety certification.)</li>
                     <li>Eye protection must be ANZI 87 certified and be worn at all times on the field.</li>
                     <li>Mouth guards and ear protectors are suggested.</li>
-                    <li>Safe zones are the staging area and parking lot.<ul>
-                    <li>This is very important for everyone&#39;s safety, since there are people without eye protection in safe zones, I will bark at you if I see live guns.</li>
+                    <li>Safe zones are the staging area and parking lot. This is very important for everyone&#39;s safety, since there are people without eye protection in safe zones, Chris will bark at you if he sees live guns in these areas.</li>
                     <li>No test firing in the safe zone</li>
-                    <li>Mags out, guns clear, safetys on in the safe zone.</li>
+                    <li>Mags out, guns clear, safeties on in the safe zone.</li>
                     </ul>
                     </li>
                     <li>Minimum engagement with AEGs and Pistols is 15 feet.</li>
@@ -155,33 +102,18 @@
                     <li>Dead men do not talk.</li>
                     <li>Do not use dead players, referees, or spectators as human shields.</li>
                     <li>All body hits count. Gear hits count. Riccochets do not count. Gun hits only count if the BB would pass through the gun and hit your body or gear.</li>
-                    <li>Do not attempt to use hopup to shoot around corners.</li>
+                    <li>Do not use hopup to shoot around corners.</li>
                     <li>Avoid headshots. Aim center mass when possible.</li>
-                    <li>Use safety kills. Safety kill can only be called when you have the upper hand.</li>
-                    <li>No bang-bangs. Engage safely, use a safety kill, parlay, or 1 for 1.</li>
+                    <li>Safety kill can only be called when you have the upper hand.</li>
+                    <li>No "bang-bangs". Engage safely, use a safety kill, parlay, or 1 for 1.</li>
                     <li>Rubber knife kills are allowed using a gentle tap, not a stab.</li>
                     <li>Riot shields are allowed only for the assault class while wielding a pistol.</li>
                     <li>Do not call other player&#39;s hits. If you notice a player not calling their hits, please tell either Chris or Russell.</li>
                     <li>Grenades and other explosive have a 20 foot kill radius unless obstructed by a solid object. When in doubt, think, &quot;If that were a real grenade, would I have been hit by it?&quot;</li>
                     </ul>
                     <p>Airsoft relies heavily on the honor system, so please be respectful and engage safely. Remember the golden rule.</p>
-                    <p>Questions? Ask Russell and I at any time if you have any questions.</p>
-                    <h4 id="gameplay">Gameplay</h4>
-                    <p>This is a team focused, class-based combat game which uses a computerized capture point system to keep score. Today we have two games planned, each lasting up to two ours, with no breaks. Obviously if you need to take a break, please do so by exiting the field and coming to the staging zone. Remember mags out, guns clear, safeties on in the safezone.</p>
-                    <p>This game is REDFOR vs. BLUFOR. Each team has a variety of classes. One captain, one medic, one sapper, one grenadier, and any number of assaults. Each class has unique abilities which can be used to help your team, or hinder the opposing team.</p>
-                    <p>There are four control points today. Goblin Fortress, King&#39;s Tower, Troll Bridge, and Swamp City. Each team starts with one control point, marked with a virtual flag in their team&#39;s color. There remain two grey flags on the map, which either team can claim. When a player dies, they can respawn at any control point owned by their team. Here&#39;s the live game map (show map.) As control points are captured, the map will update on your phone to show you the live status. You can respawn at any solid bordered control point. If a control point has a dashed border, it is contested by the opposing team and you cannot spawn at it.</p>
-                    <p>Control points owned by an enemy are converted to your team&#39;s color in two stages, dismantling and capturing. The first stage is dismantling, this is where you must turn the opponent team&#39;s flag color into grey. Second stage is capturing, this is where you turn a grey flag into your own team&#39;s color.</p>
-                    <p>Any player class can capture or dismantle a control point, but certain player classes can do one or the other twice as fast.</p>
-                    <p>In Operation: Green Fox, the hit rules are a little different than most airsoft games. When you are hit, call &quot;HIT!&quot; three times, raise your arms, place your dead-rag on your head, and sit on the ground where you were hit. You are not dead yet, you are just [downed]. You remain [down] for thirty seconds, so start counting out loud. If you aren&#39;t [healed] within 30 seconds, you [bleed out], and are [dead], then you can walk back to a respawn. A captain can use [self-heal] to save themselves from [bleeding out], but only after being down for 30 seconds.</p>
-                    <p>The Captain is an important class, focused on helping their team succeed. Their abilities are [Self-heal], which lets them heal themself instead of [bleeding out] and having to walk back to respawn. The captain&#39;s second ability is [Claim], which lets them turn grey flags into their team&#39;s color flags in half the time as other players.</p>
-                    <p>The Medic is essential to a team&#39;s well being. The medic heals downed players so they don&#39;t have to walk back to a respawn. A medic cannot heal themselves.</p>
-                    <p>The Sapper is well versed in destroying things. Their special ability is [Sabotage], which lets them [dismantle] an opponent&#39;s flag in half the time as other players.</p>
-                    <p>The Grenadier...</p>
-                    <p>The Assault...</p>
-                    <p>I&#39;ll start by introducing the player ID cards. These cards will be printed out at the start of each game, and they will you about your in-game identity. This game is REDFOR vs. BLUFOR and here I have the ID card for Ronald Ronaldsen who is on team BLU. Ronald is a Medic,</p>
-                    <p>For this game, you will need a phone with an internet connection, and any generic QR code scanner app. We have WiFi repeaters set up on the field, with access point name .... The password is .... </p>
-                    <p>When you get your player card, scan the QR code labelled, [register], and open the scanned link in your web browser. The link will take you to a website which will save a cookie on your browser. When you scan subsequent QR codes, the cookie saved in your browser will tell the game server which player identity you are using, and allow the action as long as your player has that ability. (This prevents a medic from using bounty, for example.)</p>
-                    <p>To use an ability, scan the QR code...</p>
+                    <p>Questions? Ask Russell or Chris at any time if you have any questions.</p>
+
 
                 </div>
             </v-flex>
@@ -198,7 +130,7 @@
                     {
                         text: 'Time',
                         align: 'left',
-                        sortable: true,
+                        sortable: false,
                         value: 'time'
                     },
                     { text: 'Activity', value: 'activity' }
