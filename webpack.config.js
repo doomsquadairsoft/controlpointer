@@ -47,18 +47,18 @@ module.exports = {
         },
         extensions: ['*', '.js', '.vue', '.json']
     },
-    // devServer: {
-    //     historyApiFallback: true,
-    //     noInfo: true,
-    //     overlay: true,
-    //     contentBase: path.join(__dirname, "dist"),
-    //     hot: true,
-    //     open: true,
-    //     watchContentBase: true,
-    //     watchOptions: {
-    //         poll: true
-    //     }
-    // },
+    devServer: {
+        historyApiFallback: true,
+        noInfo: true,
+        overlay: true,
+        contentBase: path.join(__dirname, "dist"),
+        hot: true,
+        open: true,
+        watchContentBase: true,
+        watchOptions: {
+            poll: true
+        }
+    },
     performance: {
         hints: false
     },

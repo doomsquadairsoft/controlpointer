@@ -1,6 +1,6 @@
 {
   "host": "game.doomsquadairsoft.com",
-  "port": 3030,
+  "port": 5000,
   "public": "../dist/",
   "paginate": {
     "default": 10,

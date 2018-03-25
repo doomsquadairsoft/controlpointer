@@ -5,10 +5,10 @@
         <v-toolbar flat>
             <v-toolbar-side-icon @click.stop="drawer = !drawer">
             </v-toolbar-side-icon>
-            <v-toolbar-title>Controlpointer</v-toolbar-title>
+            <v-toolbar-title>DooM Squad Airsoft</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items class="hidden-sm-and-down">
-                <v-btn flat>Link One</v-btn>
+                <v-btn flat><a href="http://google.com">Link One</a></v-btn>
                 <v-btn flat>Link Two</v-btn>
                 <v-btn flat>Link Three</v-btn>
             </v-toolbar-items>
@@ -24,7 +24,7 @@
 
                 <v-list-tile>
                     <v-list-tile-title class="title">
-                        Controlpointer
+                        DooM Squad Airsoft
                     </v-list-tile-title>
                 </v-list-tile>
 
@@ -33,7 +33,7 @@
                         <img src="https://randomuser.me/api/portraits/men/85.jpg">
                     </v-list-tile-avatar>
                     <v-list-tile-content>
-                        <v-list-tile-title>John Leider</v-list-tile-title>
+                        <v-list-tile-title>Test User</v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
 
@@ -69,14 +69,16 @@
 <script>
 
 export default {
-  name: 'Controlpointer',
+  name: 'DooM Squad Airsoft',
   data: () => ({
     drawer: true,
     menuItems: [
       { icon: 'home', text: 'Home', path: '/'},
+      { icon: 'subject', text: 'About', path: '/about'},
+      { icon: 'announcement', text: 'Operation: Green Fox II', path: '/green-fox-ii'},
       { icon: 'map', text: 'Map', path: '/map'},
       { icon: 'lock', text: 'Administration', path: '/admin'},
-      { icon: 'code', text: 'About', path: '/about' },
+      { icon: 'code', text: 'TechnicalInfo', path: '/technical-info' },
     ]
   })
 
