@@ -5,9 +5,7 @@
             v-bind:devices="devices.data"
             v-bind:findDevices="findDevices"
         ></device-list>
-        <new-device
-            v-bind:createDevice="createDevice"
-        ></new-device>
+        <new-device></new-device>
 
 
     </div>
@@ -16,7 +14,8 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
 import DeviceList from '../DeviceList.vue'
-import NewDevice from './NewDevice.vue'
+import NewDevice from '../NewDevice.vue'
+import Log from './Log.vue'
 import di from '../../assets/futuristic_ammo_box_01.png'
 
 
@@ -24,11 +23,15 @@ export default {
   name: 'Admin',
   components: {
       DeviceList,
-      NewDevice
+      NewDevice,
+      Log
   },
   computed: {
     ...mapState('devices',
       'devices'
+    ),
+    ...mapState('logs',
+      'logs'
     ),
     ...mapGetters('devices', {
       findDevicesInStore: 'find'

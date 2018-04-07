@@ -6,23 +6,20 @@
             <v-toolbar-side-icon @click.stop="drawer = !drawer">
             </v-toolbar-side-icon>
             <v-toolbar-title>DooM Squad Airsoft</v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-toolbar-items class="hidden-sm-and-down">
-                <v-btn flat>Link One</v-btn>
-                <v-btn flat>Link Two</v-btn>
-                <v-btn flat>Link Three</v-btn>
-            </v-toolbar-items>
         </v-toolbar>
 
         <v-navigation-drawer
-            fixed
             v-model="drawer"
-            absolute
             app
         >
             <v-list class="pa-1">
 
                 <v-list-tile>
+                    <v-list-tile-action>
+                        <v-btn flat icon @click.stop="drawer = !drawer">
+                            <v-icon>menu</v-icon>
+                        </v-btn>
+                    </v-list-tile-action>
                     <v-list-tile-title class="title">
                         DooM Squad Airsoft
                     </v-list-tile-title>

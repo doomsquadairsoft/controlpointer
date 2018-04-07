@@ -9,6 +9,7 @@ module.exports = function (app) {
   });
 
   Model.ensureIndex({ fieldName: 'did', unique: true });
+  Model.ensureIndex({ fieldName: 'latLng', unique: false });
 
   return Model;
 };

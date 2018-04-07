@@ -5,7 +5,7 @@ import About from '../components/About'
 import AboutGreenFox from '../components/AboutGreenFox'
 import Admin from '../components/Admin/Admin'
 import TechnicalInfo from '../components/TechnicalInfo'
-import GameMap from '../components/GameMap'
+import MapPage from '../components/Map/MapPage'
 
 Vue.use(Router)
 
@@ -38,8 +38,8 @@ export default new Router({
         },
         {
             path: '/map',
-            name: 'GameMap',
-            component: GameMap
+            name: 'MapPage',
+            component: MapPage
         }
     ]
 })

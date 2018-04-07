@@ -32,6 +32,9 @@
                             :counter="16"
                             required
                         ></v-text-field>
+                        <v-btn color="info" @click=>
+                            Set position on map
+                        <v-text-field>
                     </v-form>
                 </v-card-text>
 
@@ -45,7 +48,11 @@
                         <span>ID: </span>
                         <span>{{ did }}</span><br>
                         <span>CreatedAt: </span>
-                        <span>{{ createdAt | formatDate }}</span>
+                        <span>{{ createdAt | formatDate }}</span><br>
+                        <span>Latitude: </span>
+                        <span>{{ latLng[0] }}</span><br>
+                        <span>Longitude: </span>
+                        <span>{{ latLng[1] }}</span>
                     </div>
                 </v-card-text>
 
@@ -139,6 +146,8 @@
 
 <script>
 import di from '../assets/futuristic_ammo_box_01.png'
+import { mapState } from 'vuex'
+
 
 export default {
     name: 'device',
@@ -156,21 +165,23 @@ export default {
             type: String,
             default: di
         },
+        latLng: {
+            type: Array
+        },
         _id: String,
         createdAt: Number,
         patchDevice: Function,
         removeDevice: Function
     },
-    computed: {
-        controllingColor: function () {
-            return this.controllingTeam ? 'green' : 'red'
-        }
-    },
+    computed: mapState({
+        controllingColor: state => state.controllingColor,
+    }),
     methods: {
         changeControllingTeamGreen: function () {
             this.patchDevice([this._id, {controllingTeam: true}, undefined])
         },
         changeControllingTeamRed: function () {
+            console.log(this)
             this.patchDevice([this._id, {controllingTeam: false}, undefined])
         },
         deleteDevice: function() {
@@ -179,6 +190,9 @@ export default {
         showEditor: function() {
             this.editMode = !this.editMode
             this.menu = false
+        },
+        setPositionOnMap: function () {
+            dispatch('setPositionOnMap')
         }
     },
     data: () => ({

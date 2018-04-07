@@ -32,8 +32,7 @@
                     <v-data-table
                         :headers="headers"
                         :items="items"
-                        total-items=50
-                        disable-initial-sort=true
+                        hide-actions
                     >
                         <template slot="items" slot-scope="props">
                             <td>{{ props.item.time }}</td>
@@ -133,7 +132,12 @@
                         sortable: false,
                         value: 'time'
                     },
-                    { text: 'Activity', value: 'activity' }
+                    {
+                        text: 'Activity',
+                        value: 'activity',
+                        align: 'right',
+                        sortable: false
+                    }
                 ],
                 items: [
                     {
