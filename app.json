@@ -1,0 +1,15 @@
+{
+    "buildpacks": [
+        {
+            "url": "heroku/nodejs"
+        }
+    ],
+    "env": {
+        "NPM_CONFIG_PRODUCTION": {
+            "description": "A key which tells Dokku to not build devDependencies",
+            "value": "true"
+        },
+    },
+    "repository": "https://github.com/doomsquadairsoft/controlpointer",
+    "website": "http://doomsquadairsoft.com/"
+}
