@@ -50,9 +50,9 @@
                         <span>CreatedAt: </span>
                         <span>{{ createdAt | formatDate }}</span><br>
                         <span>Latitude: </span>
-                        <span>{{ latLng[0] }}</span><br>
+                        <span>{{ latLng.lat }}</span><br>
                         <span>Longitude: </span>
-                        <span>{{ latLng[1] }}</span>
+                        <span>{{ latLng.lng }}</span>
                     </div>
                 </v-card-text>
 
@@ -65,7 +65,7 @@
                                         <v-avatar>
                                             <v-icon>group</v-icon>
                                         </v-avatar>
-                                        {{ controllingTeam ? 'Controlled by Green Team' : 'Controlled by Red Team'}}
+                                        {{ controllingTeam ? 'Controlled by Blue Team' : 'Controlled by Red Team'}}
                                     </v-chip>
                                 </v-flex>
                             </v-layout>
@@ -79,10 +79,10 @@
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn
-                        color="green"
-                        @click="changeControllingTeamGreen"
+                        color="blue"
+                        @click="changeControllingTeamBlue"
                     >
-                        GRN
+                        BLU
                     </v-btn>
                     <v-btn
                         color="red"
@@ -166,26 +166,29 @@ export default {
             default: di
         },
         latLng: {
-            type: Array
+            type: Object
         },
         _id: String,
         createdAt: Number,
         patchDevice: Function,
         removeDevice: Function
     },
-    computed: mapState({
-        controllingColor: state => state.controllingColor,
-    }),
+    computed: {
+        controllingColor () {
+            return this.controllingTeam ? 'blue' : 'red';
+        }
+    },
     methods: {
-        changeControllingTeamGreen: function () {
+        changeControllingTeamBlue: function () {
             this.patchDevice([this._id, {controllingTeam: true}, undefined])
         },
         changeControllingTeamRed: function () {
-            console.log(this)
             this.patchDevice([this._id, {controllingTeam: false}, undefined])
         },
         deleteDevice: function() {
-            this.removeDevice(this._id)
+            if (this.deletable) {
+                this.removeDevice(this._id)
+            }
         },
         showEditor: function() {
             this.editMode = !this.editMode

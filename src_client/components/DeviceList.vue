@@ -9,7 +9,7 @@
                 v-bind:location="d.location"
                 v-bind:latLng="d.latLng"
                 v-bind:createdAt="d.createdAt"
-                v-bind:controlling-team="d.controllingTeam"
+                v-bind:controllingTeam="d.controllingTeam"
                 v-bind:image="d.image"
                 v-bind:patchDevice="patchDevice"
                 v-bind:removeDevice="removeDevice"

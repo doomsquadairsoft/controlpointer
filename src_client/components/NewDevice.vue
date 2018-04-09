@@ -33,6 +33,9 @@
 
 
     export default {
+      created () {
+        console.log(this.$store)
+      },
       name: 'NewDevice',
       data: () => ({
           deviceID: '',
@@ -54,22 +57,22 @@
             return true
         },
         latLng() {
-            return this.$store.getters.poiString
+            return this.$store.getters.poi
         }
       },
       methods: {
         addDevice () {
             // create a new D3VICE then clear the input field
-            const rParse = /^-?(\d+\.\d+),\s?-?(\d+\.\d+)/.exec(this.latLng)
+            //const rParse = /^-?(\d+\.\d+),\s?-?(\d+\.\d+)/.exec(this.latLng)
 
-            const lat = rParse[1];
-            const lng = rParse[2];
+            //const lat = rParse[1];
+            //const lng = rParse[2];
 
 
 
             this.createDevice({
                 did: this.deviceID,
-                latLng: [lat, lng]
+                latLng: this.latLng
             }).then(this.clearInput)
         },
         clearInput () {
