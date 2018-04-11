@@ -28,12 +28,28 @@ const app = feathers();
 // Set up Socket.io client with the socket
 app.configure(socketio(socket));
 
+const evts = app.service('events');
+
 // Receive real-time events through Socket.io
-app.service('events')
+evts
     .on('created', evt => console.log('New event created', evt));
 
 // Call the `messages` service
-app.service('events').create({
+evts.create({
     type: 'join',
     origin: 'worker'
+});
+
+
+
+// Detect Ctrl+C, and create event when that happens
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal. Exiting...");
+
+    evts.create({
+        type: 'part',
+        origin: 'worker'
+    }).then(function() {
+        process.exit();
+    })
 });

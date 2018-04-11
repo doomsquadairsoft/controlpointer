@@ -10,3 +10,16 @@ process.on('unhandledRejection', (reason, p) =>
 server.on('listening', () =>
   logger.info('Feathers application started on http://%s:%d', app.get('host'), port)
 );
+
+
+
+// Detect Ctrl+C, and wait a few seconds before closing
+// the wait is to receive events from other things
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal. Exiting...");
+
+    setTimeout( function() {
+        process.exit();
+    }, 3000);
+
+});
