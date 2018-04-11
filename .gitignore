@@ -6,3 +6,4 @@ client_app/players.json
 client_app/players.html
 saves/*.json
 data/
+.env
