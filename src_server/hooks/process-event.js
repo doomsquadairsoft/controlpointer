@@ -5,7 +5,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
 
-        console.log('ima event hook!')
+        console.log(`ima event hook! ${data.type}`)
 
 
 
