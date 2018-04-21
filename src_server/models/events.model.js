@@ -8,8 +8,9 @@ module.exports = function (app) {
     autoload: true
   });
 
-  Model.ensureIndex({ fieldName: 'origin', unique: false });
+  Model.ensureIndex({ fieldName: 'device', unique: false });
   Model.ensureIndex({ fieldName: 'type', unique: false });
+  Model.ensureIndex({ fieldName: 'captureProgress', unique: false })
 
   return Model;
 };

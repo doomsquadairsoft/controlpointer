@@ -20,6 +20,7 @@ export default new Vuex.Store({
             idField: '_id'
         }),
         service('messages'),
+        service('pdevices')
         //auth()
         //logger()
     ],

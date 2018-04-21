@@ -5,25 +5,29 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
 
-        console.log(`ima event hook! ${data.type}`)
+        console.log(` ++ ima event hook! ${data.type} ${data.device} ${data.captureProgress}`)
 
 
 
-        // limit length
-
-        const origin = context.data.origin
+        // limit lengths of submitted data
+        const device = context.data.device
             .substring(0, 400);
-
-
-
-        // ensure a latLng is created
         const type = context.data.type
             .substring(0, 400);
+        const controllingTeam = context.data.controllingTeam
+            .substring(0, 3);
+        const redProgress = context.data.redProgress
+            .substring(0, 3);
+        const bluProgress = context.data.bluProgress
+            .substring(0, 3);
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
-            origin,
+            device,
             type,
+            controllingTeam,
+            redProgress,
+            bluProgress,
 
             // Add the current date
             createdAt: new Date().getTime()

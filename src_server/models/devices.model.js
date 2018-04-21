@@ -11,6 +11,8 @@ module.exports = function (app) {
   Model.ensureIndex({ fieldName: 'did', unique: true });
   Model.ensureIndex({ fieldName: 'latLng', unique: false });
   Model.ensureIndex({ fieldName: 'controllingTeam', unique: false });
+  Model.ensureIndex({ fieldName: 'redProgress', unique: false });
+  Model.ensureIndex({ fieldName: 'bluProgress', unique: false })
 
   return Model;
 };

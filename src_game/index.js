@@ -29,15 +29,13 @@ const app = feathers();
 app.configure(socketio(socket));
 
 const evts = app.service('events');
+const devices = app.service('devices');
 
-// Receive real-time events through Socket.io
-evts
-    .on('created', evt => console.log('New event created', evt));
 
 // Call the `messages` service
 evts.create({
     type: 'join',
-    origin: 'worker'
+    device: 'worker'
 });
 
 
@@ -48,7 +46,7 @@ process.on('SIGINT', function() {
 
     evts.create({
         type: 'part',
-        origin: 'worker'
+        device: 'worker'
     }).then(function() {
         process.exit();
     })

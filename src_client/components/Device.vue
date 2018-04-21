@@ -61,11 +61,29 @@
                         <div class="text-xs-center">
                             <v-layout row>
                                 <v-flex xs12>
+                                    <v-progress-circular
+                                      :size="100"
+                                      :width="15"
+                                      :rotate="360"
+                                      :value="bluProgress"
+                                      color="blue"
+                                    >
+                                      {{ bluProgress }}
+                                    </v-progress-circular>
+                                    <v-progress-circular
+                                      :size="100"
+                                      :width="15"
+                                      :rotate="360"
+                                      :value="redProgress"
+                                      color="red"
+                                    >
+                                      {{ redProgress }}
+                                    </v-progress-circular>
                                     <v-chip v-bind:color="controllingColor" text-color="white">
                                         <v-avatar>
                                             <v-icon>group</v-icon>
                                         </v-avatar>
-                                        {{ controllingTeam ? 'Controlled by Blue Team' : 'Controlled by Red Team'}}
+                                        {{ controlledByTeam }}
                                     </v-chip>
                                 </v-flex>
                             </v-layout>
@@ -90,7 +108,12 @@
                     >
                         RED
                     </v-btn>
-
+                    <v-btn
+                        color="grey"
+                        @click="changeControllingTeamUnc"
+                    >
+                        UNC
+                    </v-btn>
 
 
 
@@ -154,8 +177,17 @@ export default {
     props: {
         did: String,
         controllingTeam: {
-            type: Boolean,
-            default: false
+            type: Number,
+            default: 0,
+            required: true
+        },
+        redProgress: {
+            type: Number,
+            default: 0
+        },
+        bluProgress: {
+            type: Number,
+            default: 0
         },
         location: {
             type: String,
@@ -175,15 +207,37 @@ export default {
     },
     computed: {
         controllingColor () {
-            return this.controllingTeam ? 'blue' : 'red';
+            if (this.controllingTeam === 0) {
+                return 'grey';
+            }
+            else if (this.controllingTeam === 1) {
+                return 'red';
+            }
+            else if (this.controllingTeam === 2) {
+                return 'blue';
+            }
+        },
+        controlledByTeam () {
+            if (this.controllingTeam === 0) {
+                return 'Uncontrolled';
+            }
+            else if (this.controllingTeam === 1) {
+                return 'Controlled by Red Team';
+            }
+            else if (this.controllingTeam === 2) {
+                return 'Controlled by Blu Team';
+            }
         }
     },
     methods: {
         changeControllingTeamBlue: function () {
-            this.patchDevice([this._id, {controllingTeam: true}, undefined])
+            this.patchDevice([this._id, {controllingTeam: 2}, undefined])
         },
         changeControllingTeamRed: function () {
-            this.patchDevice([this._id, {controllingTeam: false}, undefined])
+            this.patchDevice([this._id, {controllingTeam: 1}, undefined])
+        },
+        changeControllingTeamUnc: function () {
+            this.patchDevice([this._id, {controllingTeam: 0}, undefined])
         },
         deleteDevice: function() {
             if (this.deletable) {

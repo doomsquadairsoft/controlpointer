@@ -72,7 +72,10 @@
 
             this.createDevice({
                 did: this.deviceID,
-                latLng: this.latLng
+                latLng: this.latLng,
+                controllingTeam: 0,
+                redProgress: 0,
+                bluProgress: 0
             }).then(this.clearInput)
         },
         clearInput () {
