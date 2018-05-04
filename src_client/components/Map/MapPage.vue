@@ -20,6 +20,7 @@
     import NewDevice from '../NewDevice';
 
 
+
     export default {
         name: 'MapPage',
         components: {

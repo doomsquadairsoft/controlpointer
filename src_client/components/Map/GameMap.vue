@@ -15,6 +15,7 @@
             :data-index="d._id"
             :lat-lng="d.latLng"
             :devices="devices.data"
+            :icon="controlpointIcon"
         ></v-marker>
 
         <v-marker
@@ -34,6 +35,15 @@
     import _ from 'lodash';
 
 
+    import tIcon from '@/assets/target-marker.png'
+    import uIcon from '@/assets/marker_UNK_s.png'
+    import rIcon from '@/assets/marker_RED_s.png'
+    import bIcon from '@/assets/marker_BLU_s.png'
+    import sIcon from '@/assets/marker_shadow.png'
+
+
+
+
 
 
 
@@ -43,6 +53,40 @@
             'v-map': Vue2Leaflet.Map,
             'v-tilelayer': Vue2Leaflet.TileLayer,
             'v-marker': Vue2Leaflet.Marker
+        },
+        data () {
+            return {
+                targetIcon: L.icon({
+                    iconUrl: tIcon,
+                    iconSize: [32, 37],
+                    iconAnchor: [16, 37],
+                    popupAnchor: [0, -28]
+                }),
+                redIcon: L.icon({
+                    iconUrl: rIcon,
+                    iconSize: [60, 61],
+                    iconAnchor: [32, 32],
+                    popupAnchor: [0, 32]
+                }),
+                unkIcon: L.icon({
+                    iconUrl: uIcon,
+                    iconSize: [60, 61],
+                    iconAnchor: [32, 32],
+                    popupAnchor: [0, 32]
+                }),
+                bluIcon: L.icon({
+                    iconUrl: bIcon,
+                    iconSize: [60, 61],
+                    iconAnchor: [32, 32],
+                    popupAnchor: [0, 32]
+                }),
+                shadowIcon: L.icon({
+                    iconUrl: sIcon,
+                    iconSize: [60, 61],
+                    iconAnchor: [32, 32],
+                    popupAnchor: [0, 32]
+                }),
+            }
         },
         props: {
             devices: {
@@ -58,9 +102,15 @@
                 'zoom',
                 'maxZoom',
                 'attribution',
-                'url',
-                'targetIcon'
-            ])
+                'url'
+            ]),
+            controlpointIcon () {
+                console.log('controlpointIcon')
+                console.log(this);
+
+                return this.redIcon; // @TODO this should not mutate state outside of mutation handler
+            }
+
             //center () {
             //    return this.$store.getters.center
             //},
