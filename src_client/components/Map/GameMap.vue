@@ -11,6 +11,7 @@
         ></v-tilelayer>
         <v-marker
             v-for="d in devices"
+            :key="d.key"
             :title="d.did"
             :data-index="d._id"
             :lat-lng="d.latLng"

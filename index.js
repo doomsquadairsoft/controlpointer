@@ -40,10 +40,10 @@ function loadAbilitiesData(cb) {
             return cb('the abilities.json file was not readable.');
         }
         var data;
-        try { 
-            data = JSON.parse(file); 
+        try {
+            data = JSON.parse(file);
         }
-        catch(e) { 
+        catch(e) {
             return cb('the abilities.json file did not contain valid JSON');
         }
         gameState.abilities = data;
@@ -60,7 +60,7 @@ function loadControlPointData(cb) {
         if (err) {
             return cb('the cpdata.json file was not readable. using default data.');
         }
-        
+
         var data;
         try {
             data = JSON.parse(file);
@@ -78,7 +78,7 @@ function loadControlPointData(cb) {
 
         // set timers using values in json file
         gameState.timers = data.timers;
-        
+
         // for each control point, add some game state objects
         for (cp in gameState.controlPoints) {
             var c = gameState.controlPoints[cp];
@@ -91,7 +91,7 @@ function loadControlPointData(cb) {
         console.log('++ control point data initialized from JSON!');
         console.log(gameState.controlPoints);
         return cb(null);
-        
+
     });
 }
 
@@ -100,7 +100,7 @@ function loadClassData(cb) {
         if (err) {
             throw new Error('the classes.json file was not readable. BORKING!');
         }
-        
+
         var data;
         try {
             data = JSON.parse(file);
@@ -116,7 +116,7 @@ function loadClassData(cb) {
 
     })
 }
-    
+
 
 function loadPlayerData(cb) {
     fs.readFile('./client_app/players.json', function(err, file) {
@@ -149,7 +149,7 @@ function loadPlayerData(cb) {
         console.log('++ player data initialized from JSON!');
         console.log(gameState.players);
         return cb(null);
-        
+
     });
 }
 
@@ -165,19 +165,19 @@ function checkWinConditions(controlPoint, team, captureTime) {
 
     return new Promise(function(resolve, reject) {
 
-        
+
         // if BLU controls all points, BLU wins
         if (
             gameState.controlPoints.town.controllingTeam === 'blu' &&
             gameState.controlPoints.tower.controllingTeam === 'blu' &&
             gameState.controlPoints.firePit.controllingTeam === 'blu' &&
-            gameState.controlPoints.bridge.controllingTeam === 'blu'                                                  
+            gameState.controlPoints.bridge.controllingTeam === 'blu'
         ) {
             var message = 'BLU team wins the game by capturing '+controlPoint+' and all other points.'
             return resolve({'controlPoint': controlPoint, 'team': team, 'captureTime': captureTime, 'message': message});
         }
 
-        
+
         // if RED controlls all points, RED wins.
         if (
             gameState.controlPoints.town.controllingTeam === 'red' &&
@@ -192,7 +192,7 @@ function checkWinConditions(controlPoint, team, captureTime) {
         return reject('no win condition was satisfied.');
     })
 
-        
+
 }
 
 
@@ -222,17 +222,17 @@ loadControlPointData(function(err) {
 
                 liveStatus.start();
                 timer.start(liveStatus);
-                
-                
+
+
                 http.listen(5000, function(){
                     console.log('listening on *:5000');
                 });
-                
-                
+
+
                 // API initialization
                 var become = require('./become');
                 var medic = require('./medic');
-                var capture = require('./capture');                
+                var capture = require('./capture');
                 become.api(app);
                 medic.api(app, become);
                 capture.api(app);
@@ -240,10 +240,3 @@ loadControlPointData(function(err) {
         });
     });
 });
-
-
-
-
-
-
-

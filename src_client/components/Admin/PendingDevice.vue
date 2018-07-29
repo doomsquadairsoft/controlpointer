@@ -34,7 +34,7 @@
                         ></v-text-field>
                         <v-btn color="info" @click="">
                             Set position on map
-                        <v-text-field>
+                        </v-btn>
                     </v-form>
                 </v-card-text>
 
