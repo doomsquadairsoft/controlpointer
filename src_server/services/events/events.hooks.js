@@ -1,5 +1,5 @@
 //const { authenticate } = require('@feathersjs/authentication').hooks;
-const processEvent = require('../../hooks/process-event');
+const validateEvent = require('../../hooks/validate-event');
 const populateEvent = require('../../hooks/populate-event');
 
 
@@ -9,7 +9,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [processEvent()],
+    create: [validateEvent()],
     update: [],
     patch: [],
     remove: []

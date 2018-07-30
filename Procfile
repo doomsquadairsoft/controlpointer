@@ -1,2 +1,2 @@
 web: node ./src_server
-worker: node ./src_game
+game: node ./src_game

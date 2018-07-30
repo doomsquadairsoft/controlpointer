@@ -3,22 +3,24 @@ const feathers = require('@feathersjs/feathers');
 const socketio = require('@feathersjs/socketio-client');
 const io = require('socket.io-client');
 const validUrl = require('valid-url');
+const _ = require('lodash');
 
 
+const workerName = 'game_worker'; // name that this worker client reports as.
 
 
 const webServerAddress = process.env.D3VICE_WEBSERVER_ADDRESS
-console.log(webServerAddress)
+console.log(webServerAddress);
 
 if (typeof webServerAddress === 'undefined')
     throw new Error('D3VICE_WEBSERVER_ADDRESS is undefined in environment!');
 
 
 if (validUrl.isUri(webServerAddress)){
-    console.log('Looks like a URI');
+    console.log(`Gameserver address ${webServerAddress} looks valid.`);
 } else {
     throw new Error('D3VICE_WEBSERVER_ADDRESS is not a valid URL. '+
-    'Example: http://game.doomsquadairsoft.com or http://192.168.1.112')
+    'Example: http://game.doomsquadairsoft.com or http://192.168.1.112:3030')
 }
 
 
@@ -30,15 +32,94 @@ app.configure(socketio(socket));
 
 const evts = app.service('events');
 const devices = app.service('devices');
+const pendingDevices = app.service('pdevices');
 
 
-// Call the `messages` service
+
+// Submit a join event when we start up
 evts.create({
-    type: 'join',
-    device: 'worker'
+  type: 'join',
+  device: workerName
 });
 
 
+// When there is a join event, do something about it
+evts.on('created', (evt) => {
+  const d = evt.device || '';
+
+  if (d.substr(d.length - 7) !== '_worker') {
+
+    if (evt.type === 'join') {
+
+      devices.find().then((m) => {
+
+
+        // If device is already activated, send them their orders
+        const match = _.find(m, (o) => {
+          return (o.did === d)
+        });
+        if (typeof match !== 'undefined') {
+          // the joining device is already in the list.
+          // the joining device may have rebooted or lost it's memory.
+          // send this device it's orders.
+          console.log('  >> Joined d3vice is already active\n  >> sending orders to d3vice');
+          evts.create({
+            type: 'order',
+            device: d,
+            order: 'DCXGA0' // start game 0
+          })
+
+
+        }
+
+
+        // device is not activated by admin yet.
+        // make it pending
+        else {
+          console.log('  >> Joined device is not activated yet. Marking as pending.');
+          evts.create({
+            type: 'order',
+            device: d,
+            order: 'DCXSBY' // Device Controlpoint Xbee Standby
+          })
+
+          createPendingDevice(d).catch((e) => {
+            console.log('err occured while adding pendingDevice');
+            console.log(e);
+          })
+
+        }
+
+
+      })
+    }
+  }
+
+
+
+});
+
+
+/**
+ * createPendingDevice
+ *
+ * Create a pending device, only if it doesn't already exist.
+ *
+ * @param {string} d - Device ID
+ */
+function createPendingDevice(d) {
+  console.log(`  >> creating pending device ${d}`);
+  return pendingDevices.find().then((pdvs) => {
+    const match = _.find(pdvs, (o) => {
+      return (o.did === d)
+    });
+    if (typeof match === 'undefined') {
+      pendingDevices.create({
+        did: d
+      })
+    }
+  })
+}
 
 // Detect Ctrl+C, and create event when that happens
 process.on('SIGINT', function() {
@@ -46,7 +127,7 @@ process.on('SIGINT', function() {
 
     evts.create({
         type: 'part',
-        device: 'worker'
+        device: workerName
     }).then(function() {
         process.exit();
     })

@@ -1,5 +1,8 @@
 <template>
     <v-container grid-list-lg>
+        <v-layout row>
+            <h2>Active Devices</h2>
+        </v-layout>
         <v-layout row wrap>
             <device
                 v-for="d in devices"

@@ -96,7 +96,7 @@
                         <v-divider></v-divider>
                         <v-list>
                             <v-list-tile @click="transferToDevices">
-                              <v-list-tile-title>Activate</v-list-tile-title>
+                              <v-list-tile-title>Activate this device</v-list-tile-title>
                             </v-list-tile>
                           <v-list-tile>
                             <v-list-tile-action>

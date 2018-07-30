@@ -1,5 +1,8 @@
 <template>
     <v-container grid-list-lg>
+        <v-layout row>
+            <h2>Inactive Devices</h2>
+        </v-layout>
         <v-layout row wrap>
             <pending-device
                 v-for="pd in pendingDevices"
