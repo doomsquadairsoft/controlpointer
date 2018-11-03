@@ -6,6 +6,7 @@ import AboutGreenFox from '../components/AboutGreenFox'
 import Admin from '../components/Admin/Admin'
 import TechnicalInfo from '../components/TechnicalInfo'
 import MapPage from '../components/Map/MapPage'
+import Utilities from '../components/Utilities'
 
 Vue.use(Router)
 
@@ -40,6 +41,12 @@ export default new Router({
             path: '/map',
             name: 'MapPage',
             component: MapPage
-        }
+        },
+        {
+            path: '/utilities',
+            name: 'Utilities',
+            component: Utilities
+        },
+
     ]
 })
