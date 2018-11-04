@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import smileysImage from '../../assets/smileys.png'
+import smileysImage from '@/assets/smileys.png'
 import Face from './Face.vue'
 import {
   mapActions

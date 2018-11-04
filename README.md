@@ -37,3 +37,4 @@ If you have used and enjoy this code base, I'd love to hear from you!
 The following people have helped this project in some way, and deserve a mention. Thank you all for helping this project become a reality!
 
   * [Duion](https://opengameart.org/users/duion) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
+  * [marionline](https://opengameart.org/users/marionline) for [CC0](https://creativecommons.org/choose/zero/) graphics assets

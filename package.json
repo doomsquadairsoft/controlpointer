@@ -12,9 +12,9 @@
     "npm": "^3.9.6"
   },
   "scripts": {
-    "dev": "NODE_ENV=development webpack-dev-server --open --hot",
+    "dev": "npx foreman start http=1,web=0,game=0,webpackdev=1",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
-    "start": "npx foreman start"
+    "start": "npx foreman start game=1,web=1"
   },
   "dependencies": {
     "@feathersjs/authentication": "^2.1.2",
