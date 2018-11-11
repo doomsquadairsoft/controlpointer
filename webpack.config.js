@@ -3,9 +3,11 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const config = require('config');
 
 
 module.exports = {
+    mode: process.env.NODE_ENV,
     entry: [
         './src_client/index.js',
     ],
@@ -48,21 +50,18 @@ module.exports = {
     resolve: {
         alias: {
             'vue$': 'vue/dist/vue.esm.js',
-            '@': path.resolve('src_client')
+            '@': path.join(__dirname, 'src_client')
         },
         extensions: ['*', '.js', '.vue', '.json']
     },
     devServer: {
-        historyApiFallback: true,
-        noInfo: true,
+        noInfo: false,
         overlay: true,
         contentBase: path.join(__dirname, "dist"),
-        hot: true,
+        hot: false,
         open: true,
         watchContentBase: true,
-        watchOptions: {
-            poll: true
-        }
+        port: config.get('clientport')
     },
     performance: {
         hints: false
@@ -72,16 +71,10 @@ module.exports = {
         new CleanWebpackPlugin(['dist/**.js'], {
             beforeEmit: true
         }),
-        new VueLoaderPlugin()
-        // new webpack.DefinePlugin({
-        //     'websocketURIsetByWepack':
-        //         path.join(
-        //             process.env.NODE_ENV === 'production' ? 'https://' : 'http://',
-        //             config.get('host'),
-        //             ':',
-        //             config.get('port').toString()
-        //         )
-        // }),
+        new VueLoaderPlugin(),
+        new webpack.DefinePlugin({
+            'SOCKETIO_URI': JSON.stringify(`//${config.get('host')}:${config.get('apiport')}`)
+        }),
     ]
 }
 

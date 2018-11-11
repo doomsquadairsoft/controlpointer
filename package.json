@@ -12,9 +12,9 @@
     "npm": "^3.9.6"
   },
   "scripts": {
-    "dev": "npx foreman start http=1,web=0,game=0,webpackdev=1",
+    "dev": "npx foreman start http=0,api=1,game=1,devserver=1",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
-    "start": "npx foreman start game=1,web=1"
+    "start": "npx foreman start game=1,http=1,api=1"
   },
   "dependencies": {
     "@feathersjs/authentication": "^2.1.2",
@@ -74,7 +74,7 @@
     "vuex": "^3.0.1",
     "webpack": "^4.23.1",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^2.9.1"
+    "webpack-dev-server": "^3.1.4"
   },
   "babel": {
     "presets": [
