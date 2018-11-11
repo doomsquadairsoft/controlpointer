@@ -13,6 +13,8 @@
                 v-bind:latLng="d.latLng"
                 v-bind:createdAt="d.createdAt"
                 v-bind:controllingTeam="d.controllingTeam"
+                v-bind:bluProgress="d.bluProgress"
+                v-bind:redProgress="d.redProgress"
                 v-bind:image="d.image"
                 v-bind:patchDevice="patchDevice"
                 v-bind:removeDevice="removeDevice"
@@ -39,7 +41,10 @@
                 type: Array,
                 required: true
             },
-            findDevices: Function
+            findDevices: {
+                type: Function,
+                required: true
+            }
         },
         components: {
             Device
