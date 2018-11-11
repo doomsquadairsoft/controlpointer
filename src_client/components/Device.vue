@@ -44,18 +44,22 @@
         <div class="text-xs-center">
           <v-layout row>
             <v-flex xs12>
-              <v-progress-circular :size="100" :width="15" :rotate="360" :value="bluProgress" color="blue">
+              <v-progress-circular :size="100" :width="15" :rotate="0" :value="bluProgress" color="blue">
                 {{ bluProgress }}
               </v-progress-circular>
-              <v-progress-circular :size="100" :width="15" :rotate="360" :value="redProgress" color="red">
+              <v-progress-circular :size="100" :width="15" :rotate="0" :value="redProgress" color="red">
                 {{ redProgress }}
               </v-progress-circular>
-              <v-chip v-bind:color="controllingColor" text-color="white">
-                <v-avatar>
-                  <v-icon>group</v-icon>
-                </v-avatar>
-                {{ controlledByTeam }}
-              </v-chip>
+              <v-layout row>
+                <v-flex xs12>
+                  <v-chip v-bind:color="controllingColor" text-color="white">
+                    <v-avatar>
+                      <v-icon>group</v-icon>
+                    </v-avatar>
+                    {{ controlledByTeam }}
+                  </v-chip>
+                </v-flex>
+              </v-layout>
             </v-flex>
           </v-layout>
         </div>
@@ -177,20 +181,20 @@ export default {
   },
   computed: {
     controllingColor() {
-      if (this.bluProgress < 50 && this.redProgress < 50) {
+      if (this.bluProgress < 100 && this.redProgress < 100) {
         return 'grey';
-      } else if (this.redProgress === 100 && this.bluProgress === 0) {
+      } else if (this.redProgress >= 100 && this.bluProgress === 0) {
         return 'red';
-      } else if (this.bluProgress === 100 && this.redProgress === 0) {
+      } else if (this.bluProgress >= 100 && this.redProgress === 0) {
         return 'blue';
       }
     },
     controlledByTeam() {
-      if (this.bluProgress < 50 && this.redProgress < 50) {
+      if (this.bluProgress < 100 && this.redProgress < 100) {
         return 'Uncontrolled';
-      } else if (this.redProgress === 100 && this.bluProgress === 0) {
+      } else if (this.redProgress >= 100 && this.bluProgress === 0) {
         return 'Controlled by Red Team';
-      } else if (this.bluProgress === 100 && this.redProgress === 0) {
+      } else if (this.bluProgress >= 100 && this.redProgress === 0) {
         return 'Controlled by Blu Team';
       }
     }
@@ -243,7 +247,9 @@ export default {
   data: () => ({
     editMode: false,
     menu: 0,
-    deletable: 0
+    deletable: 0,
+    lastCap: '',
+    takeDown: true
   })
 }
 </script>

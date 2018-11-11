@@ -15,8 +15,7 @@
             :title="d.did"
             :data-index="d._id"
             :lat-lng="d.latLng"
-            :devices="devices.data"
-            :icon="controlpointIcon"
+            :icon="controlpointIcon(d.bluProgress, d.redProgress)"
         ></v-marker>
 
         <v-marker
@@ -47,13 +46,12 @@
 
 
 
-
     export default {
         name: 'GameMap',
         components: {
             'v-map': Vue2Leaflet.Map,
             'v-tilelayer': Vue2Leaflet.TileLayer,
-            'v-marker': Vue2Leaflet.Marker
+            'v-marker': Vue2Leaflet.Marker,
         },
         data () {
             return {
@@ -105,12 +103,7 @@
                 'attribution',
                 'url'
             ]),
-            controlpointIcon () {
-                console.log('controlpointIcon')
-                console.log(this);
 
-                return this.redIcon; // @TODO this should not mutate state outside of mutation handler
-            }
 
             //center () {
             //    return this.$store.getters.center
@@ -122,6 +115,17 @@
         methods: {
             updatePOI (event) {
                 this.$store.commit('updatePOI', event.latlng)
+            },
+            controlpointIcon (bluProgress, redProgress) {
+                console.log('controlpointIcon ')
+
+                if (redProgress >= 100) {
+                    return this.redIcon; // @TODO this should not mutate state outside of mutation handler
+                } else if (bluProgress >= 100) {
+                    return this.bluIcon;
+                } else {
+                    return this.unkIcon;
+                }
             }
         }
     }

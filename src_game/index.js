@@ -4,27 +4,26 @@ const socketio = require('@feathersjs/socketio-client');
 const io = require('socket.io-client');
 const validUrl = require('valid-url');
 const _ = require('lodash');
+const config = require('config');
 
 
 const workerName = 'game_worker'; // name that this worker client reports as.
 
-
-const webServerAddress = process.env.D3VICE_WEBSERVER_ADDRESS
-console.log(webServerAddress);
-
-if (typeof webServerAddress === 'undefined')
-    throw new Error('D3VICE_WEBSERVER_ADDRESS is undefined in environment!');
+const apiServerSchema = `${process.env.NODE_ENV === 'production' ? 'https://' : 'http://'}`;
+const apiServerHost = config.get('host');
+const apiServerPort = config.get('apiport');
+const apiServerUri = `${apiServerSchema}${apiServerHost}:${apiServerPort}`;
 
 
-if (validUrl.isUri(webServerAddress)){
-    console.log(`Gameserver address ${webServerAddress} looks valid.`);
+if (validUrl.isUri(apiServerUri)){
+    console.log(`API server address ${apiServerUri} looks valid.`);
 } else {
-    throw new Error('D3VICE_WEBSERVER_ADDRESS is not a valid URL. '+
+    throw new Error('API server is not a valid URL. '+
     'Example: http://game.doomsquadairsoft.com or http://192.168.1.112:3030')
 }
 
 
-const socket = io(webServerAddress); // @TODO dynamically set this
+const socket = io(apiServerUri);
 const app = feathers();
 
 // Set up Socket.io client with the socket
@@ -68,8 +67,6 @@ evts.on('created', (evt) => {
             device: d,
             order: 'DCXGA0' // start game 0
           })
-
-
         }
 
 
@@ -87,16 +84,10 @@ evts.on('created', (evt) => {
             console.log('err occured while adding pendingDevice');
             console.log(e);
           })
-
         }
-
-
       })
     }
   }
-
-
-
 });
 
 
