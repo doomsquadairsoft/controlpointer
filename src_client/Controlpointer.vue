@@ -55,9 +55,7 @@
 
 
         <v-content>
-            <v-container>
-                <router-view></router-view>
-            </v-container>
+            <router-view></router-view>
         </v-content>
         <v-footer app></v-footer>
     </v-app>

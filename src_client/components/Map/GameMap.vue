@@ -134,7 +134,9 @@
 <style scoped >
     @import "~leaflet/dist/leaflet.css";
     #map {
-        height: 500px;
+        min-height: 500px;
+        height: 100%;
+        width: 100%;
         z-index: 5;
     }
 </style>

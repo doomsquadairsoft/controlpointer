@@ -1,5 +1,5 @@
 <template>
-<v-flex xs12 sm6 lg4>
+<v-flex xs12 sm12 md8 lg5 xl2>
 
 
   <v-card>
@@ -68,18 +68,17 @@
 
 
 
-
-    <v-card-actions class="xs1 my-buttons">
+    <v-card-actions class="my-buttons">
       <v-spacer></v-spacer>
-      <v-btn color="blue" @click="changeControllingTeamBlue">
-        BLU
-      </v-btn>
-      <v-btn color="red" @click="changeControllingTeamRed">
-        RED
-      </v-btn>
-      <v-btn color="grey" @click="changeControllingTeamUnc">
-        UNC
-      </v-btn>
+        <v-btn color="blue" @click="changeControllingTeamBlue">
+          BLU
+        </v-btn>
+        <v-btn color="red" @click="changeControllingTeamRed">
+          RED
+        </v-btn>
+        <v-btn color="grey" @click="changeControllingTeamUnc">
+          UNC
+        </v-btn>
 
 
 
@@ -123,6 +122,7 @@
 
 
     </v-card-actions>
+
 
   </v-card>
 </v-flex>

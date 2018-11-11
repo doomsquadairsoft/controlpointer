@@ -1,15 +1,8 @@
 <template>
-    <v-container>
-        <v-layout>
-            <v-flex xs12>
-                <game-map
-                    :devices="devices.data"
-                    :patchDevice="patchDevice"
-                ></game-map>
-                <new-device></new-device>
-            </v-flex>
-        </v-layout>
-    </v-container>
+    <game-map
+        :devices="devices.data"
+        :patchDevice="patchDevice"
+    ></game-map>
 </template>
 
 
@@ -71,9 +64,4 @@
 </script>
 
 <style scoped >
-    @import "~leaflet/dist/leaflet.css";
-    #map {
-        height: 500px;
-        z-index: 5;
-    }
 </style>

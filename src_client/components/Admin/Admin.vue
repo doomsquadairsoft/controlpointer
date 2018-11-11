@@ -1,5 +1,5 @@
 <template>
-    <div class="admin">
+    <v-container class="admin">
         <h1>Controlpointer Administration</h1>
         <device-list
             v-bind:devices="devices.data"
@@ -11,7 +11,7 @@
             v-bind:findPendingDevices="findPendingDevices"
         ></pending-device-list>
 
-    </div>
+    </v-container>
 </template>
 
 <script>
