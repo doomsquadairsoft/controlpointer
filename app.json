@@ -8,11 +8,12 @@
         "NPM_CONFIG_PRODUCTION": {
             "description": "A key which tells Dokku to not build devDependencies",
             "value": "true"
-        },
-        "D3VICE_WEBSERVER_ADDRESS": {
-            "description": "The URI to the feathers server",
-            "value": "http://127.0.0.1"
         }
     },
     "repository": "https://github.com/doomsquadairsoft/controlpointer",
+    "scripts": {
+      "dokku": {
+        "predeploy": "npm install"
+      }
+    }
 }
