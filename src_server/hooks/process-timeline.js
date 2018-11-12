@@ -5,11 +5,15 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
 
-        const type = context.data.duration || 305500; // 5 minute 55 seconds
+        console.log('ima timeline hook!')
+
+        const type = context.data.type || 'timeline';
+        const action = context.data.action || 'unknown!';
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
-            duration,
+            type,
+            action,
             createdAt: new Date().getTime()
         };
 

@@ -4,6 +4,8 @@ const devices = require('./devices/devices.service.js');
 const events = require('./events/events.service.js');
 const pendingDevices = require('./pendingDevices/pendingDevices.service.js');
 const game = require('./game/game.service.js');
+const timeline = require('./timeline/timeline.service.js');
+
 
 module.exports = function (app) {
     app.configure(messages);
@@ -12,4 +14,5 @@ module.exports = function (app) {
     app.configure(pendingDevices);
     app.configure(events);
     app.configure(game);
+    app.configure(timeline);
 };

@@ -25,7 +25,8 @@ export default new Vuex.Store({
         }),
         service('messages'),
         service('pdevices'),
-        service('game')
+        service('game'),
+        service('timeline')
         //auth()
         //logger()
     ],
