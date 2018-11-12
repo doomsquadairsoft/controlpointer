@@ -1,6 +1,5 @@
 <template>
-    <v-app>
-
+    <v-app :dark="theme">
 
         <v-toolbar flat fixed app>
             <v-toolbar-side-icon @click.stop="drawer = !drawer">
@@ -65,6 +64,11 @@
 
 export default {
   name: 'Controlpointer',
+  computed: {
+    theme () {
+      return this.$store.getters.theme === 'dark'
+    }
+  },
   data: () => ({
     drawer: true,
     menuItems: [

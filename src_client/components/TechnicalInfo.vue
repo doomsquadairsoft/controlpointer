@@ -1,5 +1,7 @@
 <template>
-  <div id="technical-info">
+  <v-container id="technical-info">
+    <v-layout>
+    <v-flex md9>
     <img src="../assets/logo.png">
     <router-view></router-view>
     <h1>Controlpointer</h1>
@@ -17,7 +19,9 @@
     </p>
     <counter></counter>
 
-  </div>
+  </v-flex>
+</v-layout>
+  </v-container>
 </template>
 
 <script>

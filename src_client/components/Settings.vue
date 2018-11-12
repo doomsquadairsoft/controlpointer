@@ -1,10 +1,11 @@
 <template>
   <v-card class="e4">
-    <v-card-media height="200px" :src="smileys">
+
+    <v-card-media height="200px" :src="settingsImage">
       <v-container fill-height fluid>
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
-            <span class="headline white--text">Player Identity Generator</span>
+            <span class="headline white--text">Settings</span>
           </v-flex>
         </v-layout>
       </v-container>
@@ -14,23 +15,18 @@
         <v-layout row wrap>
           <v-card-title>
             <div>
-              <span class="grey--text">Enter the number of players</span><br>
+              <span class="grey--text">Theme</span><br>
             </div>
           </v-card-title>
           </v-flex>
         </v-layout>
         <v-layout row wrap>
-          <v-flex md9>
-            <v-slider v-model="playercount" :max="255" label="Players">
-            </v-slider>
-          </v-flex>
-          <v-flex xs3>
-            <v-text-field v-model="playercount" class="mt-0" type="number">
-            </v-text-field>
-          </v-flex>
           <v-flex xs12 sm4 text-xs-center>
             <div>
-              <v-btn depressed large color="primary">Generate</v-btn>
+              <v-btn @click="$store.commit('setThemeDark')" depressed large color="primary">Dark</v-btn>
+            </div>
+            <div>
+              <v-btn @click="$store.commit('setThemeLight')" depressed large color="primary">Light</v-btn>
             </div>
           </v-flex>
         </v-layout>
@@ -40,30 +36,24 @@
 </template>
 
 <script>
-import smileysImage from '@/assets/smileys.png'
-import Face from './Face.vue'
+import gearImage from '@/assets/settings.png'
 import {
   mapActions
 } from 'vuex'
 
 
 export default {
-  name: 'PlayerIdentityGenerator',
+  name: 'Settings',
   data() {
     return {
-      placeholder: 'PLACEHOLDER',
-      test: 'hi',
-      playercount: 5
+      placeholder: 'PLACEHOLDER'
     }
   },
   props: {
-    smileys: {
+    settingsImage: {
       type: String,
-      default: smileysImage
+      default: gearImage
     },
-  },
-  components: {
-    Face
   }
 }
 
