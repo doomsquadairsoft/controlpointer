@@ -1,5 +1,5 @@
 {
-  "host": "tangohost",
+  "host": "developmenthost",
   "apiport": 3030,
   "clientport": 4040,
   "public": "../dist/",
@@ -20,7 +20,7 @@
       "header": {
         "typ": "access"
       },
-      "audience": "https://doomsquadairsoft.com",
+      "audience": "http://doomsquadairsoft.com",
       "subject": "anonymous",
       "issuer": "feathers",
       "algorithm": "HS256",
