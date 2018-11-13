@@ -1,5 +1,5 @@
 {
-  "host": "localhost",
+  "host": "tangohost",
   "apiport": 3030,
   "clientport": 4040,
   "public": "../dist/",
