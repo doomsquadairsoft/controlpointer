@@ -1,7 +1,6 @@
 {
   "host": "developmenthost",
-  "apiport": 3030,
-  "clientport": 4040,
+  "port": 5000,
   "public": "../dist/",
   "paginate": {
     "default": 10,

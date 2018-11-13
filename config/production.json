@@ -1,7 +1,6 @@
 {
-  "host": "0.0.0.0",
-  "apiport": 3030,
-  "clientport": 4040,
+  "host": "doomsquadairsoft.com",
+  "port": 5000,
   "public": "../dist/",
   "paginate": {
     "default": 10,

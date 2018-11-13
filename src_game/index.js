@@ -11,7 +11,7 @@ const workerName = 'game_worker'; // name that this worker client reports as.
 
 const apiServerSchema = `${process.env.NODE_ENV === 'production' ? 'https://' : 'http://'}`;
 const apiServerHost = config.get('host');
-const apiServerPort = config.get('apiport');
+const apiServerPort = config.get('port');
 const apiServerUri = `${apiServerSchema}${apiServerHost}:${apiServerPort}`;
 
 
