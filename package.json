@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "npx foreman start http=0,api=1,game=1,devserver=1",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
-    "start": "npx foreman start game=0,http=0,api=1"
+    "start": "node src_server"
   },
   "dependencies": {
     "@feathersjs/authentication": "^2.1.2",
