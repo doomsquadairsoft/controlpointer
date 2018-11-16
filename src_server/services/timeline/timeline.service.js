@@ -3,9 +3,9 @@ const createService = require('feathers-nedb');
 const createModel = require('../../models/timeline.model');
 const hooks = require('./timeline.hooks');
 
-module.exports = function(app) {
+module.exports = function (app) {
   const Model = createModel(app);
-  //const paginate = app.gt('paginate');
+  //const paginate = app.get('paginate');
 
   const options = {
     name: 'timeline',

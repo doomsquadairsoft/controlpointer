@@ -24,7 +24,6 @@ import {
   mapActions
 } from 'vuex'
 
-import store from '@/store'
 import LifecycleDisplay from './LifecycleDisplay'
 import LifecycleControls from './LifecycleControls'
 

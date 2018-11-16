@@ -2,7 +2,6 @@
 const processTimeline = require('../../hooks/process-timeline');
 const populateTimeline = require('../../hooks/populate-timeline');
 
-
 module.exports = {
   before: {
     //all: [authenticate('jwt')],

@@ -4,8 +4,7 @@
 module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
-
-        const type = context.data.duration || 305500; // 5 minute 55 seconds
+        const duration = context.data.duration || 305500; // 5 minute 55 seconds
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {

@@ -7,6 +7,11 @@
       <v-text-field v-model="gameDuration" class="mt-0" type="number">
       </v-text-field>
     </v-flex>
+    <v-flex xs3>
+      <v-btn color="primary" @click="doCreateGame">
+        Create game
+      </v-btn>
+    </v-flex>
   </v-layout>
   <v-btn color="success" @click="createStartEvent">
     <v-icon>play_arrow</v-icon>
@@ -31,6 +36,11 @@ import store from '@/store'
 
 export default {
   name: 'LifecycleControls',
+  data () {
+    return {
+      gameDuration: 5
+    }
+  },
   props: {
 
   },
@@ -43,6 +53,15 @@ export default {
       createTimelineEvent: 'create',
       removeDevice: 'remove'
     }),
+    ...mapActions('game', {
+      createGame: 'create'
+    }),
+    doCreateGame () {
+      console.log(`doing create game with gameDuration=${this.gameDuration}`)
+      this.createGame({
+        duration: 1000*60*this.gameDuration
+      }, {});
+    },
     createStartEvent () {
       console.log('Creating game start timeline event ' + this._id)
       this.createTimelineEvent({
@@ -62,7 +81,7 @@ export default {
       this.createTimelineEvent({
           type: "timeline",
           action: "stop"
-        }, {})
+        }, {});
     },
   }
 }

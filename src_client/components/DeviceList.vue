@@ -40,10 +40,6 @@
             devices: {
                 type: Array,
                 required: true
-            },
-            findDevices: {
-                type: Function,
-                required: true
             }
         },
         components: {

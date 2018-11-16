@@ -2,7 +2,7 @@
 <v-container class="admin">
   <h1>Controlpointer Administration</h1>
   <lifecycle></lifecycle>
-  <device-list v-bind:devices="devices.data" v-bind:findDevices="findDevices"></device-list>
+  <device-list v-bind:devices="devices.data"></device-list>
   <new-device></new-device>
   <pending-device-list v-bind:pendingDevices="pendingDevices.data" v-bind:findPendingDevices="findPendingDevices"></pending-device-list>
 

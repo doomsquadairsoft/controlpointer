@@ -12,7 +12,7 @@
     "npm": "^3.9.6"
   },
   "scripts": {
-    "dev": "npx foreman start http=0,api=1,game=1,devserver=1",
+    "dev": "npx foreman start http=0,api=1,game=0,devserver=1",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
     "start": "node src_server"
   },

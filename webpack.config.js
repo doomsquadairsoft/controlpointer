@@ -61,7 +61,7 @@ module.exports = {
         hot: false,
         open: true,
         watchContentBase: true,
-        port: config.get('clientport')
+        port: config.get('port')+1
     },
     performance: {
         hints: false

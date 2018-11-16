@@ -9,6 +9,9 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     // Make sure that we always have a list of devices either by wrapping
     // a single device into an array or by getting the `data` from the `find` method result
     const devices = method === 'find' ? result.data : [ result ];
+    console.log('teh const')
+    console.log(devices)
+    console.log(result)
 
     // // Asynchronously get user object from each devices `userId`
     // // and add it to the device

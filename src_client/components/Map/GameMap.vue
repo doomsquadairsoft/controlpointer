@@ -117,7 +117,6 @@
                 this.$store.commit('updatePOI', event.latlng)
             },
             controlpointIcon (bluProgress, redProgress) {
-                console.log('controlpointIcon ')
 
                 if (redProgress >= 100) {
                     return this.redIcon; // @TODO this should not mutate state outside of mutation handler
