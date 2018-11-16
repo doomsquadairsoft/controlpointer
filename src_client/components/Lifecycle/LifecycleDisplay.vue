@@ -1,13 +1,13 @@
 <template>
 <v-flex>
   <div class="text-xs-center">
-    <p>Remaining Game Time: {{ remainingGameTime }}</p>
+    <p>Remaining Game Time: {{ remainingGameTime }} -//{{ rt }}//- |{{ tick }}|</p>
 
     <p>Game Duration: {{ gameDuration }}</p>
 
-    <p>Game Start Time: {{ gameStartTime }}</p>
+    <p>Game Start Time: {{ gameStartTime }} ({{ gameStartTimeHumanized }})</p>
 
-    <p>Game End Time: {{ gameEndTime }}</p>
+    <p>Game End Time: {{ gameEndTime }} ({{ gameEndTimeHumanized }})</p>
 
     <p>Game Paused Duration: {{ gamePausedDuration }}</p>
 
@@ -32,6 +32,12 @@ import moment from 'moment'
 
 export default {
   name: 'LifecycleDisplay',
+  data() {
+    return {
+      tick: 0,
+      rt: 777
+    }
+  },
   props: {
 
   },
@@ -44,6 +50,11 @@ export default {
       findTimeline: 'find',
       createTimeline: 'create'
     }),
+    updateRemainingTime() {
+      this.tick++
+      this.rt = moment()
+      setTimeout(() => this.updateRemainingTime(), 1000)
+    }
   },
   computed: {
     ...mapState('game', 'game'),
@@ -125,29 +136,33 @@ export default {
             var pausedMoment = moment(g.createdAt);
             var resumedMoment = moment(coll[i + 1].createdAt);
             var diff = moment.duration(resumedMoment.diff(pausedMoment));
-            console.log(`rMoment=${moment(coll[i+1].createdAt)}  pMoment=${moment(g.createdAt)}  chrisDiff=${resumedMoment.valueOf()-pausedMoment.valueOf()}  momentDiff=${diff}  acc=${accumulator}`)
+            //console.log(`rMoment=${moment(coll[i+1].createdAt)}  pMoment=${moment(g.createdAt)}  chrisDiff=${resumedMoment.valueOf()-pausedMoment.valueOf()}  momentDiff=${diff}  acc=${accumulator}`)
             return moment.duration(accumulator).add(diff); //moment.duration(accumulator).add(diff);
           }
         }
         return accumulator;
       }, 0);
-      return `${reduced} (${moment.duration(reduced).humanize()})`;
+      return reduced;
     },
     gameEndTime() {
-      return moment(this.gameStartTime).add(this.gameDuration);
+      if (this.activeTimeline.length < 1) return moment(0);
+      return moment(this.gameStartTime).add(this.gameDuration).add(this.gamePausedDuration);
+    },
+    gameEndTimeHumanized() {
+      var gameEndTime = this.gameEndTime
+      if (gameEndTime === 'n/a') return gameEndTime
+      return moment(gameEndTime).format("dddd, MMMM Do YYYY, h:mm:ss a")
     },
     gameStartTime() {
-      var gis = this.findTimelineInStore({
-        query: {
-          $limit: 1,
-          $sort: {
-            createdAt: 1
-          }
-        }
-      }).data;
-      if (gis.length < 1)
-        return moment();
-      return moment(gis[0].createdAt);
+      var activeTimeline = this.activeTimeline
+      if (activeTimeline.length < 1)
+        return 'n/a';
+      return moment(activeTimeline[0].createdAt);
+    },
+    gameStartTimeHumanized () {
+      var gameStartTime = this.gameStartTime
+      if (gameStartTime === 'n/a') return gameStartTime
+      return moment(gameStartTime).format("dddd, MMMM Do YYYY, h:mm:ss a");
     },
     gameDuration() {
       var gis = this.findGameInStore({
@@ -181,14 +196,20 @@ export default {
       }
     },
     remainingGameTime() {
-      return '@TODO'
-      //return this.findTimelineInStore().data[0].createdAt;
-    }
+      var endTime = this.gameEndTime
+      var now = this.rt
+      var remaining = now.diff(endTime)
+      if (now.isAfter(this.gameEndTime))
+        return 0
+      else
+        return moment.duration(remaining)
+    },
   },
   created() {
     console.log('creating LifeCycleDisplay')
     this.findTimeline();
     this.findGame();
+    this.updateRemainingTime();
   }
 }
 </script>
