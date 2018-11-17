@@ -7,6 +7,7 @@ import Admin from '../components/Admin/Admin'
 import TechnicalInfo from '../components/TechnicalInfo'
 import MapPage from '../components/Map/MapPage'
 import Utilities from '../components/Utilities'
+import Store from '../components/Store'
 
 Vue.use(Router)
 
@@ -47,6 +48,10 @@ export default new Router({
             name: 'Utilities',
             component: Utilities
         },
-
+        {
+            path: '/store',
+            name: 'Store',
+            component: Store
+        },
     ]
 })

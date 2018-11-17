@@ -15,13 +15,14 @@ Satisfy dependencies
 
     npm install
 
-Build players.json, a file containing random character profiles. The numbers passed as arguments coincide with the number of players who will be playing the game. Tweak to suit.
-
-    node players.js --blu 5 --red 6
 
 Start the game server
 
     npm run start
+
+Visit the app in your phone's web browser on port 5000.
+
+http://localhost:5000
 
 
 ## Feedback
@@ -31,11 +32,8 @@ If you have used and enjoy this code base, I'd love to hear from you!
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/insanity54)
 
 
-## Special Thanks
-
-
-The following people have helped this project in some way, and deserve a mention. Thank you all for helping this project become a reality!
+## Attribution
 
   * [Duion](https://opengameart.org/users/duion) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
   * [marionline](https://opengameart.org/users/marionline) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
-  * [DSEG](https://www.keshikan.net/fonts-e.html) [SIL Open Font License 1.1.](http://scripts.sil.org/OFL) font 
+  * [DSEG](https://www.keshikan.net/fonts-e.html) [SIL Open Font License 1.1.](http://scripts.sil.org/OFL) font

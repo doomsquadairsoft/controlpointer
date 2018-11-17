@@ -79,6 +79,7 @@ export default {
       { icon: 'lock', text: 'Administration', path: '/admin'},
       { icon: 'build', text: 'Utilities', path: '/utilities'},
       { icon: 'code', text: 'Technical Info', path: '/technical-info'},
+      { icon: 'attach_money', text: 'Store', path: '/store'},
     ]
   })
 
