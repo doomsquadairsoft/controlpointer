@@ -26,6 +26,8 @@
         <p>Administrators visit the same webpage and are able to select game type, designate hardware or virtual D3VICES placed on the field, start/stop/pause the game, remotely operate controlpoints, trigger sound effects on romote PA systems, and more.</p>
 
         <p>Finally, rich airsoft experiences for your players all with minimal effort!</p>
+
+        <p>*Controlpointer is a pre-alpha work-in-progress. Alpha status is slated for Q1 2019</p>
       </v-flex>
       </v-layout>
     </v-container>

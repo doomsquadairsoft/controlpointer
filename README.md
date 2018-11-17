@@ -1,5 +1,7 @@
-# DooM Squad Airsoft D3VICE Controlpointer
+# DooM D3vices Controlpointer
 
+![The Controlpointer admin interface boasts the ability to create new D3vices, and remotely change their state.](https://raw.githubusercontent.com/doomsquadairsoft/controlpointer/master/src_client/assets/controlpointer_example.png)
+![The Controlpointer map shows the capture points and their controlling team.](https://raw.githubusercontent.com/doomsquadairsoft/controlpointer/master/src_client/assets/controlpointer_example2.png)
 
 Airsoft Field Control Point State Manager
 
