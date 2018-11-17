@@ -4,7 +4,6 @@ import Home from '../components/Home'
 import About from '../components/About'
 import AboutGreenFox from '../components/AboutGreenFox'
 import Admin from '../components/Admin/Admin'
-import TechnicalInfo from '../components/TechnicalInfo'
 import MapPage from '../components/Map/MapPage'
 import Utilities from '../components/Utilities'
 import Store from '../components/Store'
@@ -32,11 +31,6 @@ export default new Router({
             path: '/admin',
             name: 'Admin',
             component: Admin
-        },
-        {
-            path: '/technical-info',
-            name: 'TechnicalInfo',
-            component: TechnicalInfo
         },
         {
             path: '/map',

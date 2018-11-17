@@ -1,7 +1,7 @@
 <template>
 <v-container class="about-doom-squad">
   <v-layout>
-    <v-flex lg6>
+    <v-flex lg10>
       <h1>Store</h1>
 
       <p>Thank you for your interest in DooM D3vices, Mil-sim enhancement devices for the 21st century. If you are looking for a hardware D3VICE to take your game to the next level, you're at the right place!</p>
@@ -102,6 +102,18 @@ export default {
                   title: 'D3VICE Laser RPG',
                   price: '$555.55'
               },
+              {
+                sku: 'DOOM006',
+                description: 'Public Address (PA) System which syncs with Controlpointer. Automatically plays sound files alerting players when the game starts or stops, or when a capture point comes under control of either team.',
+                title: 'D3VICE PA',
+                price: '$444.44'
+              },
+              {
+                sku: 'DOOM007',
+                description: 'FRS Radio interface is similar to D3VICE PA, but utilizes FRS radios to announce game events to players. Two discreet FRS radios on separate channels are used to keep annoucements team specific.',
+                title: 'D3VICE PTT Interface',
+                price: '$333.33'
+              }
           ]
       }
     }
