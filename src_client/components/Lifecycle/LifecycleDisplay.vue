@@ -1,7 +1,9 @@
 <template>
 <v-flex>
   <div class="text-xs-center">
-    <p>Remaining Game Time: {{ remainingGameTime }} -//{{ rt }}//- |{{ tick }}|</p>
+    <p>Elapsed Game Time: {{ elapsedGameTime }}</p>
+
+    <p>Remaining Game Time: {{ remainingGameTime }} {{ remainingGameTimeDigital }} -//{{ rt }}//- |{{ tick }}|</p>
 
     <p>Game Duration: {{ gameDuration }}</p>
 
@@ -85,8 +87,10 @@ export default {
       // activeTimeline is an array of cleansed timeline events
       // following the latest stop event
       // if there is no stop event, it is the entire cleansed timeline.
+      var cleansedTimeline = this.cleansedTimeline;
+      if (cleansedTimeline.length < 1) return [];
 
-      var lastStopEventIndex = _.findLastIndex(this.cleansedTimeline, {
+      var lastStopEventIndex = _.findLastIndex(cleansedTimeline, {
         action: 'stop'
       })
       if (lastStopEventIndex === -1)
@@ -195,15 +199,58 @@ export default {
         });
       }
     },
+    lastStartOrPauseEvent() {
+      var activeTimeline = this.activeTimeline;
+      if (activeTimeline.length < 1) return [];
+      return _.findLast(activeTimeline, (evt) => {
+        return evt.action === 'pause' || evt.action === 'start'
+      })
+    },
+    elapsedGameTime() {
+      var now = this.rt
+      var activeTimeline = this.activeTimeline
+      if (activeTimeline.length < 1) return moment(0)
+      var lastEvent = this.lastStartOrPauseEvent;
+      var gameState = this.gameState;
+      var lastEventMoment = moment(lastEvent.createdAt)
+      var gamePausedDuration = this.gamePausedDuration;
+      var gameStartTime = this.gameStartTime;
+      var timeBetweenLastEventAndGameStart = lastEventMoment.diff(gameStartTime)
+      if (gameState === 'Paused') {
+        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration);
+      }
+      else if (gameState === 'Started') {
+        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration).add(now.diff(lastEventMoment));
+      }
+    },
     remainingGameTime() {
       var endTime = this.gameEndTime
-      var now = this.rt
-      var remaining = now.diff(endTime)
-      if (now.isAfter(this.gameEndTime))
+      var lastEvent = this.lastStartOrPauseEvent;
+      var lastEventMoment = moment(lastEvent.createdAt)
+      var remaining = endTime.diff(lastEventMoment)
+      if (remaining.isAfter(this.gameEndTime))
         return 0
       else
         return moment.duration(remaining)
     },
+    remainingGameTimeDigital() {
+      var rgt = this.remainingGameTime
+      if (moment.isDuration(rgt)) {
+        var h = rgt.hours();
+        var m = rgt.minutes();
+        var s = rgt.seconds();
+        var _hh = h < 10 ? '0'+h : h;
+        var _mm = m < 10 ? '0'+m : m;
+        var _ss = s < 10 ? '0'+s : s;
+        var hh = _hh === 0 ? '00' : _hh;
+        var mm = _mm === 0 ? '00' : _mm;
+        var ss = _ss === 0 ? '00' : _ss;
+
+        return `${hh}:${mm}:${ss}`
+      } else {
+        return '00:00:00'
+      }
+    }
   },
   created() {
     console.log('creating LifeCycleDisplay')
