@@ -63,7 +63,7 @@
     "material-design-icons-iconfont": "^3.0.3",
     "moment": "^2.21.0",
     "nf": "0.0.3",
-    "node-sass": "^4.8.3",
+    "node-sass": "^4.10.0",
     "rxjs": "^5.5.7",
     "sass-loader": "^6.0.7",
     "socket.io-client": "^2.0.4",
@@ -73,9 +73,9 @@
     "vue-template-compiler": "^2.5.17",
     "vuetify": "^1.0.6",
     "vuex": "^3.0.1",
-    "webpack": "^4.23.1",
+    "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.4"
+    "webpack-dev-server": "^3.1.10"
   },
   "babel": {
     "presets": [
