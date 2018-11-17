@@ -28,6 +28,7 @@
     "compress": "^0.99.0",
     "compression": "^1.7.2",
     "cors": "^2.8.4",
+    "dseg": "^0.43.0",
     "feathers-nedb": "^3.0.0",
     "foreman": "^3.0.1",
     "helmet": "^3.12.0",

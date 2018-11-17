@@ -38,3 +38,4 @@ The following people have helped this project in some way, and deserve a mention
 
   * [Duion](https://opengameart.org/users/duion) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
   * [marionline](https://opengameart.org/users/marionline) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
+  * [DSEG](https://www.keshikan.net/fonts-e.html) [SIL Open Font License 1.1.](http://scripts.sil.org/OFL) font 

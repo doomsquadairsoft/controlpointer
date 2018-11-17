@@ -1,6 +1,7 @@
 <template>
 <v-flex>
   <div class="text-xs-center">
+    <p class="digital">{{ remainingGameTimeDigital }}</p>
     <p>Elapsed Game Time: {{ elapsedGameTime }}</p>
 
     <p>Remaining Game Time: {{ remainingGameTime }} {{ remainingGameTimeDigital }} -//{{ rt }}//- |{{ tick }}|</p>
@@ -15,7 +16,7 @@
 
     <p>Game State: {{ gameState }}</p>
 
-    <p>Cleansed Timeline: {{ cleansedTimeline }}</p>
+    <!-- <p>Cleansed Timeline: {{ cleansedTimeline }}</p> -->
 
     <p>Active Timeline: {{ activeTimeline }}</p>
   </div>
@@ -31,6 +32,7 @@ import {
 
 import _ from 'lodash'
 import moment from 'moment'
+import 'dseg/css/dseg.css'
 
 export default {
   name: 'LifecycleDisplay',
@@ -224,17 +226,23 @@ export default {
       }
     },
     remainingGameTime() {
-      var endTime = this.gameEndTime
+      var endTime = this.gameEndTime;
       var lastEvent = this.lastStartOrPauseEvent;
-      var lastEventMoment = moment(lastEvent.createdAt)
-      var remaining = endTime.diff(lastEventMoment)
-      if (remaining.isAfter(this.gameEndTime))
-        return 0
-      else
-        return moment.duration(remaining)
+      var lastEventMoment = moment(lastEvent.createdAt);
+      var remaining = endTime.diff(lastEventMoment);
+      var gameState = this.gameState;
+      var now = this.rt;
+      if (gameState === 'Paused') {
+        return moment.duration(remaining);
+      }
+      else if (gameState === 'Started') {
+        var r = moment.duration(remaining).subtract(now.diff(lastEventMoment));
+        if (r.asMilliseconds() < 0) r = moment.duration(0)
+        return r
+      }
     },
     remainingGameTimeDigital() {
-      var rgt = this.remainingGameTime
+      var rgt = this.remainingGameTime;
       if (moment.isDuration(rgt)) {
         var h = rgt.hours();
         var m = rgt.minutes();
@@ -246,9 +254,9 @@ export default {
         var mm = _mm === 0 ? '00' : _mm;
         var ss = _ss === 0 ? '00' : _ss;
 
-        return `${hh}:${mm}:${ss}`
+        return `${hh}:${mm}:${ss}`;
       } else {
-        return '00:00:00'
+        return '00:00:00';
       }
     }
   },
@@ -264,5 +272,13 @@ export default {
 <style scoped>
 .bigchip {
   font-size: 50px;
+}
+.digital {
+  font-size: 10vh;
+  color: cyan;
+  background-color: black;
+  margin: 5vh 0 5vh 0;
+  padding: 0;
+  font-family: 'DSEG7-Modern';
 }
 </style>
