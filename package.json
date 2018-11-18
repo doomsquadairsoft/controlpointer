@@ -12,7 +12,7 @@
     "npm": "^6.4.1"
   },
   "scripts": {
-    "dev": "webpack-dev-server --hot",
+    "dev": "npx concurrently --kill-others \"npx webpack-dev-server --hot\" \"npx supervisor -w src_server src_server\"",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
     "start": "node src_server"
   },

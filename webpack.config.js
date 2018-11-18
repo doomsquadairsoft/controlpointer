@@ -61,7 +61,13 @@ module.exports = {
         hot: false,
         open: true,
         watchContentBase: true,
-        port: config.get('port')+1
+        port: config.get('port')+1,
+        proxy: {
+          '/socket.io': {
+            target: 'http://localhost:5000',
+            ws: true
+          }
+        },
     },
     performance: {
         hints: false
