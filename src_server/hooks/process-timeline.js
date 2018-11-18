@@ -9,11 +9,15 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
 
         const type = context.data.type || 'timeline';
         const action = context.data.action || 'unknown!';
+        const source = context.data.source || 'unknown!';
+        const target = context.data.target || 'unknown!';
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
             type,
             action,
+            source,
+            target,
             createdAt: new Date().getTime()
         };
 

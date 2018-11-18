@@ -2,23 +2,6 @@
 <v-flex>
   <div class="text-xs-center">
     <p class="digital">{{ remainingGameTimeDigital }}</p>
-    <p>Elapsed Game Time: {{ elapsedGameTime }}</p>
-
-    <p>Remaining Game Time: {{ remainingGameTime }} {{ remainingGameTimeDigital }} -//{{ rt }}//- |{{ tick }}|</p>
-
-    <p>Game Duration: {{ gameDuration }}</p>
-
-    <p>Game Start Time: {{ gameStartTime }} ({{ gameStartTimeHumanized }})</p>
-
-    <p>Game End Time: {{ gameEndTime }} ({{ gameEndTimeHumanized }})</p>
-
-    <p>Game Paused Duration: {{ gamePausedDuration }}</p>
-
-    <p>Game State: {{ gameState }}</p>
-
-    <!-- <p>Cleansed Timeline: {{ cleansedTimeline }}</p> -->
-
-    <p>Active Timeline: {{ activeTimeline }}</p>
   </div>
 </v-flex>
 </template>
@@ -31,7 +14,6 @@ import {
 } from 'vuex'
 
 import _ from 'lodash'
-import moment from 'moment'
 import 'dseg/css/dseg.css'
 
 export default {
@@ -43,228 +25,19 @@ export default {
     }
   },
   props: {
-
+    remainingGameTimeDigital: {
+      type: String,
+      required: true
+    },
   },
   methods: {
-    ...mapActions('game', {
-      findGame: 'find',
-      createGame: 'create'
-    }),
-    ...mapActions('timeline', {
-      findTimeline: 'find',
-      createTimeline: 'create'
-    }),
-    updateRemainingTime() {
-      this.tick++
-      this.rt = moment()
-      setTimeout(() => this.updateRemainingTime(), 1000)
-    }
+
   },
   computed: {
-    ...mapState('game', 'game'),
-    ...mapState('timeline', 'timeline'),
-    ...mapGetters('timeline', {
-      createTimelineEvent: 'create',
-      findTimelineInStore: 'find'
-    }),
-    ...mapGetters('game', {
-      findGameInStore: 'find'
-    }),
-    gameState() {
-      var gis = this.findTimelineInStore({
-        query: {
-          $sort: {
-            createdAt: -1
-          }
-        }
-      }).data;
-      var res = 'Unknown'
-      if (typeof _.head(gis) === 'undefined') return res
-      if (_.head(gis).action === 'start') res = 'Started'
-      if (_.head(gis).action === 'stop') res = 'Stopped'
-      if (_.head(gis).action === 'pause') res = 'Paused'
-      return res
-    },
-    activeTimeline() {
-      // activeTimeline is an array of cleansed timeline events
-      // following the latest stop event
-      // if there is no stop event, it is the entire cleansed timeline.
-      var cleansedTimeline = this.cleansedTimeline;
-      if (cleansedTimeline.length < 1) return [];
 
-      var lastStopEventIndex = _.findLastIndex(cleansedTimeline, {
-        action: 'stop'
-      })
-      if (lastStopEventIndex === -1)
-        return this.cleansedTimeline
-
-      return this.cleansedTimeline.slice(
-        lastStopEventIndex+1,
-        this.cleansedTimeline.length
-      )
-
-    },
-    cleansedTimeline() {
-      // cleansedTimeline is the timeline without duplicate events (see below)
-      var gis = this.findTimelineInStore({
-        query: {
-          $sort: {
-            createdAt: 1
-          }
-        }
-      }).data;
-
-      // remove any duplicate pause or start timeline events
-      // example: start, pause, pause, start, start =>
-      //          start, pause, start
-      var filtered = _.filter(gis, (g, index, collection) => {
-        // if we aren't iterating on the last array element,
-        // inspect the next element and see if that element's action is a duplicate of this element's action
-        if (index !== collection.length - 1) {
-          if (g.action === collection[index + 1].action) {
-            collection[index + 1].invalid = true;
-          }
-        }
-        return g.invalid === true ? false : true
-      });
-
-      return filtered;
-    },
-    gamePausedDuration() {
-      // Gets the total amount of milliseconds that the active game
-      // has spent in the paused state.
-      // Used to determine remaining time in current game
-      var activeTimeline = this.activeTimeline;
-      var reduced = _.reduce(activeTimeline, (accumulator, g, i, coll) => {
-        var res = moment.duration(accumulator);
-        if (i !== coll.length - 1) {
-          if (g.action === 'pause' && coll[i + 1].action === 'start') {
-            var pausedMoment = moment(g.createdAt);
-            var resumedMoment = moment(coll[i + 1].createdAt);
-            var diff = moment.duration(resumedMoment.diff(pausedMoment));
-            //console.log(`rMoment=${moment(coll[i+1].createdAt)}  pMoment=${moment(g.createdAt)}  chrisDiff=${resumedMoment.valueOf()-pausedMoment.valueOf()}  momentDiff=${diff}  acc=${accumulator}`)
-            return moment.duration(accumulator).add(diff); //moment.duration(accumulator).add(diff);
-          }
-        }
-        return accumulator;
-      }, 0);
-      return reduced;
-    },
-    gameEndTime() {
-      if (this.activeTimeline.length < 1) return moment(0);
-      return moment(this.gameStartTime).add(this.gameDuration).add(this.gamePausedDuration);
-    },
-    gameEndTimeHumanized() {
-      var gameEndTime = this.gameEndTime
-      if (gameEndTime === 'n/a') return gameEndTime
-      return moment(gameEndTime).format("dddd, MMMM Do YYYY, h:mm:ss a")
-    },
-    gameStartTime() {
-      var activeTimeline = this.activeTimeline
-      if (activeTimeline.length < 1)
-        return 'n/a';
-      return moment(activeTimeline[0].createdAt);
-    },
-    gameStartTimeHumanized () {
-      var gameStartTime = this.gameStartTime
-      if (gameStartTime === 'n/a') return gameStartTime
-      return moment(gameStartTime).format("dddd, MMMM Do YYYY, h:mm:ss a");
-    },
-    gameDuration() {
-      var gis = this.findGameInStore({
-        query: {
-          $limit: 1,
-          $sort: {
-            createdAt: -1 // most recently created game
-          }
-        }
-      }).data;
-
-      // if there are no games, set to default game length of 22 seconds
-      if (typeof gis.length < 1)
-        return moment.duration({
-          'seconds': 22
-        });
-
-      // If there is a duration object,
-      // set the defined duration
-      if (typeof gis[0] !== 'undefined') {
-        return moment.duration({
-          'milliseconds': gis[0].duration
-        });
-
-        // else there is not a duration object
-        // set a default duration
-      } else {
-        return moment.duration({
-          'milliseconds': 3000
-        });
-      }
-    },
-    lastStartOrPauseEvent() {
-      var activeTimeline = this.activeTimeline;
-      if (activeTimeline.length < 1) return [];
-      return _.findLast(activeTimeline, (evt) => {
-        return evt.action === 'pause' || evt.action === 'start'
-      })
-    },
-    elapsedGameTime() {
-      var now = this.rt
-      var activeTimeline = this.activeTimeline
-      if (activeTimeline.length < 1) return moment(0)
-      var lastEvent = this.lastStartOrPauseEvent;
-      var gameState = this.gameState;
-      var lastEventMoment = moment(lastEvent.createdAt)
-      var gamePausedDuration = this.gamePausedDuration;
-      var gameStartTime = this.gameStartTime;
-      var timeBetweenLastEventAndGameStart = lastEventMoment.diff(gameStartTime)
-      if (gameState === 'Paused') {
-        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration);
-      }
-      else if (gameState === 'Started') {
-        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration).add(now.diff(lastEventMoment));
-      }
-    },
-    remainingGameTime() {
-      var endTime = this.gameEndTime;
-      var lastEvent = this.lastStartOrPauseEvent;
-      var lastEventMoment = moment(lastEvent.createdAt);
-      var remaining = endTime.diff(lastEventMoment);
-      var gameState = this.gameState;
-      var now = this.rt;
-      if (gameState === 'Paused') {
-        return moment.duration(remaining);
-      }
-      else if (gameState === 'Started') {
-        var r = moment.duration(remaining).subtract(now.diff(lastEventMoment));
-        if (r.asMilliseconds() < 0) r = moment.duration(0)
-        return r
-      }
-    },
-    remainingGameTimeDigital() {
-      var rgt = this.remainingGameTime;
-      if (moment.isDuration(rgt)) {
-        var h = rgt.hours();
-        var m = rgt.minutes();
-        var s = rgt.seconds();
-        var _hh = h < 10 ? '0'+h : h;
-        var _mm = m < 10 ? '0'+m : m;
-        var _ss = s < 10 ? '0'+s : s;
-        var hh = _hh === 0 ? '00' : _hh;
-        var mm = _mm === 0 ? '00' : _mm;
-        var ss = _ss === 0 ? '00' : _ss;
-
-        return `${hh}:${mm}:${ss}`;
-      } else {
-        return '00:00:00';
-      }
-    }
   },
   created() {
-    console.log('creating LifeCycleDisplay')
-    this.findTimeline();
-    this.findGame();
-    this.updateRemainingTime();
+
   }
 }
 </script>
@@ -280,5 +53,8 @@ export default {
   margin: 5vh 0 5vh 0;
   padding: 0;
   font-family: 'DSEG7-Modern';
+}
+.invis {
+  display: none;
 }
 </style>

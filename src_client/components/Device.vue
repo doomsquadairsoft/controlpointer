@@ -177,6 +177,10 @@ export default {
     removeDevice: {
       type: Function,
       required: true
+    },
+    createTimelineEvent: {
+      type: Function,
+      required: true
     }
   },
   computed: {
@@ -201,34 +205,49 @@ export default {
   },
   methods: {
     changeControllingTeamBlue: function() {
-      console.log('setting blu ' + this._id)
       this.patchDevice([
         this._id, {
           bluProgress: 100,
           redProgress: 0
         }, {}
       ]);
+      this.createTimelineEvent({
+          type: "timeline",
+          action: "cap_blu",
+          source: "admin",
+          target: this.did
+        }, {});
       //store.dispatch('changeControllingTeamBlue')
       //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
     },
     changeControllingTeamRed: function() {
-      console.log('setting red ' + this._id)
       this.patchDevice([
         this._id, {
           bluProgress: 0,
           redProgress: 100
         }, {}
       ]);
+      this.createTimelineEvent({
+          type: "timeline",
+          action: "cap_red",
+          source: "admin",
+          target: this.did
+        }, {});
       //this.patchDevice([this._id, {redProgress: 100, bluProgress: 0}, undefined])
     },
     changeControllingTeamUnc: function() {
-      console.log('setting unc ' + this._id)
       this.patchDevice([
         this._id, {
           bluProgress: 0,
           redProgress: 0
         }, {}
       ]);
+      this.createTimelineEvent({
+          type: "timeline",
+          action: "cap_unc",
+          source: "admin",
+          target: this.did
+        }, {});
       //this.patchDevice([this._id, {redProgress: 0, bluProgress: 0}, undefined])
     },
     deleteDevice: function() {

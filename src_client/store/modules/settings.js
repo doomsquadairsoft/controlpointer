@@ -1,10 +1,14 @@
 export default {
     state: {
-      theme: 'dark'
+      theme: 'dark',
+      devmode: false
     },
     getters: {
         theme: state => {
             return state.theme;
+        },
+        devmode: state => {
+            return state.devmode;
         }
     },
     mutations: {
@@ -13,6 +17,12 @@ export default {
         },
         setThemeLight (state) {
             state.theme = 'light';
+        },
+        setDevmodeOn (state) {
+          state.devmode = true;
+        },
+        setDevmodeOff (state) {
+          state.devmode = false;
         }
     }
 }

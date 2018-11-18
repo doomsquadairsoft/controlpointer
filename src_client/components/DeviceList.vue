@@ -18,6 +18,7 @@
                 v-bind:image="d.image"
                 v-bind:patchDevice="patchDevice"
                 v-bind:removeDevice="removeDevice"
+                v-bind:createTimelineEvent="createTimelineEvent"
             ></device>
         </v-layout>
     </v-container>
@@ -49,6 +50,9 @@
             ...mapActions('devices', {
                 patchDevice: 'patch',
                 removeDevice: 'remove'
+            }),
+            ...mapActions('timeline', {
+                createTimelineEvent: 'create'
             })
         }
     }
