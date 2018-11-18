@@ -72,9 +72,9 @@ module.exports = {
             beforeEmit: true
         }),
         new VueLoaderPlugin(),
-        new webpack.DefinePlugin({
-            'SOCKETIO_URI': JSON.stringify(`//${config.get('host')}:${config.get('port')}`)
-        }),
+        // new webpack.DefinePlugin({
+        //     'SOCKETIO_URI': JSON.stringify(`//${config.get('host')}:${config.get('port')}`)
+        // }),
     ]
 }
 

@@ -27,7 +27,7 @@
 
         <p>Finally, rich airsoft experiences for your players all with minimal effort!</p>
 
-        <p>*Controlpointer is a pre-alpha work-in-progress. Alpha status is slated for Q1 2019</p>
+        <p>*Controlpointer is a pre-alpha work-in-progress. Alpha status is slated for Q1 2019. Check back for updates!</p>
       </v-flex>
       </v-layout>
     </v-container>

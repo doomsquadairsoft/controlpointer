@@ -5,7 +5,7 @@ import io from 'socket.io-client'
 import feathersVuex from 'feathers-vuex'
 import store from '../store/'
 
-const socket = io(SOCKETIO_URI, {transports: ['websocket']})
+const socket = io({transports: ['websocket']})
 
 const feathersClient = feathers()
   .configure(socketio(socket))
