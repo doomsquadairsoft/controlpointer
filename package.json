@@ -30,7 +30,6 @@
     "cors": "^2.8.4",
     "dseg": "^0.43.0",
     "feathers-nedb": "^3.0.0",
-    "foreman": "^3.0.1",
     "helmet": "^3.12.0",
     "nedb": "^1.8.0",
     "serve-favicon": "^2.4.5",
