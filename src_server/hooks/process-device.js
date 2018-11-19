@@ -36,7 +36,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
         const controllingTeam = context.data.controllingTeam
 
         // ensure a latLng is created
-        const latLng = context.data.latLng || [47.62463825220757, -117.17959284771496];
+        const latLng = context.data.latLng || { lat: 47.62463825220757, lng: -117.17959284771496};
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {

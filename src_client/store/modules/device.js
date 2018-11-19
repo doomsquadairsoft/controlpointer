@@ -1,6 +1,9 @@
 
+// Don't use this. Use methods in Device.vue
+
 const mutations = {
   changeControllingTeamBlue (state, amt) {
+    console.log("WORD NUGGET!")
     state.patchDevice([state._id, {
       bluProgress: 100,
       redProgress: 0
@@ -17,18 +20,25 @@ const mutations = {
       bluProgress: 0,
       redProgress: 0
     }, undefined])
-  }
+  },
+
 }
 
 const actions = {
   changeControllingTeamBlue (state) {
-    state.commit('changeControllingTeamBlue')
+    state.commit('changeControllingTeamBlue');
   },
   changeControllingTeamRed (state) {
-    state.commit('changeControllingTeamRed')
+    state.commit('changeControllingTeamRed');
   },
   changeControllingTeamUnc (state) {
-    state.commit('changeControllingTeamUnc')
+    state.commit('changeControllingTeamUnc');
+  },
+  incrementBluProgress (state) {
+    state.commit('incrementBluProgress');
+  },
+  incrementRedProgress (state) {
+    state.commit('incrementRedProgress');
   }
 }
 

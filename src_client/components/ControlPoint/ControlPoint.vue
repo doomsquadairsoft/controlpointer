@@ -1,26 +1,49 @@
+<!--
+To disable context menu in responsive mode, paste this into console:
+window.oncontextmenu = function() { return false; }
+sauce: https://stackoverflow.com/a/46337736/1004931
+ -->
+
+
 <template>
   <div
+  @touchstart="catchDoubleTaps"
   class="invis"
   :class="{ 'fullscreen-container': isFullscreen }"
   >
     <div class="fullscreen-header">
+      <!--
+           the problem here is that bluProgress is based on DOM data,
+            not a device. We need to change ControlPoint.vue to be created
+            and destroyed when ControlPointContainer selects something,
+            rather than working with selection.bluProgress, etc.
+      -->
       <v-progress-linear
-        v-model="test"
+        v-model="bluProgress"
         height="25"
-        color="red"
+        color="blue"
         background-color="grey"
       ></v-progress-linear>
     </div>
     <div :class="{'fullscreen-body': isDeviceSelected }" align-end justify-center fill-height row>
-      <v-btn color="blue">BLU</v-btn>
       <v-btn
-      class="tinybutton"
-      color="DarkGray"
-      @click="toggleFullscreen"
-      >
-        <v-icon>close</v-icon>
+        color="blue"
+        @touchstart="touchstartBlu"
+        @touchend="touchendBlu"
+      >BLU</v-btn>
+
+      <v-btn
+        class="tinybutton"
+        color="DarkGray"
+        @click="toggleFullscreen"
+      ><v-icon>close</v-icon>
       </v-btn>
-      <v-btn color="red">RED</v-btn>
+
+      <v-btn
+        color="red"
+        @touchstart="mousedownRed"
+        @touchend="mouseupRed"
+      >RED</v-btn>
     </div>
   </div>
 </template>
@@ -32,7 +55,8 @@ import {
   mapActions
 } from 'vuex'
 
-import store from '@/store'
+import store from '@/store';
+import _ from 'lodash';
 
 
 export default {
@@ -83,10 +107,22 @@ export default {
       type: Function,
       required: true
     },
+    getDevice: {
+      type: Function,
+      required: true
+    },
     createTimelineEvent: {
       type: Function,
       required: true
-    }
+    },
+    // incrementBluProgress: {
+    //   type: Function,
+    //   required: true
+    // },
+    // incrementRedProgress: {
+    //   type: Function,
+    //   required: true
+    // }
   },
   computed: {
     controllingColor() {
@@ -109,6 +145,60 @@ export default {
     }
   },
   methods: {
+    incrementBluProgress() {
+      console.log('incrementing blu progress')
+      // var dev = this.getDevice(this._id, {}).then((d) => {
+      //   console.log(d)
+      this.patchDevice([this._id, {
+        bluProgress: 50
+      }])
+      // })
+      //console.log(dev)
+
+    },
+    incrementRedProgress() {
+      this.getDevice(this._id, {}).then((device) => {
+        this.patchDevice([this._id, {
+          bluProgress: device.bluProgress += 10
+        }])
+      })
+    },
+    updateProgress () {
+      console.log('udpating progress')
+      if (this.isBluHeld)
+        this.incrementBluProgress();
+      if (this.isRedHeld)
+        this.incrementRedProgress();
+    },
+    advanceBlu () {
+      console.log('advancing blu')
+      this.test-=10;
+    },
+    catchDoubleTaps (evt) {
+      if (evt.touches.length < 2) {
+        // preventing double tap zoom
+        evt.preventDefault();
+      }
+    },
+    touchstartBlu () {
+      console.log('touch start blu')
+      this.isBluHeld = true;
+      console.log(this.isBluHeld)
+    },
+    touchendBlu () {
+      console.log('touch end blu')
+      this.isBluHeld = false;
+      console.log(this.isBluHeld)
+    },
+    mousedownRed () {
+      console.log('touch start red')
+      this.isRedHeld = true;
+      console.log(this.isRedHeld)
+    },
+    mouseupRed () {
+      console.log('touch end red')
+      //this.isRedHeld = false;
+    },
     changeControllingTeamBlue: function() {
       this.patchDevice([
         this._id, {
@@ -168,13 +258,18 @@ export default {
       dispatch('setPositionOnMap')
     }
   },
+  created () {
+    setInterval(this.updateProgress, 250);
+  },
   data: () => ({
     editMode: false,
     menu: 0,
     deletable: 0,
     lastCap: '',
     takeDown: true,
-    test: 60
+    test: 60,
+    isBluHeld: false,
+    isRedHeld: false
   })
 }
 </script>

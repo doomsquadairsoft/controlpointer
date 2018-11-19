@@ -8,7 +8,7 @@ export default {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
         zoom: 18,
         maxZoom: 18,
-        poi: [47.62473825220757, -117.17969284771496]
+        poi: { lat: 47.62473825220757, lng: -117.17969284771496}
     },
     getters: {
         center: state => {
