@@ -15,10 +15,8 @@
             <p>gameStartTime={{ gameStartTime }}</p>
             <p>gameStartTimeHumanized={{ gameStartTimeHumanized }}</p>
             <p>gameDuration={{ gameDuration }}</p>
-            <p>lastStartOrPauseEvent={{ lastStartOrPauseEvent }}</p>
             <p>lastLifecycleEvent={{ lastLifecycleEvent }}</p>
             <p>elapsedGameTime={{ elapsedGameTime }}</p>
-            <p>remainingGameTime={{ remainingGameTime }}</p>
             <p>remainingGameTimeDigital={{ remainingGameTimeDigital }}</p>
             <p>gameState={{ gameState }}</p>
           </div>
@@ -203,17 +201,10 @@ export default {
         });
       }
     },
-    lastStartOrPauseEvent() {
-      var activeTimeline = this.activeTimeline;
-      if (activeTimeline.length < 1) return [];
-      return _.findLast(activeTimeline, (evt) => {
-        return evt.action === 'pause' || evt.action === 'start'
-      })
-    },
     lastLifecycleEvent() {
-      var activeTimeline = this.activeTimeline;
-      if (activeTimeline.length < 1) return [];
-      return _.findLast(activeTimeline, (evt) => {
+      var timeline = this.cleansedTimeline;
+      if (timeline.length < 1) return [];
+      return _.findLast(timeline, (evt) => {
         return evt.action === 'pause' || evt.action === 'start' || evt.action === 'stop'
       })
     },
@@ -221,7 +212,7 @@ export default {
       var now = this.rt
       var activeTimeline = this.activeTimeline
       if (activeTimeline.length < 1) return moment(0)
-      var lastEvent = this.lastStartOrPauseEvent;
+      var lastEvent = this.lastLifecycleEvent;
       var gameState = this.gameState;
       var lastEventMoment = moment(lastEvent.createdAt)
       var gamePausedDuration = this.gamePausedDuration;
@@ -235,7 +226,7 @@ export default {
     },
     remainingGameTime() {
       var endTime = this.gameEndTime;
-      var lastEvent = this.lastStartOrPauseEvent;
+      var lastEvent = this.lastLifecycleEvent;
       var lastEventMoment = moment(lastEvent.createdAt);
       var remaining = endTime.diff(lastEventMoment);
       var gameState = this.gameState;

@@ -77,6 +77,7 @@ export default {
       { icon: 'announcement', text: 'Operation: Green Fox II', path: '/green-fox-ii'},
       { icon: 'map', text: 'Map', path: '/map'},
       { icon: 'lock', text: 'Administration', path: '/admin'},
+      { icon: 'all_out', text: 'Virtual Controlpoint', path: '/controlpoint'},
       { icon: 'build', text: 'Utilities', path: '/utilities'},
       { icon: 'attach_money', text: 'Store', path: '/store'},
     ]

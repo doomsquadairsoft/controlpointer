@@ -9,8 +9,8 @@
       :pagination.sync="sortSync"
       >
       <template slot="items" slot-scope="props">
-          <td>{{ props.item.action }}</td>
-          <td class="text-xs-right">{{ props.item.source }}</td>
+          <td>{{ props.item.source }}</td>        
+          <td class="text-xs-right">{{ props.item.action }}</td>
           <td class="text-xs-right">{{ props.item.target }}</td>
           <td class="text-xs-right">{{ props.item.createdAt }}</td>
       </template>
@@ -36,8 +36,8 @@ export default {
     return {
       sortSync: { descending: true, sortBy: "createdAt" },
       headers: [
-        { text: 'Action', value: 'action', sortable: false },
         { text: 'Source', value: 'source', sortable: false },
+        { text: 'Action', value: 'action', sortable: false },
         { text: 'Target', value: 'target', sortable: false },
         { text: 'Timestamp', value: 'createdAt', sortable: false },
       ]
