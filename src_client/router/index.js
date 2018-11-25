@@ -7,7 +7,7 @@ import Admin from '../components/Admin/Admin'
 import MapPage from '../components/Map/MapPage'
 import Utilities from '../components/Utilities'
 import Store from '../components/Store'
-import ControlPointContainer from '../components/ControlPoint/ControlPointContainer'
+import ControlPointList from '../components/ControlPoint/ControlPointList'
 
 
 Vue.use(Router)
@@ -51,8 +51,8 @@ export default new Router({
         },
         {
           path: '/controlpoint',
-          name: 'ControlPointContainer',
-          component: ControlPointContainer
+          name: 'ControlPointList',
+          component: ControlPointList
         }
     ]
 })

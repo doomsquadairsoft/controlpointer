@@ -2,50 +2,43 @@
 To disable context menu in responsive mode, paste this into console:
 window.oncontextmenu = function() { return false; }
 sauce: https://stackoverflow.com/a/46337736/1004931
+(added to created function so you don't have to copy+paste it every time)
  -->
 
 
 <template>
-  <div
-  @touchstart="catchDoubleTaps"
-  class="invis"
-  :class="{ 'fullscreen-container': isFullscreen }"
-  >
+<v-flex xs12>
+  <v-flex xs12 class="selectableControlPoint">
+    <v-card>
+      <v-layout row align-center justify-center>
+        <v-flex xs7>
+          <v-card-title primary-title>
+            <div>
+              <div class="headline">Controlpoint {{ did }}</div>
+            </div>
+          </v-card-title>
+        </v-flex>
+        <v-flex xs5>
+          <v-btn color="primary" @click="toggleFullscreen">Select {{ did }}</v-btn>
+        </v-flex>
+      </v-layout>
+    </v-card>
+  </v-flex> <!-- /.selectableControlPoint  -->
+  <div @touchstart="catchDoubleTaps" class="invis" :class="{ 'fullscreen-container': isFullscreen }">
     <div class="fullscreen-header">
-      <!--
-           the problem here is that bluProgress is based on DOM data,
-            not a device. We need to change ControlPoint.vue to be created
-            and destroyed when ControlPointContainer selects something,
-            rather than working with selection.bluProgress, etc.
-      -->
-      <v-progress-linear
-        v-model="bluProgress"
-        height="25"
-        color="blue"
-        background-color="grey"
-      ></v-progress-linear>
+      <v-progress-linear v-model="bluProgress" height="25" color="blue" background-color="grey"></v-progress-linear>
     </div>
-    <div :class="{'fullscreen-body': isDeviceSelected }" align-end justify-center fill-height row>
-      <v-btn
-        color="blue"
-        @touchstart="touchstartBlu"
-        @touchend="touchendBlu"
-      >BLU</v-btn>
+    <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
+      <v-btn class="hugebutton" color="blue" @touchstart="touchstartBlu" @touchend="touchendBlu">BLU</v-btn>
 
-      <v-btn
-        class="tinybutton"
-        color="DarkGray"
-        @click="toggleFullscreen"
-      ><v-icon>close</v-icon>
-      </v-btn>
+        <v-btn class="tinybutton" color="DarkGray" @click="toggleFullscreen">
+          <v-icon>close</v-icon>
+        </v-btn>
 
-      <v-btn
-        color="red"
-        @touchstart="mousedownRed"
-        @touchend="mouseupRed"
-      >RED</v-btn>
+      <v-btn class="hugebutton" color="red" @touchstart="mousedownRed" @touchend="mouseupRed">RED</v-btn>
     </div>
   </div>
+</v-flex>
 </template>
 
 <script>
@@ -62,18 +55,6 @@ import _ from 'lodash';
 export default {
   name: 'ControlPoint',
   props: {
-    isDeviceSelected: {
-      type: Boolean,
-      required: true
-    },
-    isFullscreen: {
-      type: Boolean,
-      required: true
-    },
-    toggleFullscreen: {
-      type: Function,
-      required: true
-    },
     did: String,
     controllingTeam: {
       type: Number,
@@ -115,14 +96,6 @@ export default {
       type: Function,
       required: true
     },
-    // incrementBluProgress: {
-    //   type: Function,
-    //   required: true
-    // },
-    // incrementRedProgress: {
-    //   type: Function,
-    //   required: true
-    // }
   },
   computed: {
     controllingColor() {
@@ -145,57 +118,57 @@ export default {
     }
   },
   methods: {
+    toggleFullscreen() {
+      if (!this.isFullscreen) document.body.classList.add('noscroll')
+      else document.body.classList.remove('noscroll')
+      this.isFullscreen = !this.isFullscreen;
+    },
     incrementBluProgress() {
       console.log('incrementing blu progress')
       // var dev = this.getDevice(this._id, {}).then((d) => {
       //   console.log(d)
       this.patchDevice([this._id, {
-        bluProgress: 50
+        bluProgress: 50,
+        redProgress: 0
       }])
       // })
       //console.log(dev)
 
     },
     incrementRedProgress() {
-      this.getDevice(this._id, {}).then((device) => {
-        this.patchDevice([this._id, {
-          bluProgress: device.bluProgress += 10
-        }])
-      })
+      //this.getDevice(this._id, {}).then((device) => {
+      this.patchDevice([this._id, {
+        redProgress: 50,
+        bluProgress: 0
+      }])
+      //})
     },
-    updateProgress () {
-      console.log('udpating progress')
-      if (this.isBluHeld)
-        this.incrementBluProgress();
-      if (this.isRedHeld)
-        this.incrementRedProgress();
-    },
-    advanceBlu () {
+    advanceBlu() {
       console.log('advancing blu')
-      this.test-=10;
+      this.test -= 10;
     },
-    catchDoubleTaps (evt) {
+    catchDoubleTaps(evt) {
       if (evt.touches.length < 2) {
         // preventing double tap zoom
         evt.preventDefault();
       }
     },
-    touchstartBlu () {
+    touchstartBlu() {
       console.log('touch start blu')
       this.isBluHeld = true;
       console.log(this.isBluHeld)
     },
-    touchendBlu () {
+    touchendBlu() {
       console.log('touch end blu')
       this.isBluHeld = false;
       console.log(this.isBluHeld)
     },
-    mousedownRed () {
+    mousedownRed() {
       console.log('touch start red')
       this.isRedHeld = true;
       console.log(this.isRedHeld)
     },
-    mouseupRed () {
+    mouseupRed() {
       console.log('touch end red')
       //this.isRedHeld = false;
     },
@@ -207,11 +180,11 @@ export default {
         }, {}
       ]);
       this.createTimelineEvent({
-          type: "timeline",
-          action: "cap_blu",
-          source: "admin",
-          target: this.did
-        }, {});
+        type: "timeline",
+        action: "cap_blu",
+        source: "admin",
+        target: this.did
+      }, {});
       //store.dispatch('changeControllingTeamBlue')
       //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
     },
@@ -223,11 +196,11 @@ export default {
         }, {}
       ]);
       this.createTimelineEvent({
-          type: "timeline",
-          action: "cap_red",
-          source: "admin",
-          target: this.did
-        }, {});
+        type: "timeline",
+        action: "cap_red",
+        source: "admin",
+        target: this.did
+      }, {});
       //this.patchDevice([this._id, {redProgress: 100, bluProgress: 0}, undefined])
     },
     changeControllingTeamUnc: function() {
@@ -238,11 +211,11 @@ export default {
         }, {}
       ]);
       this.createTimelineEvent({
-          type: "timeline",
-          action: "cap_unc",
-          source: "admin",
-          target: this.did
-        }, {});
+        type: "timeline",
+        action: "cap_unc",
+        source: "admin",
+        target: this.did
+      }, {});
       //this.patchDevice([this._id, {redProgress: 0, bluProgress: 0}, undefined])
     },
     deleteDevice: function() {
@@ -258,8 +231,12 @@ export default {
       dispatch('setPositionOnMap')
     }
   },
-  created () {
-    setInterval(this.updateProgress, 250);
+  created() {
+    // disable context menu in firefox
+    // when pressing and holding in responsive design mode
+    window.oncontextmenu = function() {
+      return false;
+    }
   },
   data: () => ({
     editMode: false,
@@ -269,7 +246,9 @@ export default {
     takeDown: true,
     test: 60,
     isBluHeld: false,
-    isRedHeld: false
+    isRedHeld: false,
+    isFullscreen: false,
+    isDeviceSelected: false,
   })
 }
 </script>
@@ -297,31 +276,40 @@ li {
 a {
   color: #42b983;
 }
+
+.vis {
+  display: inherit;
+}
 .invis {
   display: none;
 }
+
 .fullscreen-container {
-  position: absolute;
+  position: fixed;
   z-index: 500;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: black;
+  overflow: hidden;
 }
-.fullscreen-header {
-}
+
+.fullscreen-header {}
+
 .fullscreen-body {
   display: flex;
-  justify-content:space-around;
-  align-content: flex-end;
+  justify-content: space-around;
+  align-items: flex-end;
 }
-.fullscreen-body button {
+
+.fullscreen-body .hugebutton {
   width: 46vw;
   height: 80vh;
 }
+
 .fullscreen-body .tinybutton {
   width: 1vw;
   height: 3em;

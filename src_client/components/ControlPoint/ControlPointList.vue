@@ -1,21 +1,23 @@
 <template>
 <v-container grid-list-lg>
-  <v-layout row>
+  <v-layout column>
     <h2>Virtual Control Point</h2>
+    <p>Select the control point that this virtual control point will represent.</p>
   </v-layout>
-  <v-flex xs12 sm12 d-flex>
-    <v-select :items="devices" item-text="did" label="Select a D3VICE" box v-model="selection"></v-select>
-  </v-flex>
-  <v-flex lg12>
-    <v-btn :class="{'invisible': !isDeviceSelected}" color="primary" @click="toggleFullscreen">
-      Fullscreen
-    </v-btn>
-  </v-flex>
-  <v-layout row wrap>
-    <p> {{ selection }}</p>
-    <control-point v-bind:key="selection._id" v-bind:_id="selection._id" v-bind:did="selection.did" v-bind:location="selection.location" v-bind:latLng="selection.latLng" v-bind:createdAt="selection.createdAt" v-bind:controllingTeam="selection.controllingTeam"
-      v-bind:bluProgress="selection.bluProgress" v-bind:redProgress="selection.redProgress" v-bind:image="selection.image" v-bind:patchDevice="patchDevice" v-bind:getDevice="getDevice" v-bind:removeDevice="removeDevice" v-bind:createTimelineEvent="createTimelineEvent"
-      v-bind:isFullscreen="isFullscreen" v-bind:toggleFullscreen="toggleFullscreen" v-bind:isDeviceSelected="isDeviceSelected"></control-point>
+
+  <v-layout column>
+    <control-point
+      v-for="d in devices"
+      v-bind:key="d._id"
+      v-bind:controllingTeam="d.controllingTeam"
+      v-bind:createdAt="d.createdAt"
+      v-bind:did="d.did"
+      v-bind:redProgress="d.redProgress"
+      v-bind:bluProgress="d.bluProgress"
+      v-bind:patchDevice="patchDevice"
+      v-bind:getDevice="getDevice"
+      v-bind:createTimelineEvent="createTimelineEvent"
+    ></control-point>
   </v-layout>
 </v-container>
 </template>
@@ -29,7 +31,7 @@ import {
 } from 'vuex'
 
 export default {
-  name: 'ControlPointContainer',
+  name: 'ControlPointList',
   data() {
     return {
       placeholder: 'PLACEHOLDER',
@@ -87,7 +89,7 @@ export default {
 </script>
 
 <style scoped>
-.invisible {
+.invis {
   display: none;
 }
 </style>

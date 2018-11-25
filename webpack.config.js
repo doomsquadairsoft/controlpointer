@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const config = require('config');
 
 
@@ -77,7 +77,7 @@ module.exports = {
         new CleanWebpackPlugin(['dist/**.js'], {
             beforeEmit: true
         }),
-        new VueLoaderPlugin(),
+        new VueLoaderPlugin()
         // new webpack.DefinePlugin({
         //     'SOCKETIO_URI': JSON.stringify(`//${config.get('host')}:${config.get('port')}`)
         // }),

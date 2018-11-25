@@ -3,13 +3,13 @@
         <v-layout>
             <v-flex xs12 md9>
                 <div class="about-green-fox">
-                    <h1 id="operation-green-fox">Operation: Green Fox II</h1>
+                    <h1 id="operation-green-fox">Operation: Green Fox III</h1>
                     <h2 id="event-description">Event Description</h2>
                     <p>A competitive airsoft game by DooM Squad Airsoft featuring special player classes, pyrotechnics and special equipment.</p>
                     <h3 id="redfor-vs-blufor">REDFOR vs. BLUFOR</h3>
-                    <p>OP: Green Fox II has two opposing forces, identified by colored arm bands.</p>
+                    <p>OP: Green Fox III has two opposing forces, identified by colored arm bands.</p>
                     <h3 id="doom-device">REDFOR vs. BLUFOR</h3>
-                    <p>DooM Squad has created an electronic control point solution dubbed, "DooM D3vices". The devices are small boxes with arcade buttons which wirelessly connect together and enable videogame-style gameplay, capture point stracking, statistics gathering, post-game reporting, etc. During OP: Green Fox II, each control point will have one of these doom devices which players can interact with. The device has color coded pushbuttons which players can press to capture the control point for their team, REDFOR or BLUEFOR. Players can use their smartphones to see the status of each control point by viewing the map page on this website. Players can respawn at any point controlled by their own team.</p>
+                    <p>DooM Squad has created an electronic control point solution dubbed, "DooM D3vices". The devices are small boxes with arcade buttons which wirelessly connect together and enable videogame-style gameplay, capture point stracking, statistics gathering, post-game reporting, etc. During OP: Green Fox III, each control point will have one of these doom devices which players can interact with. The device has color coded pushbuttons which players can press to capture the control point for their team, REDFOR or BLUEFOR. Players can use their smartphones to see the status of each control point by viewing the map page on this website. Players can respawn at any point controlled by their own team.</p>
                     <h3 id="class-based-combat">Class-Based Combat</h3>
                     <p>Just like many First Person Shooter (FPS) games, where players operate as a type of combatant with specific traits, there are four classes in Operation: Green Fox.
 
@@ -23,8 +23,6 @@
                     <p>The captain can stay in the fight longer by self-healing, but is a valuable target for the enemy. If an enemy can down the captain and subsequently tag them, the captain must surrender their self-heal ability.</p>
                     <h5>Assault</h5>
                     <p>The assault class is a rifleman with a small smoke grenade.</p>
-                    <h5>Hacker</h5>
-                    <p>The hacker is capable of reducing the time it takes for their team to capture a point. Much like the captain, this ability can be stolen by the enemy team.</p>
                     <h3 id="prizes">Prizes</h3>
                     <p>All participants in this event will be entered to win one of several raffle prizes! Special prizes will be awarded to most valuable players voted by each team.</p>
                     <h3 id="schedule">Schedule</h3>
@@ -72,10 +70,6 @@
 
                     <h4>Assault</h4>
                     <p>(1 point) Get 5 confirmed kills</p>
-
-                    <h4>Hacker</h4>
-                    <p>(1 point) Hack 2 controlpoints</p>
-
 
                     <h2>Rules</h2>
                     <p>Player safety is of utmost importance. Please follow these rules for everyone's safety.</p>

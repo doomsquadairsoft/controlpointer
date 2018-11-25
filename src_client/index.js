@@ -1,11 +1,12 @@
 import Vue from 'vue'
+import Vuetify from 'vuetify'
 import router from './router'
 import Controlpointer from './Controlpointer.vue'
-import Vuetify from 'vuetify'
 import store from './store'
 import Vue2Leaflet from 'vue2-leaflet';
 import './filters/formatDate'
 import './api/feathers-client'
+//import 'vuetify/src/stylus/app.styl'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
