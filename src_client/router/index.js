@@ -25,7 +25,7 @@ export default new Router({
             component: About
         },
         {
-            path: '/green-fox-ii',
+            path: '/green-fox-iii',
             name: 'AboutGreenFox',
             component: AboutGreenFox
         },

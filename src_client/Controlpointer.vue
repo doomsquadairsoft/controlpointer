@@ -74,7 +74,7 @@ export default {
     menuItems: [
       { icon: 'home', text: 'Home', path: '/'},
       { icon: 'subject', text: 'About', path: '/about'},
-      { icon: 'announcement', text: 'Operation: Green Fox II', path: '/green-fox-ii'},
+      { icon: 'announcement', text: 'Operation: Green Fox III', path: '/green-fox-iii'},
       { icon: 'map', text: 'Map', path: '/map'},
       { icon: 'lock', text: 'Administration', path: '/admin'},
       { icon: 'all_out', text: 'Virtual Controlpoint', path: '/controlpoint'},
