@@ -29,7 +29,7 @@ sauce: https://stackoverflow.com/a/46337736/1004931
       <v-progress-linear v-model="bluProgress" height="25" color="blue" background-color="grey"></v-progress-linear>
     </div>
     <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
-      <v-btn class="hugebutton" color="blue" @touchstart="touchstartBlu" @touchend="touchendBlu">BLU</v-btn>
+      <v-btn class="hugebutton" color="blue" @click="incrementBluProgress" @touchend="touchendBlu">BLU</v-btn>
 
         <v-btn class="tinybutton" color="DarkGray" @click="toggleFullscreen">
           <v-icon>close</v-icon>
@@ -45,12 +45,14 @@ sauce: https://stackoverflow.com/a/46337736/1004931
 import di from '@/assets/futuristic_ammo_box_01.png'
 import {
   mapState,
-  mapActions
+  mapActions,
+  mapGetters,
+  mapMutations
 } from 'vuex'
 
 import store from '@/store';
 import _ from 'lodash';
-
+import Vue from 'vue'
 
 export default {
   name: 'ControlPoint',
@@ -82,7 +84,10 @@ export default {
     latLng: {
       type: Object
     },
-    _id: String,
+    _id: {
+      type: String,
+      required: true
+    },
     createdAt: Number,
     patchDevice: {
       type: Function,
@@ -118,21 +123,29 @@ export default {
     }
   },
   methods: {
+    ...mapGetters('devices', {
+      getCopy: 'getCopy'
+    }),
+    ...mapMutations('devices', {
+      setCurrent: 'setCurrent',
+      incrementBlu: 'incrBlu'
+    }),
     toggleFullscreen() {
       if (!this.isFullscreen) document.body.classList.add('noscroll')
       else document.body.classList.remove('noscroll')
       this.isFullscreen = !this.isFullscreen;
     },
     incrementBluProgress() {
-      console.log('incrementing blu progress')
-      // var dev = this.getDevice(this._id, {}).then((d) => {
-      //   console.log(d)
-      this.patchDevice([this._id, {
-        bluProgress: 50,
-        redProgress: 0
+      console.log('incrementing blu progress '+this._id)
+      //this.incrBlu(store.state.devices.keyedById[this._id]);
+      const device = store.state.devices.keyedById[this._id];
+      const old = device.bluProgress;
+      const neu = old + 1;
+      const id = device._id;
+
+      this.patchDevice([id, {
+        bluProgress: neu
       }])
-      // })
-      //console.log(dev)
 
     },
     incrementRedProgress() {
@@ -237,6 +250,11 @@ export default {
     window.oncontextmenu = function() {
       return false;
     }
+    console.log(`id=${this._id}`)
+    // const { Device } = Vue;
+    // const dev = new Device({
+    //   title: 'ROOKIE'
+    // })
   },
   data: () => ({
     editMode: false,

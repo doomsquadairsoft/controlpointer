@@ -9,6 +9,7 @@
     <control-point
       v-for="d in devices"
       v-bind:key="d._id"
+      v-bind:_id="d._id"
       v-bind:controllingTeam="d.controllingTeam"
       v-bind:createdAt="d.createdAt"
       v-bind:did="d.did"

@@ -5,12 +5,13 @@
 
       <h3>Upcoming Events</h3>
 
-      <p>No events are planned at the moment.</p>
+
+      <p><router-link to="green-fox-iii">Operation: Green Fox III</router-link></p>
 
 
       <h3>Past Events</h3>
 
-      <p>We had a great time in April 2018 for <router-link to="green-fox-ii">Operation: Green Fox II</router-link></p>
+      <p>We had a great time in April 2018 for Operation Green Fox II</p>
 
 
       <h3>Photo Gallery</h3>

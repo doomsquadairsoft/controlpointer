@@ -1,9 +1,7 @@
 import feathers from '@feathersjs/feathers'
 import socketio from 'feathers-socketio'
-import auth from '@feathersjs/authentication-client'
+//import auth from '@feathersjs/authentication-client'
 import io from 'socket.io-client'
-import feathersVuex from 'feathers-vuex'
-import store from '../store/'
 
 const socket = io({transports: ['websocket']})
 
