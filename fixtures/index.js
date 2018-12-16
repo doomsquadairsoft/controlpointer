@@ -1,1 +1,4 @@
-module.exports.player = require('./player');
+module.exports = {
+  player: require('./player'),
+  timeline: require('./timeline')
+}

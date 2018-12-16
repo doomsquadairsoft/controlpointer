@@ -12,7 +12,7 @@
     "npm": "^6.4.1"
   },
   "scripts": {
-    "dev": "npx concurrently --kill-others \"npx webpack-dev-server --hot --mode=development\" \"npx supervisor -w src_server src_server\"",
+    "dev": "npx concurrently --kill-others \"npx supervisor -w src_game src_game\" \"npx webpack-dev-server --hot --mode=development\" \"npx supervisor -w src_server src_server\"",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
     "start": "node src_server"
   },
@@ -25,15 +25,19 @@
     "@feathersjs/express": "^1.2.0",
     "@feathersjs/feathers": "^3.1.3",
     "@feathersjs/socketio": "^3.2.0",
+    "chai": "^4.2.0",
     "compress": "^0.99.0",
     "compression": "^1.7.2",
     "cors": "^2.8.4",
     "dseg": "^0.43.0",
     "feathers-nedb": "^3.0.0",
     "helmet": "^3.12.0",
+    "mocha": "^5.2.0",
     "nedb": "^1.8.0",
+    "ramda": "^0.26.0",
     "serve-favicon": "^2.4.5",
     "valid-url": "^1.0.9",
+    "vue-d3": "^0.1.0",
     "vue2-leaflet": "0.0.60",
     "winston": "^2.4.1"
   },

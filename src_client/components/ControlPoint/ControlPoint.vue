@@ -27,9 +27,10 @@ sauce: https://stackoverflow.com/a/46337736/1004931
   <div @touchstart="catchDoubleTaps" class="invis" :class="{ 'fullscreen-container': isFullscreen }">
     <div class="fullscreen-header">
       <v-progress-linear v-model="bluProgress" height="25" color="blue" background-color="grey"></v-progress-linear>
+      <v-progress-linear :class="{'hidden': !isBtnHeld }" :indeterminate="true" color="purple"></v-progress-linear>
     </div>
     <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
-      <v-btn class="hugebutton" color="blue" @click="incrementBluProgress" @touchend="touchendBlu">BLU</v-btn>
+      <v-btn class="hugebutton" color="blue" @touchstart="mousedownBlu" @touchend="mouseupBlu">BLU</v-btn>
 
         <v-btn class="tinybutton" color="DarkGray" @click="toggleFullscreen">
           <v-icon>close</v-icon>
@@ -56,6 +57,18 @@ import Vue from 'vue'
 
 export default {
   name: 'ControlPoint',
+  data: () => ({
+    editMode: false,
+    menu: 0,
+    deletable: 0,
+    lastCap: '',
+    takeDown: true,
+    isRedHeld: false,
+    isBluHeld: false,
+    test: 60,
+    isFullscreen: false,
+    isDeviceSelected: false,
+  }),
   props: {
     did: String,
     controllingTeam: {
@@ -103,6 +116,9 @@ export default {
     },
   },
   computed: {
+    isBtnHeld() {
+      return (this.isBluHeld || this.isRedHeld) ? true : false
+    },
     controllingColor() {
       if (this.bluProgress < 100 && this.redProgress < 100) {
         return 'grey';
@@ -123,12 +139,14 @@ export default {
     }
   },
   methods: {
+    updateServer () {
+      console.log('update tick')
+      if (this.isBluHeld) {
+        console.log('updating the server');
+      }
+    },
     ...mapGetters('devices', {
       getCopy: 'getCopy'
-    }),
-    ...mapMutations('devices', {
-      setCurrent: 'setCurrent',
-      incrementBlu: 'incrBlu'
     }),
     toggleFullscreen() {
       if (!this.isFullscreen) document.body.classList.add('noscroll')
@@ -136,11 +154,9 @@ export default {
       this.isFullscreen = !this.isFullscreen;
     },
     incrementBluProgress() {
-      console.log('incrementing blu progress '+this._id)
-      //this.incrBlu(store.state.devices.keyedById[this._id]);
       const device = store.state.devices.keyedById[this._id];
       const old = device.bluProgress;
-      const neu = old + 1;
+      const neu = old + 25;
       const id = device._id;
 
       this.patchDevice([id, {
@@ -149,12 +165,14 @@ export default {
 
     },
     incrementRedProgress() {
-      //this.getDevice(this._id, {}).then((device) => {
-      this.patchDevice([this._id, {
-        redProgress: 50,
-        bluProgress: 0
+      const device = store.state.devices.keyedById[this._id];
+      const old = device.redProgress;
+      const neu = old + 25;
+      const id = device._id;
+
+      this.patchDevice([id, {
+        redProgress: neu
       }])
-      //})
     },
     advanceBlu() {
       console.log('advancing blu')
@@ -166,24 +184,41 @@ export default {
         evt.preventDefault();
       }
     },
-    touchstartBlu() {
-      console.log('touch start blu')
+    mousedownBlu() {
       this.isBluHeld = true;
-      console.log(this.isBluHeld)
+      this.createTimelineEvent({
+        type: "timeline",
+        action: "press_blu",
+        source: "player",
+        target: this.did
+      }, {});
     },
-    touchendBlu() {
-      console.log('touch end blu')
+    mouseupBlu() {
       this.isBluHeld = false;
-      console.log(this.isBluHeld)
+      this.createTimelineEvent({
+        type: "timeline",
+        action: "release_blu",
+        source: "player",
+        target: this.did
+      }, {});
     },
     mousedownRed() {
-      console.log('touch start red')
       this.isRedHeld = true;
-      console.log(this.isRedHeld)
+      this.createTimelineEvent({
+        type: "timeline",
+        action: "press_red",
+        source: "player",
+        target: this.did
+      }, {});
     },
     mouseupRed() {
-      console.log('touch end red')
-      //this.isRedHeld = false;
+      this.isRedHeld = false;
+      this.createTimelineEvent({
+        type: "timeline",
+        action: "release_red",
+        source: "player",
+        target: this.did
+      }, {});
     },
     changeControllingTeamBlue: function() {
       this.patchDevice([
@@ -255,19 +290,8 @@ export default {
     // const dev = new Device({
     //   title: 'ROOKIE'
     // })
-  },
-  data: () => ({
-    editMode: false,
-    menu: 0,
-    deletable: 0,
-    lastCap: '',
-    takeDown: true,
-    test: 60,
-    isBluHeld: false,
-    isRedHeld: false,
-    isFullscreen: false,
-    isDeviceSelected: false,
-  })
+
+  }
 }
 </script>
 
@@ -301,7 +325,9 @@ a {
 .invis {
   display: none;
 }
-
+.hidden {
+  visibility: hidden;
+}
 .fullscreen-container {
   position: fixed;
   z-index: 500;
@@ -325,7 +351,7 @@ a {
 
 .fullscreen-body .hugebutton {
   width: 46vw;
-  height: 80vh;
+  height: 70vh;
 }
 
 .fullscreen-body .tinybutton {

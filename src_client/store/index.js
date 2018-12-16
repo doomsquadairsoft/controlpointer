@@ -22,22 +22,6 @@ export default new Vuex.Store({
     plugins: [
         service('devices', {
             idField: '_id',
-            mutations: {
-                incrBlu (state, device) {
-                    const old = device.bluProgress;
-                    const neu = old + 1;
-                    const id = device._id;
-                    device.bluProgress = neu;
-
-                    return service.patch(id, device, {})
-                    .then(item => {
-                        return state.keyedById[id];
-                    })
-                    .catch(err => {
-                        return Promise.reject(err)
-                    });
-                }
-            }
         }),
         service('messages'),
         service('pdevices'),

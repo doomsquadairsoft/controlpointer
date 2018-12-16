@@ -2,6 +2,8 @@
 <v-container class="admin">
   <h1>Controlpointer Administration</h1>
   <lifecycle></lifecycle>
+  <pammy></pammy>
+  <report></report>
   <device-list v-bind:devices="devices.data"></device-list>
   <new-device></new-device>
   <pending-device-list v-bind:pendingDevices="pendingDevices.data" v-bind:findPendingDevices="findPendingDevices"></pending-device-list>
@@ -19,9 +21,10 @@ import PendingDeviceList from './PendingDeviceList'
 import DeviceList from '../DeviceList'
 import NewDevice from '../NewDevice'
 import Lifecycle from '@/components/Lifecycle/Lifecycle'
+import Report from '@/components/Report/Report'
+import Pammy from './Pammy'
 import Log from './Log.vue'
 import di from '../../assets/futuristic_ammo_box_01.png'
-
 
 export default {
   name: 'Admin',
@@ -31,6 +34,8 @@ export default {
     NewDevice,
     Log,
     Lifecycle,
+    Report,
+    Pammy
   },
   computed: {
     ...mapState('devices',
@@ -78,6 +83,7 @@ export default {
   created() {
     this.findDevices();
     this.findPendingDevices();
+    window.setTimeout(this.updateServer, 250);
   }
 }
 </script>

@@ -13,7 +13,7 @@ const apiServerSchema = `${process.env.NODE_ENV === 'production' ? 'https://' : 
 const apiServerHost = config.get('host');
 const apiServerPort = config.get('port');
 const apiServerUri = `${apiServerSchema}${apiServerHost}:${apiServerPort}`;
-
+const marshal = require('./marshal');
 
 if (validUrl.isUri(apiServerUri)){
     console.log(`API server address ${apiServerUri} looks valid.`);
@@ -35,11 +35,16 @@ const pendingDevices = app.service('pdevices');
 
 
 
+
 // Submit a join event when we start up
 evts.create({
   type: 'join',
   device: workerName
 });
+
+
+// Every 1 second, calculate controlpoints
+setInterval(marshal.tick, 1000);
 
 
 // When there is a join event, do something about it

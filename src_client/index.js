@@ -9,7 +9,7 @@ import './api/feathers-client'
 //import 'vuetify/src/stylus/app.styl'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
-
+import d3 from 'vue-d3'
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
 });
 
 
-
+Vue.use(d3)
 Vue.use(Vuetify);
 Vue.config.productionTip = true;
 

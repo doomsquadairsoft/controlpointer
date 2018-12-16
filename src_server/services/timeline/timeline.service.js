@@ -20,4 +20,5 @@ module.exports = function (app) {
   const service = app.service('timeline');
 
   service.hooks(hooks);
+
 };
