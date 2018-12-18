@@ -52,19 +52,19 @@ class GameStats {
   // getActiveTimeline() {
   //   return this.getMostRecentStop().then((mrs) => {
   //     console.log(`mrs=${mrs}`)
-  //     return this.getTimelineAfterDate(mrs);
+  //     return this.timelineAfterDate(mrs);
   //   });
   // }
 
 
   /**
-   * getTimelineAfterDate
+   * timelineAfterDate
    * @param {String} date - date in milliseconds
    * @returns {Promise}
    */
-  getTimelineAfterDate(date) {
+  timelineAfterDate(date) {
     date = parseInt(date);
-    const afterDate = item => (R.prop('createdAt', item) > date);
+    const afterDate = item => R.gt(R.prop('createdAt', item), date);
     return R.sortBy(
       R.prop('createdAt'), this.timeline
     ).filter(
@@ -72,16 +72,16 @@ class GameStats {
     );
   }
 
-  getMostRecentStop() {
-    return this.timeline.find({
-      query: {
-        $limit: 1,
-        $sort: {
-          createdAt: -1
-        },
-        action: 'stop'
-      }
-    }).then((t) => t[0].createdAt)
+  mostRecentStop() {
+    const sort = R.sortBy(
+      R.prop('createdAt'), this.timeline
+    )
+
+    const last = R.findLast(
+      R.propEq('action', 'stop'), sort
+    )
+
+    return R.prop('createdAt', last);
   }
 
   gameEndTime() {

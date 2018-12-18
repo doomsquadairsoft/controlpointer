@@ -14,7 +14,7 @@ describe('fixtures', function() {
         assert.property(tli, 'target');
         assert.property(tli, 'createdAt');
         assert.property(tli, '_id');
-      }
+      };
       R.forEach(validate, fixtures.timeline);
     });
   });
