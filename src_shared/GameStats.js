@@ -14,6 +14,7 @@ class GameStats {
 
   constructor(timeline, options) {
     this.timeline = timeline;
+    this._gameStartTime = this.gameStartTime();
     //this.timePointer = this.buildTimePointer();
 
 
@@ -86,26 +87,55 @@ class GameStats {
 
   gameEndTime() {
     if (this.activeTimeline.length < 1) return moment(0);
-    return moment(this.gameStartTime).add(this.gameDuration).add(this.gamePausedDuration);
+    return moment(this.gameStartTime()).add(this.gameDuration()).add(this.gamePausedDuration());
   }
+
+  gameStartTime() {
+    return 'bbbb'
+    const tl = cleansedTimeline();
+
+  }
+
 
   activeTimeline() {
     // activeTimeline is an array of cleansed timeline events
     // following the latest stop event
     // if there is no stop event, it is the entire cleansed timeline.
-    var cleansedTimeline = this.cleansedTimeline;
-    if (cleansedTimeline.length < 1) return [];
+    var ct = this.cleansedTimeline();
+    if (ct.length < 1) return [];
 
-    var lastStopEventIndex = _.findLastIndex(cleansedTimeline, {
-      action: 'stop'
-    })
-    if (lastStopEventIndex === -1)
-      return this.cleansedTimeline
+    const lastStopEventIndex = R.findLastIndex(
+      R.propEq('action', 'stop')
+    );
 
-    return this.cleansedTimeline.slice(
-      lastStopEventIndex + 1,
-      this.cleansedTimeline.length
-    )
+    const allEventsAfterLastStopEvent = R.slice(
+      R.add(lastStopEventIndex, 1),
+      R.length(ct),
+      ct
+    );
+
+
+    // const decider = R.cond([
+    //   [R.equals(-1), R.always(ct)],
+    //   [R.equals(), R.always()],
+    // ]);
+
+    const otherDecider = R.ifElse(
+      R.equals(-1),
+      R.always(ct),
+      R.always(allEventsAfterLastStopEvent)
+    );
+
+    return otherDecider(lastStopEventIndex);
+    //
+    //
+    // if (lastStopEventIndex === -1)
+    //   return this.cleansedTimeline
+    //
+    // return this.cleansedTimeline.slice(
+    //   lastStopEventIndex + 1,
+    //   this.cleansedTimeline.length
+    // )
 
   }
 

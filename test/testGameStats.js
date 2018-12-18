@@ -11,11 +11,7 @@ describe('GameStats', function() {
   beforeEach(function() {
     gs = new GameStats(fixtures.timeline);
   });
-  describe('idk()', function() {
-    it('should return a blah', function() {
-      assert.isObject(gs);
-    });
-  });
+
 
   describe('timelineAfterDate()', function() {
 
@@ -76,6 +72,26 @@ describe('GameStats', function() {
     })
   });
 
+
+  describe('gameStartTime()', function() {
+    it('should return the point in time when the game started (ms since epoch)', function() {
+      const tl = gs.activeTimeline();
+      assert.isArray(tl);
+      const startEvent = R.find(R.propEq('action', 'start'), tl);
+      assert.equal(
+        R.prop('createdAt', startEvent), 1542583863222
+      );
+    });
+  });
+
+  describe('gamePausedDuration()', function() {
+    xit('should return the total number of ms that the game has been paused for')
+  });
+
+  describe('gameDuration()', function() {
+    xit('should return the total number of ms that the game has been running for');
+  });
+
   describe('gameEndTime()', function() {
     xit('should return the computed end time based on start time, accrued paused time, and specified game duration');
   });
@@ -84,6 +100,7 @@ describe('GameStats', function() {
     it('should return an array of timeline events', function() {
       const tl = gs.activeTimeline();
       assert.isArray(tl);
+      assert.lengthOf(tl, 34);
       const validate = (tli) => {
         assert.property(tli, 'type');
         assert.property(tli, 'action');

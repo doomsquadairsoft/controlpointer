@@ -13,7 +13,8 @@ const apiServerSchema = `${process.env.NODE_ENV === 'production' ? 'https://' : 
 const apiServerHost = config.get('host');
 const apiServerPort = config.get('port');
 const apiServerUri = `${apiServerSchema}${apiServerHost}:${apiServerPort}`;
-const marshal = require('./marshal');
+const Marshal = require('./marshal');
+
 
 if (validUrl.isUri(apiServerUri)){
     console.log(`API server address ${apiServerUri} looks valid.`);
@@ -32,7 +33,7 @@ app.configure(socketio(socket));
 const evts = app.service('events');
 const devices = app.service('devices');
 const pendingDevices = app.service('pdevices');
-
+const timeline = app.service('timeline');
 
 
 
@@ -44,7 +45,11 @@ evts.create({
 
 
 // Every 1 second, calculate controlpoints
-setInterval(marshal.tick, 1000);
+const tick = () => {
+  const marshal = new Marshal(timeline);
+  marshal.tick();
+};
+setInterval(tick, 1000);
 
 
 // When there is a join event, do something about it
