@@ -1,4 +1,3 @@
-const _ = require('lodash'); // please phase out
 const R = require('ramda');
 const moment = require('moment');
 
@@ -85,6 +84,16 @@ class GameStats {
     return R.prop('createdAt', last);
   }
 
+  gamePausedDuration() {
+    var tl = this.activeTimeline();
+    const sumPauseDuration = (acc, evt) => {
+      R.while(
+        R.propEq('action', 'pause'),
+        R.add(acc, 'createdAt')
+      )
+    }
+  }
+
   gameEndTime() {
     if (this.activeTimeline.length < 1) return moment(0);
     return moment(this.gameStartTime()).add(this.gameDuration()).add(this.gamePausedDuration());
@@ -103,6 +112,7 @@ class GameStats {
     // if there is no stop event, it is the entire cleansed timeline.
     var ct = this.cleansedTimeline();
     if (ct.length < 1) return [];
+
 
     const lastStopEventIndex = R.findLastIndex(
       R.propEq('action', 'stop')
@@ -143,26 +153,32 @@ class GameStats {
     // cleansedTimeline is the timeline without duplicate events (see below)
     var gis = this.timeline;
 
+    const sortByTimestamp = R.sortBy(R.prop('createdAt'));
+    const sortedTimeline = sortByTimestamp(gis);
+
     // remove any duplicate pause or start timeline events
     // example: start, pause, pause, start, start =>
     //          start, pause, start
     // (source and target must also be a match to get rejected)
-    var filtered = _.filter(gis, (g, index, collection) => {
-      // if we aren't iterating on the last array element,
-      // inspect the next element and see if that element's action is a duplicate of this element's action
-      if (index !== collection.length - 1) {
+    const isDuplicate = (evt, idx, col) => {
+      if (idx !== col.length - 1) {
         if (
-          g.action === collection[index + 1].action &&
-          g.source === collection[index + 1].source &&
-          g.target === collection[index + 1].target
+          evt.action === col[idx + 1].action &&
+          evt.source === col[idx + 1].source &&
+          evt.target === col[idx + 1].target
         ) {
-          collection[index + 1].invalid = true;
+          col[idx + 1].invalid = true;
         }
       }
-      return g.invalid === true ? false : true
-    });
+      return evt.invalid === true ? false : true
+    };
 
-    return filtered;
+    const filterIndexed = R.addIndex(R.filter);
+    return filterIndexed(isDuplicate, sortedTimeline);
+
+    // if we aren't iterating on the last array element,
+    // inspect the next element and see if that element's action is a duplicate of this element's action
+
   }
 }
 

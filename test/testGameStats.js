@@ -85,7 +85,14 @@ describe('GameStats', function() {
   });
 
   describe('gamePausedDuration()', function() {
-    xit('should return the total number of ms that the game has been paused for')
+    it('should return the total number of ms that the game has been paused for', function() {
+      const tl = gs.activeTimeline();
+      const sorter = R.sortBy(R.prop('createdAt'))
+      const orderedTl = sorter(tl);
+      //console.log(orderedTl)
+      const pausedDuration = gs.gamePausedDuration();
+      assert.equal(pausedDuration, 2894289343);
+    });
   });
 
   describe('gameDuration()', function() {
@@ -100,7 +107,7 @@ describe('GameStats', function() {
     it('should return an array of timeline events', function() {
       const tl = gs.activeTimeline();
       assert.isArray(tl);
-      assert.lengthOf(tl, 34);
+      assert.lengthOf(tl, 27);
       const validate = (tli) => {
         assert.property(tli, 'type');
         assert.property(tli, 'action');
@@ -111,6 +118,13 @@ describe('GameStats', function() {
       };
       R.forEach(validate, tl);
     })
+    it('should never contain a stop action', function() {
+      const tl = gs.activeTimeline();
+      const validate = (tli) => {
+        assert.notPropertyVal(tli, 'action', 'stop');
+      }
+      R.forEach(validate, tl);
+    });
   });
 
   describe('cleansedTimeline()', function() {
@@ -139,6 +153,17 @@ describe('GameStats', function() {
 
       const forEachIdx = R.addIndex(R.forEach);
       forEachIdx(validate, tl);
+    });
+
+    it('should have chronologically sorted events', function() {
+      const tl = gs.cleansedTimeline();
+      var lastTimestamp = 0;
+      const validate = (tli) => {
+        const thisTimestamp = R.prop('createdAt', tli)
+        assert.isAbove(thisTimestamp, lastTimestamp);
+        lastTimestamp = R.prop('createdAt', tli);
+      }
+      R.forEach(validate, tl);
     });
   });
 
