@@ -42,6 +42,13 @@ module.exports = [{
   "_id": "ACUxV3INOIp4cl69"
 }, {
   "type": "timeline",
+  "action": "start",
+  "source": "admin",
+  "target": "game",
+  "createdAt": 1544244263248,
+  "_id": "BCUxD3ITOIp4rl77"
+}, {
+  "type": "timeline",
   "action": "release_blu",
   "source": "player",
   "target": "texas",
@@ -82,6 +89,27 @@ module.exports = [{
   "target": "game",
   "createdAt": 1544326711104,
   "_id": "AX3rsQFBMwHdV0nt"
+}, {
+  "type": "timeline",
+  "action": "start",
+  "source": "admin",
+  "target": "game",
+  "createdAt": 1544326811104,
+  "_id": "AX3rsQFBMwDdV0nt"
+}, {
+  "type": "timeline",
+  "action": "start",
+  "source": "admin",
+  "target": "game",
+  "createdAt": 1544326811105,
+  "_id": "AX3rsQFBMwDdV0nt"
+}, {
+  "type": "timeline",
+  "action": "pause",
+  "source": "admin",
+  "target": "game",
+  "createdAt": 1544324711104,
+  "_id": "AX3tsQJBMwHdV0rb"
 }, {
   "type": "timeline",
   "action": "press_blu",

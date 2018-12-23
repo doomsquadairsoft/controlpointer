@@ -56,7 +56,7 @@ describe('GameStats', function() {
   xdescribe('buildTimePointer()', function() {
     xit('should return a point in time (ms since epoch)', function() {
       var timeline = fixtures.timeline;
-      console.log(timeline)
+      //console.log(timeline)
       var gs = new GameStats(timeline);
       var pointer = gs.buildTimePointer();
 
@@ -69,17 +69,25 @@ describe('GameStats', function() {
       const mostRecent = gs.mostRecentStop();
       assert.isNumber(mostRecent);
       assert.equal(mostRecent, 1542652594189);
-    })
+    });
   });
 
 
   describe('gameStartTime()', function() {
-    it('should return the point in time when the game started (ms since epoch)', function() {
+    it('should return a number', function() {
+      const gameStartTime = gs.gameStartTime();
+      //console.log(gameStartTime)
+      assert.isNumber(gameStartTime);
+    });
+
+    it('should return the timestamp of the first start action in the active timeline', function() {
       const tl = gs.activeTimeline();
-      assert.isArray(tl);
-      const startEvent = R.find(R.propEq('action', 'start'), tl);
+      const firstStartEvent = R.find(R.propEq('action', 'start'), tl);
+      const gameStartTime = gs.gameStartTime();
+      assert.isDefined(gameStartTime);
       assert.equal(
-        R.prop('createdAt', startEvent), 1542583863222
+        gameStartTime,
+        R.prop('createdAt', firstStartEvent)
       );
     });
   });
@@ -89,25 +97,56 @@ describe('GameStats', function() {
       const tl = gs.activeTimeline();
       const sorter = R.sortBy(R.prop('createdAt'))
       const orderedTl = sorter(tl);
-      //console.log(orderedTl)
       const pausedDuration = gs.gamePausedDuration();
-      assert.equal(pausedDuration, 2894289343);
+      assert.equal(pausedDuration, 104619290);
     });
+    it('should work with simple timelines', function() {
+      const exampleTimeline = [
+        {
+          'action': 'start',
+          'createdAt': 5000
+        },
+        {
+          'action': 'pause',
+          'createdAt': 7000
+        },
+        {
+          'action': 'start',
+          'createdAt': 12000
+        },
+        {
+          'action': 'pause',
+          'createdAt': 20000
+        },
+      ];
+
+      const gs2 = new GameStats(exampleTimeline);
+
+      const gpd = gs2.gamePausedDuration();
+      assert.equal(gpd, 10000);
+
+    })
   });
 
   describe('gameDuration()', function() {
-    xit('should return the total number of ms that the game has been running for');
+    it('should return the total number of ms that the game has been running for', function() {
+      const gameDuration = gs.gameDuration();
+      assert.isNumber(gameDuration);
+    });
   });
 
   describe('gameEndTime()', function() {
-    xit('should return the computed end time based on start time, accrued paused time, and specified game duration');
+    it('should return the computed end time based on start time, accrued paused time, and specified game duration', function() {
+      const gameEndTime = gs.gameEndTime();
+      assert.isNumber(gameEndTime);
+    });
   });
 
   describe('activeTimeline()', function() {
     it('should return an array of timeline events', function() {
       const tl = gs.activeTimeline();
+
       assert.isArray(tl);
-      assert.lengthOf(tl, 27);
       const validate = (tli) => {
         assert.property(tli, 'type');
         assert.property(tli, 'action');
@@ -118,6 +157,12 @@ describe('GameStats', function() {
       };
       R.forEach(validate, tl);
     })
+
+    it('should contain 24 elements', function() {
+        const tl = gs.activeTimeline();
+        assert.lengthOf(tl, 24);
+    })
+
     it('should never contain a stop action', function() {
       const tl = gs.activeTimeline();
       const validate = (tli) => {
@@ -130,6 +175,11 @@ describe('GameStats', function() {
   describe('cleansedTimeline()', function() {
     it('should return an array of timeline events without duplicate neighboring actions', function() {
       const tl = gs.cleansedTimeline();
+
+      // R.forEach((i) => {
+      //   console.log(R.prop('action', i));
+      // }, tl);
+
       assert.isArray(tl);
       const validate = (tli, idx, allTl) => {
         const createdAt = parseInt(R.prop('createdAt', tli));
@@ -153,6 +203,11 @@ describe('GameStats', function() {
 
       const forEachIdx = R.addIndex(R.forEach);
       forEachIdx(validate, tl);
+    });
+
+    it('should have 30 elements', function() {
+      const tl = gs.cleansedTimeline();
+      assert.lengthOf(tl, 30);
     });
 
     it('should have chronologically sorted events', function() {

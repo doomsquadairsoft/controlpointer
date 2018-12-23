@@ -26,35 +26,6 @@ class GameStats {
   }
 
 
-  //
-  // buildTimePointer() {
-  //   return this.texasBlu().then((tb) => {
-  //     if (_.last(tb.action === 'press_blu'))
-  //       return moment().valueOf();
-  //     else
-  //       return moment(_.last(tb.createdAt));
-  //   });
-  // }
-
-
-  // texasBlu() {
-  //   return this.getActiveTimeline().then((at) => {
-  //     console.log(`at=${at}`)
-  //     return _.filter(at, (evt) => {
-  //       return (
-  //         evt.action.match(/_blu/) &&
-  //         evt.target === 'texas'
-  //       );
-  //     })
-  //   })
-  // }
-
-  // getActiveTimeline() {
-  //   return this.getMostRecentStop().then((mrs) => {
-  //     console.log(`mrs=${mrs}`)
-  //     return this.timelineAfterDate(mrs);
-  //   });
-  // }
 
 
   /**
@@ -84,25 +55,70 @@ class GameStats {
     return R.prop('createdAt', last);
   }
 
+  deDup(arr) {
+    const filterIndexed = R.addIndex(R.filter);
+    const isItemValid = (evt, idx, col) => {
+      if (idx == col.length-1) return true;
+      if (
+        R.equals(
+          R.prop('action', evt),
+          R.prop('action', col[idx+1])
+        )
+      ) {
+        return false
+      } else {
+        return true;
+      }
+    };
+    const backwardsArr = R.reverse(arr);
+    const backwardsDedupedArr = filterIndexed(
+      isItemValid,
+      backwardsArr
+    );
+    const deDupedArr = R.reverse(backwardsDedupedArr)
+    return deDupedArr;
+  }
+
   gamePausedDuration() {
-    var tl = this.activeTimeline();
-    const sumPauseDuration = (acc, evt) => {
-      R.while(
-        R.propEq('action', 'pause'),
-        R.add(acc, 'createdAt')
-      )
+    // Go through each timeline event
+    const indexedMap = R.addIndex(R.map);
+    const tl = this.activeTimeline();
+    const isLifeCycleEvent = (evt) => (evt.action === 'start' || evt.action === 'pause') ? true : false;
+    const lifecycleTimeline = R.filter(isLifeCycleEvent, tl);
+
+    const algo = (evt, idx, col) => {
+      if (idx % 2 === 1) return 0;
+      const thisTimestamp = moment(evt.createdAt);
+      const thatTimestamp = moment(col[idx+1].createdAt);
+      return moment.duration(
+        thatTimestamp.diff(thisTimestamp)
+      ).valueOf();
     }
+
+    const pausedDurations = indexedMap(algo, lifecycleTimeline);
+
+    const total = R.reduce(R.add, 0, pausedDurations);
+    return total;
+  }
+
+  gameDuration() {
+    const gameStartTime = moment(this.gameStartTime());
+    const now = moment();
+    return moment.duration(now.diff(gameStartTime)).valueOf();
   }
 
   gameEndTime() {
-    if (this.activeTimeline.length < 1) return moment(0);
-    return moment(this.gameStartTime()).add(this.gameDuration()).add(this.gamePausedDuration());
+    if (this.activeTimeline.length < 1) return moment(0).valueOf();
+    return moment(this.gameStartTime()).add(this.gameDuration()).add(this.gamePausedDuration()).valueOf();
   }
 
   gameStartTime() {
-    return 'bbbb'
-    const tl = cleansedTimeline();
-
+    const tl = this.activeTimeline();
+    const startEvent = R.find(
+      R.propEq('action', 'start'),
+      tl
+    )
+    return R.prop('createdAt', startEvent);
   }
 
 
@@ -116,7 +132,8 @@ class GameStats {
 
     const lastStopEventIndex = R.findLastIndex(
       R.propEq('action', 'stop')
-    );
+    )(ct);
+
 
     const allEventsAfterLastStopEvent = R.slice(
       R.add(lastStopEventIndex, 1),
@@ -156,28 +173,7 @@ class GameStats {
     const sortByTimestamp = R.sortBy(R.prop('createdAt'));
     const sortedTimeline = sortByTimestamp(gis);
 
-    // remove any duplicate pause or start timeline events
-    // example: start, pause, pause, start, start =>
-    //          start, pause, start
-    // (source and target must also be a match to get rejected)
-    const isDuplicate = (evt, idx, col) => {
-      if (idx !== col.length - 1) {
-        if (
-          evt.action === col[idx + 1].action &&
-          evt.source === col[idx + 1].source &&
-          evt.target === col[idx + 1].target
-        ) {
-          col[idx + 1].invalid = true;
-        }
-      }
-      return evt.invalid === true ? false : true
-    };
-
-    const filterIndexed = R.addIndex(R.filter);
-    return filterIndexed(isDuplicate, sortedTimeline);
-
-    // if we aren't iterating on the last array element,
-    // inspect the next element and see if that element's action is a duplicate of this element's action
+    return this.deDup(sortedTimeline);
 
   }
 }
