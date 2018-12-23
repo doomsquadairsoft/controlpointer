@@ -14,7 +14,7 @@ class GameStats {
   constructor(timeline, options) {
     this.timeline = timeline;
     this._gameStartTime = this.gameStartTime();
-    //this.timePointer = this.buildTimePointer();
+    this.timePointer = this.buildTimePointer();
 
 
     // @TODO If the game is paused, set the pointer to the time at which the game was paused
@@ -26,7 +26,9 @@ class GameStats {
   }
 
 
-
+  buildTimePointer() {
+    return moment().valueOf();
+  }
 
   /**
    * timelineAfterDate
@@ -85,20 +87,29 @@ class GameStats {
     const tl = this.activeTimeline();
     const isLifeCycleEvent = (evt) => (evt.action === 'start' || evt.action === 'pause') ? true : false;
     const lifecycleTimeline = R.filter(isLifeCycleEvent, tl);
+    console.log(lifecycleTimeline)
 
     const algo = (evt, idx, col) => {
-      if (idx % 2 === 1) return 0;
+
+      if (idx % 2 === 0) return 0; // only process odd events (pauses)
+
       const thisTimestamp = moment(evt.createdAt);
-      const thatTimestamp = moment(col[idx+1].createdAt);
-      return moment.duration(
-        thatTimestamp.diff(thisTimestamp)
+      const resumeTimestamp = ((idx, col) => {
+        if ((idx+1) === col.length) return moment(this.timePointer);
+        else return moment(col[idx+1].createdAt);
+      })(idx, col);
+
+      const msDelta = moment.duration(
+        resumeTimestamp.diff(thisTimestamp)
       ).valueOf();
+
+      return msDelta;
     }
 
     const pausedDurations = indexedMap(algo, lifecycleTimeline);
-
-    const total = R.reduce(R.add, 0, pausedDurations);
-    return total;
+    const duration = R.reduce(R.add, 0, pausedDurations);
+    console.log(pausedDurations);
+    return duration;
   }
 
   gameDuration() {

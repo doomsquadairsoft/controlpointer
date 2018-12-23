@@ -53,14 +53,14 @@ describe('GameStats', function() {
     });
   });
 
-  xdescribe('buildTimePointer()', function() {
-    xit('should return a point in time (ms since epoch)', function() {
+  describe('buildTimePointer()', function() {
+    it('should return a point in time (ms since epoch)', function() {
       var timeline = fixtures.timeline;
       //console.log(timeline)
       var gs = new GameStats(timeline);
       var pointer = gs.buildTimePointer();
 
-      assert.instanceOf(pointer, Promise);
+      assert.isNumber(pointer);
     });
   });
 
