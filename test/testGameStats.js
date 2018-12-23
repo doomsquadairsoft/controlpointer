@@ -76,7 +76,6 @@ describe('GameStats', function() {
   describe('gameStartTime()', function() {
     it('should return a number', function() {
       const gameStartTime = gs.gameStartTime();
-      //console.log(gameStartTime)
       assert.isNumber(gameStartTime);
     });
 
@@ -93,39 +92,24 @@ describe('GameStats', function() {
   });
 
   describe('gamePausedDuration()', function() {
+
     it('should return the total number of ms that the game has been paused for', function() {
       const tl = gs.activeTimeline();
-      const sorter = R.sortBy(R.prop('createdAt'))
-      const orderedTl = sorter(tl);
+      const lastEventTimestamp = R.prop('createdAt', R.last(tl));
+      gs.timePointer = lastEventTimestamp;
       const pausedDuration = gs.gamePausedDuration();
-      assert.equal(pausedDuration, 104619290);
+      assert.equal(
+        pausedDuration,
+        623534264
+      );
     });
-    it('should work with simple timelines', function() {
-      const exampleTimeline = [
-        {
-          'action': 'start',
-          'createdAt': 5000
-        },
-        {
-          'action': 'pause',
-          'createdAt': 7000
-        },
-        {
-          'action': 'start',
-          'createdAt': 12000
-        },
-        {
-          'action': 'pause',
-          'createdAt': 20000
-        },
-      ];
 
-      const gs2 = new GameStats(exampleTimeline);
-
+    it('should correctly calculate total paused time between game start and gs.timePointer', function() {
+      const gs2 = new GameStats(fixtures.simpleTimeline);
+      gs2.timePointer = 40000;
       const gpd = gs2.gamePausedDuration();
-      assert.equal(gpd, 10000);
-
-    })
+      assert.equal(gpd, 25000)
+    });
   });
 
   describe('gameDuration()', function() {

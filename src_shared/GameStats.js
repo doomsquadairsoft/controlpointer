@@ -87,7 +87,6 @@ class GameStats {
     const tl = this.activeTimeline();
     const isLifeCycleEvent = (evt) => (evt.action === 'start' || evt.action === 'pause') ? true : false;
     const lifecycleTimeline = R.filter(isLifeCycleEvent, tl);
-    console.log(lifecycleTimeline)
 
     const algo = (evt, idx, col) => {
 
@@ -95,20 +94,21 @@ class GameStats {
 
       const thisTimestamp = moment(evt.createdAt);
       const resumeTimestamp = ((idx, col) => {
-        if ((idx+1) === col.length) return moment(this.timePointer);
+        if ((idx+1) === col.length) {
+          return moment(this.timePointer);
+        }
         else return moment(col[idx+1].createdAt);
       })(idx, col);
 
       const msDelta = moment.duration(
         resumeTimestamp.diff(thisTimestamp)
-      ).valueOf();
+      );
 
-      return msDelta;
+      return msDelta.valueOf();
     }
 
     const pausedDurations = indexedMap(algo, lifecycleTimeline);
     const duration = R.reduce(R.add, 0, pausedDurations);
-    console.log(pausedDurations);
     return duration;
   }
 
@@ -153,11 +153,6 @@ class GameStats {
     );
 
 
-    // const decider = R.cond([
-    //   [R.equals(-1), R.always(ct)],
-    //   [R.equals(), R.always()],
-    // ]);
-
     const otherDecider = R.ifElse(
       R.equals(-1),
       R.always(ct),
@@ -165,15 +160,7 @@ class GameStats {
     );
 
     return otherDecider(lastStopEventIndex);
-    //
-    //
-    // if (lastStopEventIndex === -1)
-    //   return this.cleansedTimeline
-    //
-    // return this.cleansedTimeline.slice(
-    //   lastStopEventIndex + 1,
-    //   this.cleansedTimeline.length
-    // )
+
 
   }
 

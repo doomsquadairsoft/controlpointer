@@ -1,4 +1,5 @@
 module.exports = {
   player: require('./player'),
-  timeline: require('./timeline')
+  timeline: require('./timeline'),
+  simpleTimeline: require('./simpleTimeline')
 }
