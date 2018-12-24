@@ -53,13 +53,52 @@ describe('GameStats', function() {
     });
   });
 
+  describe('gameStatus()', function() {
+    it('should return an object with status data', function() {
+      const status = gs.gameStatus();
+      assert.isObject(status);
+      assert.property(status, 'msg');
+      assert.property(status, 'code');
+      assert.isString(status.msg);
+      assert.isNumber(status.code);
+    });
+
+    it('should return a message with either \'running\', \'paused\', or \'stopped\'.', function() {
+      const status = gs.gameStatus();
+      assert.match(status.msg, /running|paused|stopped/);
+    });
+
+    it('should return an integer status code with either 0, 1, or 2.', function() {
+      const status = gs.gameStatus();
+      assert.oneOf(status.code, [
+        0,
+        1,
+        2
+      ]);
+    });
+
+    it('should indicate that the game is running when the most recent livecycle event is a start action', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline);
+      const status = gs2.gameStatus();
+      assert.deepEqual(status, { code: 0, msg: 'running' });
+    });
+
+    it('should indicate that the game is stopped when the active timeline is empty', function() {
+      const gs2 = new GameStats(fixtures.stoppedTimeline);
+      const status = gs2.gameStatus();
+      assert.deepEqual(status, { code: 2, msg: 'stopped' });
+    });
+
+    it('should indicate that the game is paused when the most recent livecycle event is a pause action', function() {
+      const gs2 = new GameStats(fixtures.pausedTimeline);
+      const status = gs2.gameStatus();
+      assert.deepEqual(status, { code: 1, msg: 'paused' });
+    });
+  });
+
   describe('buildTimePointer()', function() {
     it('should return a point in time (ms since epoch)', function() {
-      var timeline = fixtures.timeline;
-      //console.log(timeline)
-      var gs = new GameStats(timeline);
       var pointer = gs.buildTimePointer();
-
       assert.isNumber(pointer);
     });
   });
@@ -123,6 +162,23 @@ describe('GameStats', function() {
     it('should return the computed end time based on start time, accrued paused time, and specified game duration', function() {
       const gameEndTime = gs.gameEndTime();
       assert.isNumber(gameEndTime);
+    });
+  });
+
+  describe('lifecycleTimeline()', function() {
+    it('should return an array of start/pause timeline events', function() {
+      const lctl = gs.lifecycleTimeline();
+      assert.isArray(lctl);
+      const validate = (tli) => {
+        assert.property(tli, 'type');
+        assert.property(tli, 'action');
+        assert.match(tli.action, /start|pause/);
+        assert.property(tli, 'source');
+        assert.property(tli, 'target');
+        assert.property(tli, 'createdAt');
+        assert.property(tli, '_id');
+      }
+      R.forEach(validate, lctl);
     });
   });
 

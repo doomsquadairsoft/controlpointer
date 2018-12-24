@@ -15,7 +15,7 @@ module.exports = class Marshal {
     const tl = this.timelineService.find().then(tl => {
       var gs = new GameStats(tl);
 
-      console.log(`Game Started: ${gs.gameStartTime()}, Duration: ${gs.gameDuration()}, Paused Duration: ${gs.gamePausedDuration()}, End: ${gs.gameEndTime()}`)
+      console.log(`Status: ${gs.gameStatus().msg}, Start: ${gs.gameStartTime()}, Dur: ${gs.gameDuration()}, Paused Dur: ${gs.gamePausedDuration()}, End: ${gs.gameEndTime()}`)
     })
   }
 }

@@ -6,19 +6,11 @@
   </v-layout>
 
   <v-layout column>
-    <control-point
-      v-for="d in devices"
-      v-bind:key="d._id"
-      v-bind:_id="d._id"
-      v-bind:controllingTeam="d.controllingTeam"
-      v-bind:createdAt="d.createdAt"
-      v-bind:did="d.did"
-      v-bind:redProgress="d.redProgress"
-      v-bind:bluProgress="d.bluProgress"
-      v-bind:patchDevice="patchDevice"
-      v-bind:getDevice="getDevice"
-      v-bind:createTimelineEvent="createTimelineEvent"
-    ></control-point>
+    <v-alert :value="true" type="info" v-if="devices.length < 1">
+      No devices are configured. Please create one on the <router-link class="whitelink" to="admin">Administration</router-link> page.
+    </v-alert>
+    <control-point v-for="d in devices" v-bind:key="d._id" v-bind:_id="d._id" v-bind:controllingTeam="d.controllingTeam" v-bind:createdAt="d.createdAt" v-bind:did="d.did" v-bind:redProgress="d.redProgress" v-bind:bluProgress="d.bluProgress"
+      v-bind:patchDevice="patchDevice" v-bind:getDevice="getDevice" v-bind:createTimelineEvent="createTimelineEvent"></control-point>
   </v-layout>
 </v-container>
 </template>
@@ -92,5 +84,8 @@ export default {
 <style scoped>
 .invis {
   display: none;
+}
+.whitelink {
+  color: white;
 }
 </style>

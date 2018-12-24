@@ -84,9 +84,7 @@ class GameStats {
   gamePausedDuration() {
     // Go through each timeline event
     const indexedMap = R.addIndex(R.map);
-    const tl = this.activeTimeline();
-    const isLifeCycleEvent = (evt) => (evt.action === 'start' || evt.action === 'pause') ? true : false;
-    const lifecycleTimeline = R.filter(isLifeCycleEvent, tl);
+    const lifecycleTimeline = this.lifecycleTimeline();
 
     const algo = (evt, idx, col) => {
 
@@ -112,6 +110,16 @@ class GameStats {
     return duration;
   }
 
+  gameStatus() {
+    const lctl = this.lifecycleTimeline();
+    const mostRecentLifecycleEvent = R.last(lctl);
+
+    if (lctl.length == 0) return { code: 2, msg: 'stopped' };
+    if (mostRecentLifecycleEvent.action === 'start') return { code: 0, msg: 'running' };
+    if (mostRecentLifecycleEvent.action === 'pause') return { code: 1, msg: 'paused' };
+
+  }
+
   gameDuration() {
     const gameStartTime = moment(this.gameStartTime());
     const now = moment();
@@ -119,8 +127,8 @@ class GameStats {
   }
 
   gameEndTime() {
-    if (this.activeTimeline.length < 1) return moment(0).valueOf();
-    return moment(this.gameStartTime()).add(this.gameDuration()).add(this.gamePausedDuration()).valueOf();
+    if (this.activeTimeline().length < 1) return moment(0).valueOf();
+    return moment(this.gameStartTime()).add(this.gameDuration()).subtract(this.gamePausedDuration()).valueOf();
   }
 
   gameStartTime() {
@@ -132,6 +140,12 @@ class GameStats {
     return R.prop('createdAt', startEvent);
   }
 
+  lifecycleTimeline() {
+    const tl = this.activeTimeline();
+    const isLifeCycleEvent = (evt) => (evt.action === 'start' || evt.action === 'pause') ? true : false;
+    const lifecycleTimeline = R.filter(isLifeCycleEvent, tl);
+    return lifecycleTimeline;
+  }
 
   activeTimeline() {
     // activeTimeline is an array of cleansed timeline events
