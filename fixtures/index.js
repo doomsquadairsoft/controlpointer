@@ -5,4 +5,5 @@ module.exports = {
   runningTimeline: require('./runningTimeline'),
   pausedTimeline: require('./pausedTimeline'),
   stoppedTimeline: require('./stoppedTimeline'),
+  finishedTimeline: require('./finishedTimeline'),
 }

@@ -12,10 +12,18 @@ describe('GameStats', function() {
     gs = new GameStats(fixtures.timeline);
   });
 
+  describe('timePointer()', function() {
+    it('should return a ms timestamp', function() {
+      const timePointer = gs.timePointer;
+      assert.isNumber(timePointer);
+    });
+    it('should be settable', function() {
+      gs.timePointer = 5;
+      assert.equal(gs.timePointer, 5);
+    })
+  });
 
   describe('timelineAfterDate()', function() {
-
-
     it('should accept a number', function() {
       const testDate = 1542570007606;
       const tl = gs.timelineAfterDate(testDate);
@@ -63,22 +71,24 @@ describe('GameStats', function() {
       assert.isNumber(status.code);
     });
 
-    it('should return a message with either \'running\', \'paused\', or \'stopped\'.', function() {
+    it('should return a message with either \'running\', \'paused\', \'over\', or \'stopped\'.', function() {
       const status = gs.gameStatus();
-      assert.match(status.msg, /running|paused|stopped/);
+      assert.match(status.msg, /running|paused|stopped|over/);
     });
 
-    it('should return an integer status code with either 0, 1, or 2.', function() {
+    it('should return an integer status code with either 0, 1, 2, or 3.', function() {
       const status = gs.gameStatus();
       assert.oneOf(status.code, [
         0,
         1,
-        2
+        2,
+        3
       ]);
     });
 
-    it('should indicate that the game is running when the most recent livecycle event is a start action', function() {
+    it('should indicate that the game is running when the most recent lifecycle event is a start action', function() {
       const gs2 = new GameStats(fixtures.runningTimeline);
+      gs2.timePointer = 4701340006760;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 0, msg: 'running' });
     });
@@ -89,10 +99,17 @@ describe('GameStats', function() {
       assert.deepEqual(status, { code: 2, msg: 'stopped' });
     });
 
-    it('should indicate that the game is paused when the most recent livecycle event is a pause action', function() {
+    it('should indicate that the game is paused when the most recent lifecycle event is a pause action', function() {
       const gs2 = new GameStats(fixtures.pausedTimeline);
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 1, msg: 'paused' });
+    });
+
+    it('should indicate that the game is over when the endTime is in the past', function() {
+      const gs2 = new GameStats(fixtures.finishedTimeline);
+      gs2.timePointer = 7857016999962;
+      const status = gs2.gameStatus();
+      assert.deepEqual(status, { code: 3, msg: 'over' });
     });
   });
 
@@ -151,10 +168,16 @@ describe('GameStats', function() {
     });
   });
 
-  describe('gameDuration()', function() {
+  describe('gameElapsedTime()', function() {
     it('should return the total number of ms that the game has been running for', function() {
-      const gameDuration = gs.gameDuration();
-      assert.isNumber(gameDuration);
+      const gameElapsedTime = gs.gameElapsedTime();
+      assert.isNumber(gameElapsedTime);
+    });
+
+    it('should return a different value based on where GameStats#timePointer is at', function() {
+      gs.timePointer = 1544244638041;
+      const gameElapsedTime = gs.gameElapsedTime();
+      assert.equal(gameElapsedTime, 374793);
     });
   });
 
@@ -198,7 +221,7 @@ describe('GameStats', function() {
       R.forEach(validate, tl);
     })
 
-    it('should contain 24 elements', function() {
+    it('should contain 24 elements when timePointer is set to default (now)', function() {
         const tl = gs.activeTimeline();
         assert.lengthOf(tl, 24);
     })
@@ -210,6 +233,13 @@ describe('GameStats', function() {
       }
       R.forEach(validate, tl);
     });
+
+    it('should contain 6 elements when timePointer is set to 1544244988308', function() {
+      gs.timePointer = 1544244988308;
+      const tl = gs.activeTimeline();
+      assert.lengthOf(tl, 6)
+    });
+
   });
 
   describe('cleansedTimeline()', function() {

@@ -14,7 +14,7 @@ class GameStats {
   constructor(timeline, options) {
     this.timeline = timeline;
     this._gameStartTime = this.gameStartTime();
-    this.timePointer = this.buildTimePointer();
+    this._timePointer = this.buildTimePointer();
 
 
     // @TODO If the game is paused, set the pointer to the time at which the game was paused
@@ -25,6 +25,13 @@ class GameStats {
 
   }
 
+  get timePointer() {
+    return this._timePointer;
+  }
+
+  set timePointer(timestamp) {
+    this._timePointer = timestamp;
+  }
 
   buildTimePointer() {
     return moment().valueOf();
@@ -113,22 +120,31 @@ class GameStats {
   gameStatus() {
     const lctl = this.lifecycleTimeline();
     const mostRecentLifecycleEvent = R.last(lctl);
+    const gameEndTime = this.gameEndTime();
+    const now = moment(this.timePointer);
+
+    // console.log(`\
+    // GameEndTime: ${moment(gameEndTime).format()}\n\
+    // GameNowTime: ${moment(this.timePointer).format()}\n\
+    // isEnded?: ${(now.isAfter(gameEndTime))}`);
 
     if (lctl.length == 0) return { code: 2, msg: 'stopped' };
+    if (now.isAfter(gameEndTime)) return { code: 3, msg: 'over' };
     if (mostRecentLifecycleEvent.action === 'start') return { code: 0, msg: 'running' };
     if (mostRecentLifecycleEvent.action === 'pause') return { code: 1, msg: 'paused' };
 
   }
 
-  gameDuration() {
+  gameElapsedTime() {
     const gameStartTime = moment(this.gameStartTime());
-    const now = moment();
+    const now = moment(this.timePointer);
     return moment.duration(now.diff(gameStartTime)).valueOf();
   }
 
   gameEndTime() {
     if (this.activeTimeline().length < 1) return moment(0).valueOf();
-    return moment(this.gameStartTime()).add(this.gameDuration()).subtract(this.gamePausedDuration()).valueOf();
+    const gameEndTime = moment(this.gameStartTime()).add(this.gameElapsedTime()).subtract(this.gamePausedDuration()).valueOf();
+    return gameEndTime;
   }
 
   gameStartTime() {
@@ -149,16 +165,14 @@ class GameStats {
 
   activeTimeline() {
     // activeTimeline is an array of cleansed timeline events
-    // following the latest stop event
+    // following the latest stop event up until the timePointer
     // if there is no stop event, it is the entire cleansed timeline.
     var ct = this.cleansedTimeline();
     if (ct.length < 1) return [];
 
-
     const lastStopEventIndex = R.findLastIndex(
       R.propEq('action', 'stop')
     )(ct);
-
 
     const allEventsAfterLastStopEvent = R.slice(
       R.add(lastStopEventIndex, 1),
@@ -166,20 +180,30 @@ class GameStats {
       ct
     );
 
-
-    const otherDecider = R.ifElse(
+    const allEventsOrSome = R.ifElse(
       R.equals(-1),
       R.always(ct),
       R.always(allEventsAfterLastStopEvent)
     );
 
-    return otherDecider(lastStopEventIndex);
+    const relevantTimeline = allEventsOrSome(lastStopEventIndex);
 
+    const tp = this._timePointer;
+    //console.log(`timePointer:${tp}`)
 
+    //if (typeof tp === 'undefined') throw new Error('timepointer should never be undefined')
+    const isEventBeforePointer = (evt) => evt.createdAt <= tp;
+
+    const activeTimeline = R.filter(isEventBeforePointer, relevantTimeline);
+
+    //console.log(activeTimeline)
+    //R.forEach(R.compose(console.log, R.props(['createdAt', 'action'])), activeTimeline);
+
+    return activeTimeline;
   }
 
   cleansedTimeline() {
-    // cleansedTimeline is the timeline without duplicate events (see below)
+    // cleansedTimeline is the timeline without duplicate events
     var gis = this.timeline;
 
     const sortByTimestamp = R.sortBy(R.prop('createdAt'));
