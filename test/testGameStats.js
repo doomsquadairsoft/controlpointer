@@ -88,7 +88,8 @@ describe('GameStats', function() {
 
     it('should indicate that the game is running when the most recent lifecycle event is a start action', function() {
       const gs2 = new GameStats(fixtures.runningTimeline);
-      gs2.timePointer = 4701340006760;
+      gs2.timePointer = 4701341506760;
+      //gs2.timePointer = 4701341406760;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 0, msg: 'running' });
     });

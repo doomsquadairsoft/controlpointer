@@ -7,7 +7,10 @@ const moment = require('moment');
  *
  * Handles calculation of game timers.
  *
- * @param {Array} timeline - timeline array from feathers/nedb
+ * @param {Array} timeline              - Timeline array from feathers/nedb
+ * @param {Object} options              - Options which will influence how the game stats are reported
+ * @param {String} options.gameType     - Identification for the game mode. ex: 'counter-strike' or 'koth' (King of the Hill)
+ * @param {Number} options.gameDuration - Total number of ms which the game should last for
  */
 class GameStats {
 
@@ -123,10 +126,12 @@ class GameStats {
     const gameEndTime = this.gameEndTime();
     const now = moment(this.timePointer);
 
-    // console.log(`\
-    // GameEndTime: ${moment(gameEndTime).format()}\n\
-    // GameNowTime: ${moment(this.timePointer).format()}\n\
-    // isEnded?: ${(now.isAfter(gameEndTime))}`);
+    console.log(`\
+    GameEndTime: ${moment(gameEndTime).format()} (${moment(gameEndTime).valueOf()})\n\
+    GameNowTime: ${moment(this.timePointer).format()} (${moment(this.timePointer).valueOf()})\n\
+    isEnded?: ${(now.isAfter(gameEndTime))}`);
+
+    console.log(lctl)
 
     if (lctl.length == 0) return { code: 2, msg: 'stopped' };
     if (now.isAfter(gameEndTime)) return { code: 3, msg: 'over' };
@@ -189,10 +194,13 @@ class GameStats {
     const relevantTimeline = allEventsOrSome(lastStopEventIndex);
 
     const tp = this._timePointer;
-    //console.log(`timePointer:${tp}`)
 
-    //if (typeof tp === 'undefined') throw new Error('timepointer should never be undefined')
-    const isEventBeforePointer = (evt) => evt.createdAt <= tp;
+    const isEventBeforePointer = (evt) => {
+      return R.lte(
+        R.prop('createdAt', evt),
+        tp
+      );
+    }
 
     const activeTimeline = R.filter(isEventBeforePointer, relevantTimeline);
 
