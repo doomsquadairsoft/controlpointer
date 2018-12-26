@@ -14,8 +14,11 @@ const moment = require('moment');
  */
 class GameStats {
 
-  constructor(timeline, options) {
+  constructor(timeline, gameSettings) {
+    if (typeof gameSettings === 'undefined') throw new Error('Second parameter gameSettings is required!!!');
+    if (typeof timeline === 'undefined') throw new Error('First parameter timeline is required!!!');
     this.timeline = timeline;
+    this.gameSettings = gameSettings;
     this._gameStartTime = this.gameStartTime();
     this._timePointer = this.buildTimePointer();
 
@@ -34,6 +37,10 @@ class GameStats {
 
   set timePointer(timestamp) {
     this._timePointer = timestamp;
+  }
+
+  gameLength() {
+    return this.gameSettings.length;
   }
 
   buildTimePointer() {
@@ -126,13 +133,6 @@ class GameStats {
     const gameEndTime = this.gameEndTime();
     const now = moment(this.timePointer);
 
-    console.log(`\
-    GameEndTime: ${moment(gameEndTime).format()} (${moment(gameEndTime).valueOf()})\n\
-    GameNowTime: ${moment(this.timePointer).format()} (${moment(this.timePointer).valueOf()})\n\
-    isEnded?: ${(now.isAfter(gameEndTime))}`);
-
-    console.log(lctl)
-
     if (lctl.length == 0) return { code: 2, msg: 'stopped' };
     if (now.isAfter(gameEndTime)) return { code: 3, msg: 'over' };
     if (mostRecentLifecycleEvent.action === 'start') return { code: 0, msg: 'running' };
@@ -140,15 +140,42 @@ class GameStats {
 
   }
 
-  gameElapsedTime() {
+  /**
+   * gameElapsedDuration
+   * @returns {Number} gameElapsedDuration - total number of ms in which
+   *                                         the game has been running AND paused
+   */
+  gameElapsedDuration() {
     const gameStartTime = moment(this.gameStartTime());
     const now = moment(this.timePointer);
     return moment.duration(now.diff(gameStartTime)).valueOf();
   }
 
+  /**
+   * @returns {Number} gameRunningDuration - the total number of ms that the game has been RUNNING for (not paused)
+   */
+  gameRunningDuration() {
+    const gameStartTime = moment(this.gameStartTime());
+    const gamePausedDuration = moment.duration(this.gamePausedDuration());
+    const now = moment(this.timePointer);
+    return moment.duration(now.diff(gameStartTime)).subtract(gamePausedDuration).valueOf();
+  }
+
+
+  /**
+   * gameEndTime()
+   * Returns the computed end time based on start time,
+   * accrued paused time, and specified game duration.
+   * @returns {Number} gameEndTime - the ms timestamp when the game will be
+   *                                 considered ended.
+   */
   gameEndTime() {
     if (this.activeTimeline().length < 1) return moment(0).valueOf();
-    const gameEndTime = moment(this.gameStartTime()).add(this.gameElapsedTime()).subtract(this.gamePausedDuration()).valueOf();
+    const gameStartTime = moment(this.gameStartTime());
+    const gamePausedDuration = moment.duration(this.gamePausedDuration());
+    const gameLength = moment.duration(this.gameLength());
+    const gameElapsedDuration = moment.duration(this.gameElapsedDuration());
+    const gameEndTime = gameStartTime.add(gameLength).subtract(gameElapsedDuration).valueOf();
     return gameEndTime;
   }
 
@@ -203,9 +230,6 @@ class GameStats {
     }
 
     const activeTimeline = R.filter(isEventBeforePointer, relevantTimeline);
-
-    //console.log(activeTimeline)
-    //R.forEach(R.compose(console.log, R.props(['createdAt', 'action'])), activeTimeline);
 
     return activeTimeline;
   }

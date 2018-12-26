@@ -6,4 +6,6 @@ module.exports = {
   pausedTimeline: require('./pausedTimeline'),
   stoppedTimeline: require('./stoppedTimeline'),
   finishedTimeline: require('./finishedTimeline'),
+  gameSettings: require('./gameSettings'),
+  simpleGameSettings: require('./simpleGameSettings'),
 }

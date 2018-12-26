@@ -9,7 +9,44 @@ describe('GameStats', function() {
   var gs;
 
   beforeEach(function() {
-    gs = new GameStats(fixtures.timeline);
+    gs = new GameStats(fixtures.timeline, fixtures.gameSettings);
+    gsSimple = new GameStats(fixtures.simpleTimeline, fixtures.simpleGameSettings);
+  });
+
+  describe('Constructor', function() {
+    it('should return an instance of GameStats', function() {
+      const gs2 = new GameStats(fixtures.timeline, fixtures.simpleGameSettings);
+      assert.instanceOf(gs2, GameStats);
+    });
+
+    it('should accept a timeline object and a game object', function() {
+      const gs2 = new GameStats(fixtures.timeline, fixtures.gameSettings);
+      assert.instanceOf(gs2, GameStats);
+    });
+
+    it('should throw when not receiving a gameSettings parameter', function() {
+      assert.throws(() => {
+        new GameStats(fixtures.timeline);
+      });
+    });
+
+    it('should throw when not receiving a timeline object as first param', function() {
+      assert.throws(() => {
+        new GameStats();
+      })
+    });
+  });
+
+  describe('gameLength()', function() {
+    it('should return a ms duration 7200000', function() {
+      const gl = gs.gameLength();
+      assert.equal(gl, 7200000);
+    });
+    it('should return a ms duration 300000 (simpleGameSettings)', function() {
+      const gs2 = new GameStats(fixtures.timeline, fixtures.simpleGameSettings);
+      const gl = gs2.gameLength();
+      assert.equal(gl, 300000);
+    });
   });
 
   describe('timePointer()', function() {
@@ -87,27 +124,26 @@ describe('GameStats', function() {
     });
 
     it('should indicate that the game is running when the most recent lifecycle event is a start action', function() {
-      const gs2 = new GameStats(fixtures.runningTimeline);
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
       gs2.timePointer = 4701341506760;
-      //gs2.timePointer = 4701341406760;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 0, msg: 'running' });
     });
 
     it('should indicate that the game is stopped when the active timeline is empty', function() {
-      const gs2 = new GameStats(fixtures.stoppedTimeline);
+      const gs2 = new GameStats(fixtures.stoppedTimeline, fixtures.simpleGameSettings);
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 2, msg: 'stopped' });
     });
 
     it('should indicate that the game is paused when the most recent lifecycle event is a pause action', function() {
-      const gs2 = new GameStats(fixtures.pausedTimeline);
+      const gs2 = new GameStats(fixtures.pausedTimeline, fixtures.simpleGameSettings);
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 1, msg: 'paused' });
     });
 
     it('should indicate that the game is over when the endTime is in the past', function() {
-      const gs2 = new GameStats(fixtures.finishedTimeline);
+      const gs2 = new GameStats(fixtures.finishedTimeline, fixtures.simpleGameSettings);
       gs2.timePointer = 7857016999962;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 3, msg: 'over' });
@@ -146,6 +182,11 @@ describe('GameStats', function() {
         R.prop('createdAt', firstStartEvent)
       );
     });
+
+    it('should return 5000 (simpleTimeline)', function() {
+      const gst = gsSimple.gameStartTime();
+      assert.equal(gst, 5000);
+    });
   });
 
   describe('gamePausedDuration()', function() {
@@ -162,23 +203,51 @@ describe('GameStats', function() {
     });
 
     it('should correctly calculate total paused time between game start and gs.timePointer', function() {
-      const gs2 = new GameStats(fixtures.simpleTimeline);
-      gs2.timePointer = 40000;
-      const gpd = gs2.gamePausedDuration();
+      gsSimple.timePointer = 40000;
+      const gpd = gsSimple.gamePausedDuration();
       assert.equal(gpd, 25000)
     });
+
+    it('should return 100000 (runningTimeline)', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 4701341506760;
+      const gpd = gs2.gamePausedDuration();
+      assert.equal(gpd, 100000);
+    });
+
+    it('should return the same pausedDuration even when the timePointer is set past the end time (runningTimeline)', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 5701341506760;
+      const gpd = gs2.gamePausedDuration();
+      assert.equal(gpd, 100000);
+    });
+
+    it('should return 10000 (pausedTimeline)', function() {
+      gsSimple.timePointer = 20000;
+      const gpd = gsSimple.gamePausedDuration();
+      assert.equal(gpd, 5000);
+    });
+
   });
 
-  describe('gameElapsedTime()', function() {
-    it('should return the total number of ms that the game has been running for', function() {
-      const gameElapsedTime = gs.gameElapsedTime();
-      assert.isNumber(gameElapsedTime);
+  describe('gameElapsedDuration()', function() {
+    it('should return the total number of ms that the game has been running AND paused for', function() {
+      const gameElapsedDuration = gs.gameElapsedDuration();
+      assert.isNumber(gameElapsedDuration);
     });
 
     it('should return a different value based on where GameStats#timePointer is at', function() {
       gs.timePointer = 1544244638041;
-      const gameElapsedTime = gs.gameElapsedTime();
-      assert.equal(gameElapsedTime, 374793);
+      const gameElapsedDuration = gs.gameElapsedDuration();
+      assert.equal(gameElapsedDuration, 374793);
+    });
+  });
+
+  describe('gameRunningDuration()', function() {
+    it('should return the total number of ms that the game has been RUNNING for (not paused)', function() {
+      const gameRunningDuration = gsSimple.gameRunningDuration();
+      gsSimple.timePointer = 20000;
+      assert.equal(gsSimple.gameRunningDuration(), 10000);
     });
   });
 
@@ -187,6 +256,27 @@ describe('GameStats', function() {
       const gameEndTime = gs.gameEndTime();
       assert.isNumber(gameEndTime);
     });
+
+    it('should return 4701341406760 (runningTimeline)', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 4701341506760;
+      const get = gs2.gameEndTime();
+      assert.equal(get, 4701341706760);
+    });
+
+    it('should return 290000 (simpleTimeline)', function() {
+      gsSimple.timePointer = 20000;
+      const get = gsSimple.gameEndTime();
+      assert.equal(get, 290000);
+    });
+
+    it('should return 1545467472303 when the game ended in the past (finishedTimeline)', function() {
+      const gs2 = new GameStats(fixtures.finishedTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 1545859447678;
+      const get = gs2.gameEndTime();
+      assert.equal(get, 1545467472303);
+    });
+
   });
 
   describe('lifecycleTimeline()', function() {
@@ -203,6 +293,12 @@ describe('GameStats', function() {
         assert.property(tli, '_id');
       }
       R.forEach(validate, lctl);
+    });
+    it('should be an array of 3 events (runningTimeline)', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 4701341506760;
+      const lctl = gs2.lifecycleTimeline();
+      assert.lengthOf(lctl, 3);
     });
   });
 
@@ -238,7 +334,14 @@ describe('GameStats', function() {
     it('should contain 6 elements when timePointer is set to 1544244988308', function() {
       gs.timePointer = 1544244988308;
       const tl = gs.activeTimeline();
-      assert.lengthOf(tl, 6)
+      assert.lengthOf(tl, 6);
+    });
+
+    it('should contain 3 elements (runningTimeline)', function() {
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      gs2.timePointer = 4701341506760;
+      const tl = gs2.activeTimeline();
+      assert.lengthOf(tl, 3);
     });
 
   });
@@ -285,7 +388,7 @@ describe('GameStats', function() {
       const tl = gs.cleansedTimeline();
       var lastTimestamp = 0;
       const validate = (tli) => {
-        const thisTimestamp = R.prop('createdAt', tli)
+        const thisTimestamp = R.prop('createdAt', tli);
         assert.isAbove(thisTimestamp, lastTimestamp);
         lastTimestamp = R.prop('createdAt', tli);
       }
