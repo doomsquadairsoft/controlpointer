@@ -124,7 +124,7 @@ describe('GameStats', function() {
     });
 
     it('should indicate that the game is running when the most recent lifecycle event is a start action', function() {
-      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
+      const gs2 = new GameStats(fixtures.runningTimeline, fixtures.centuryGameSettings);
       gs2.timePointer = 4701341506760;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 0, msg: 'running' });
@@ -137,7 +137,8 @@ describe('GameStats', function() {
     });
 
     it('should indicate that the game is paused when the most recent lifecycle event is a pause action', function() {
-      const gs2 = new GameStats(fixtures.pausedTimeline, fixtures.simpleGameSettings);
+      const gs2 = new GameStats(fixtures.pausedTimeline, fixtures.centuryGameSettings);
+      gs2.timePointer = 5701341506760;
       const status = gs2.gameStatus();
       assert.deepEqual(status, { code: 1, msg: 'paused' });
     });
@@ -261,7 +262,7 @@ describe('GameStats', function() {
       const gs2 = new GameStats(fixtures.runningTimeline, fixtures.simpleGameSettings);
       gs2.timePointer = 4701341506760;
       const get = gs2.gameEndTime();
-      assert.equal(get, 4701341706760);
+      assert.equal(get, 4701341406760);
     });
 
     it('should return 290000 (simpleTimeline)', function() {
@@ -272,9 +273,9 @@ describe('GameStats', function() {
 
     it('should return 1545467472303 when the game ended in the past (finishedTimeline)', function() {
       const gs2 = new GameStats(fixtures.finishedTimeline, fixtures.simpleGameSettings);
-      gs2.timePointer = 1545859447678;
+      gs2.timePointer = 1545859463062;
       const get = gs2.gameEndTime();
-      assert.equal(get, 1545467472303);
+      assert.equal(get, 1545467385680);
     });
 
   });
@@ -299,6 +300,12 @@ describe('GameStats', function() {
       gs2.timePointer = 4701341506760;
       const lctl = gs2.lifecycleTimeline();
       assert.lengthOf(lctl, 3);
+    });
+    it('should be an array of 4 events (pausedTimeline)', function() {
+      const gs2 = new GameStats(fixtures.pausedTimeline, fixtures.gameSettings);
+      gs2.timePointer = 5701341506760;
+      const lctl = gs2.lifecycleTimeline();
+      assert.lengthOf(lctl, 4);
     });
   });
 
@@ -350,9 +357,6 @@ describe('GameStats', function() {
     it('should return an array of timeline events without duplicate neighboring actions', function() {
       const tl = gs.cleansedTimeline();
 
-      // R.forEach((i) => {
-      //   console.log(R.prop('action', i));
-      // }, tl);
 
       assert.isArray(tl);
       const validate = (tli, idx, allTl) => {

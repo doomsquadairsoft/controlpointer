@@ -8,4 +8,5 @@ module.exports = {
   finishedTimeline: require('./finishedTimeline'),
   gameSettings: require('./gameSettings'),
   simpleGameSettings: require('./simpleGameSettings'),
+  centuryGameSettings: require('./centuryGameSettings'),
 }
