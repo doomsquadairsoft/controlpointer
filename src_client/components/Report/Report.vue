@@ -21,7 +21,9 @@ import {
   mapGetters
 } from 'vuex'
 
-import moment from 'moment'
+import moment from 'moment';
+import { timelines } from 'd3-timelines';
+import * as d3 from 'd3';
 
 
 export default {
@@ -29,7 +31,34 @@ export default {
   data() {
     return {
       tick: 0,
-      rt: 777
+      rt: 777,
+      timelineData: [{
+          label: "person a",
+          times: [{
+              "starting_time": 1355752800000,
+              "ending_time": 1355759900000
+            },
+            {
+              "starting_time": 1355767900000,
+              "ending_time": 1355774400000
+            }
+          ]
+        },
+        {
+          label: "person b",
+          times: [{
+            "starting_time": 1355759910000,
+            "ending_time": 1355761900000
+          }]
+        },
+        {
+          label: "person c",
+          times: [{
+            "starting_time": 1355761910000,
+            "ending_time": 1355763910000
+          }]
+        }
+      ],
     }
   },
   props: {
@@ -39,6 +68,13 @@ export default {
 
   },
   methods: {
+    calculatePath() {
+      const chart = timelines();
+      const svg = d3.select('.diagram')
+        .append('svg')
+        .datum(this.timelineData)
+        .call(chart);
+    },
     ...mapActions('game', {
       findGame: 'find',
       createGame: 'create'
@@ -58,33 +94,15 @@ export default {
     this.findGame();
     this.updateRemainingTime();
   },
-  mounted () {
-    const data = [99, 71, 78, 25, 36, 92];
-    const svg = this.$d3.select('.diagram')
-      .style('border', '3px solid red')
-      .append('svg')
-      .attr('width', 500)
-      .attr('height', 270)
-      .append('g')
-      .attr('transform', 'translate(0, 10)')
-    const x = this.$d3.scaleLinear().range([0, 430]);
-    const y = this.$d3.scaleLinear().range([210, 0]);
-    this.$d3.axisLeft().scale(x);
-    this.$d3.axisTop().scale(y);
-    x.domain(this.$d3.extent(data, (d, i) => i));
-    y.domain([0, this.$d3.max(data, d => d)]);
-    const createPath = this.$d3.line()
-      .x((d, i) => x(i))
-      .y(d => y(d));
-    svg.append('path').attr('d', createPath(data));
+  mounted() {
+    this.calculatePath();
   },
-  components: {
-  }
+  components: {}
 }
 </script>
 
 <style scoped>
-  .invis {
-    display: none;
-  }
+.invis {
+  display: none;
+}
 </style>

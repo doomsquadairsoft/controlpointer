@@ -204,6 +204,7 @@ export default {
     lastLifecycleEvent() {
       var timeline = this.cleansedTimeline;
       if (timeline.length < 1) return [];
+      return 'pause'
       return _.findLast(timeline, (evt) => {
         return evt.action === 'pause' || evt.action === 'start' || evt.action === 'stop'
       })

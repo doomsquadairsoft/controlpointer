@@ -5,17 +5,24 @@
 const moment = require('moment');
 const R = require('ramda');
 const GameStats = require('../src_shared/GameStats.js')
+const Promise = require('bluebird');
 
 
 module.exports = class Marshal {
-  constructor (timelineService) {
+  constructor (timelineService, gameService) {
     this.timelineService = timelineService;
+    this.gameService = gameService;
   }
   tick() {
-    const tl = this.timelineService.find().then(tl => {
-      var gs = new GameStats(tl);
+    const tl = this.timelineService.find();
+    const game = this.gameService.find();
 
-      console.log(`Status: ${gs.gameStatus().msg}, Start: ${gs.gameStartTime()}, Dur: ${gs.gameDuration()}, Paused Dur: ${gs.gamePausedDuration()}, End: ${gs.gameEndTime()}`)
+    Promise.all([tl, game])
+    .spread((tl, game) => {
+
+      var gs = new GameStats(tl, game);
+
+      console.log(`Status: ${gs.gameStatus().msg}, Start: ${gs.gameStartTime()}, Dur: ${gs.gameElapsedDuration()}, Paused Dur: ${gs.gamePausedDuration()}, End: ${gs.gameEndTime()}`)
     })
   }
 }

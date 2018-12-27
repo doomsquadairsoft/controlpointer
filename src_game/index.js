@@ -34,7 +34,7 @@ const evts = app.service('events');
 const devices = app.service('devices');
 const pendingDevices = app.service('pdevices');
 const timeline = app.service('timeline');
-
+const game = app.service('game');
 
 
 // Submit a join event when we start up
@@ -46,7 +46,7 @@ evts.create({
 
 // Every 1 second, calculate controlpoints
 const tick = () => {
-  const marshal = new Marshal(timeline);
+  const marshal = new Marshal(timeline, game);
   marshal.tick();
 };
 setInterval(tick, 1000);
