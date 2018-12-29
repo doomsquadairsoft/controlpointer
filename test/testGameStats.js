@@ -21,30 +21,6 @@ describe('gameStats', function() {
 
   });
 
-  xdescribe('Constructor', function() {
-    it('should return an instance of GameStats', function() {
-      const gs2 = new GameStats(fixtures.timeline, fixtures.simpleGameSettings);
-      assert.instanceOf(gs2, GameStats);
-    });
-
-    it('should accept a timeline object and a game object', function() {
-      const gs2 = new GameStats(fixtures.timeline, fixtures.gameSettings);
-      assert.instanceOf(gs2, GameStats);
-    });
-
-    it('should throw when not receiving a gameSettings parameter', function() {
-      assert.throws(() => {
-        new GameStats(fixtures.timeline);
-      });
-    });
-
-    it('should throw when not receiving a timeline object as first param', function() {
-      assert.throws(() => {
-        new GameStats();
-      })
-    });
-  });
-
 
   describe('gameLength()', function() {
     it('should return a ms duration 7200000', function() {
@@ -77,43 +53,43 @@ describe('gameStats', function() {
     });
   });
 
-  xdescribe('timelineAfterDate()', function() {
-    it('should accept a number', function() {
-      const testDate = 1542570007606;
-      const tl = gs.timelineAfterDate(testDate);
-      assert.isArray(tl);
-      const validate = (tli) => {
-        const createdAt = parseInt(R.prop('createdAt', tli));
-        assert.isNumber(createdAt)
-        assert.isAbove(createdAt, testDate);
-      }
-      R.forEach(validate, tl);
-    });
-
-    it('should accept a string', function() {
-      const testDate = '1542570007606';
-      const tl = gs.timelineAfterDate(testDate);
-      assert.isArray(tl);
-      const validate = (tli) => {
-        const createdAt = parseInt(R.prop('createdAt', tli));
-        assert.isNumber(createdAt)
-        assert.isAbove(createdAt, parseInt(testDate));
-      }
-      R.forEach(validate, tl);
-    });
-
-    it('should return an array containing only events after the inputted date', function() {
-      const testDate = 1542570007606;
-      const tl = gs.timelineAfterDate(testDate);
-      assert.isArray(tl);
-      const validate = (tli) => {
-        const createdAt = parseInt(R.prop('createdAt', tli));
-        assert.isNumber(createdAt)
-        assert.isAbove(createdAt, testDate);
-      }
-      R.forEach(validate, tl);
-    });
-  });
+  // xdescribe('timelineAfterDate()', function() {
+  //   it('should accept a number', function() {
+  //     const testDate = 1542570007606;
+  //     const tl = gs.timelineAfterDate(testDate);
+  //     assert.isArray(tl);
+  //     const validate = (tli) => {
+  //       const createdAt = parseInt(R.prop('createdAt', tli));
+  //       assert.isNumber(createdAt)
+  //       assert.isAbove(createdAt, testDate);
+  //     }
+  //     R.forEach(validate, tl);
+  //   });
+  //
+  //   it('should accept a string', function() {
+  //     const testDate = '1542570007606';
+  //     const tl = gs.timelineAfterDate(testDate);
+  //     assert.isArray(tl);
+  //     const validate = (tli) => {
+  //       const createdAt = parseInt(R.prop('createdAt', tli));
+  //       assert.isNumber(createdAt)
+  //       assert.isAbove(createdAt, parseInt(testDate));
+  //     }
+  //     R.forEach(validate, tl);
+  //   });
+  //
+  //   it('should return an array containing only events after the inputted date', function() {
+  //     const testDate = 1542570007606;
+  //     const tl = gs.timelineAfterDate(testDate);
+  //     assert.isArray(tl);
+  //     const validate = (tli) => {
+  //       const createdAt = parseInt(R.prop('createdAt', tli));
+  //       assert.isNumber(createdAt)
+  //       assert.isAbove(createdAt, testDate);
+  //     }
+  //     R.forEach(validate, tl);
+  //   });
+  // });
 
   describe('gameStatus()', function() {
     it('should return an object with status data', function() {
@@ -183,21 +159,33 @@ describe('gameStats', function() {
     });
   });
 
-  xdescribe('remainingGameTimeDigital()', function() {
-    xit('should return a digital clock-style string of the remaining time in the game', function() {
+  describe('remainingGameTimeDigital()', function() {
+    it('should return a digital clock-style string of the remaining time in the game', function() {
+      const rgtd = app.$gameStats.remainingGameTimeDigital(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
+      assert.isString(rgtd);
+      assert.match(rgtd, /\d\d:\d\d:\d\d/);
+    });
 
+    it('should return 00:04:50 (simpleTimeline)', function() {
+      const rgtd = app.$gameStats.remainingGameTimeDigital(fixtures.simpleTimeline, fixtures.simpleGameSettings, 20000);
+      assert.isString(rgtd);
+      assert.equal(rgtd, '00:04:50');
     });
   });
 
-  xdescribe('remainingGameTime()', function() {
-    xit('should return a ms duration of the remaining time in the game', function() {
-
+  describe('remainingGameTime()', function() {
+    it('should return a ms duration of the remaining time in the game', function() {
+      const rgt = app.$gameStats.remainingGameTime(fixtures.simpleTimeline, fixtures.simpleGameSettings, 20000);
+      assert.isNumber(rgt);
+      assert.equal(rgt, 290000);
     });
   });
 
-  xdescribe('remainingGameTimeHumanized()', function() {
-    xit('should return a human readable string of the remaining time in the game. Example: \'Five minutes and thirty seconds\'', function() {
-
+  describe('remainingGameTimeHumanized()', function() {
+    it('should return a human readable string of the remaining time in the game. Example: \'Five minutes and thirty seconds\'', function() {
+      const rgt = app.$gameStats.remainingGameTimeHumanized(fixtures.simpleTimeline, fixtures.simpleGameSettings, 20000);
+      assert.isString(rgt);
+      assert.equal(rgt, '5 minutes');
     });
   });
 
@@ -285,9 +273,11 @@ describe('gameStats', function() {
     });
   });
 
-  xdescribe('gameEndTimeHumanized', function() {
-    xit('should return the game end time in a human readable string', function() {
-
+  describe('gameEndTimeHumanized', function() {
+    it('should return the game end time in a human readable string', function() {
+      const geth = app.$gameStats.gameEndTimeHumanized(fixtures.simpleTimeline, fixtures.simpleGameSettings, fixtures.timePointer);
+      assert.isString(geth)
+      assert.equal(geth, 'Tuesday, December 25th 2018, 11:39:10 am')
     });
   });
 
@@ -406,6 +396,7 @@ describe('gameStats', function() {
 
   });
 
+
   describe('cleansedTimeline()', function() {
     it('should return an array of timeline events without duplicate neighboring actions', function() {
       const tl = app.$gameStats.cleansedTimeline(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
@@ -451,6 +442,4 @@ describe('gameStats', function() {
       R.forEach(validate, tl);
     });
   });
-
-
 });

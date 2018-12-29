@@ -102,6 +102,13 @@ const gameEndTime = (findTimelineInStore, findGameInStore, timePointer) => {
   return get;
 }
 
+const gameEndTimeHumanized = (findTimelineInStore, findGameInStore, timePointer) => {
+  const { tl, game, tp } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
+  const get = gameEndTime(tl, game, tp);
+  const geth = moment(get).format("dddd, MMMM Do YYYY, h:mm:ss a");
+  return geth;
+}
+
 
 const gameStatus = (findTimelineInStore, findGameInStore, timePointer) => {
   const { tl, game, tp } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
@@ -332,6 +339,52 @@ const mostRecentStop = (findTimelineInStore, findGameInStore, timePointer) => {
   return R.prop('createdAt', last);
 }
 
+const remainingGameTime = (findTimelineInStore, findGameInStore, timePointer) => {
+  const {
+    tl,
+    game,
+    tp
+  } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
+  // rgt = endTime - now
+  const endTime = moment(gameEndTime(tl, game, tp));
+  const now = moment(tp);
+  const rgt = endTime.diff(now);
+  return rgt;
+}
+
+const remainingGameTimeDigital = (findTimelineInStore, findGameInStore, timePointer) => {
+  const {
+    tl,
+    game,
+    tp
+  } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
+  const rgt = moment.duration(remainingGameTime(tl, game, tp));
+  const endTime = moment(gameEndTime(tl, game, tp));
+
+  if (moment(tp).isAfter(endTime)) return '00:00:00'
+
+  const h = rgt.hours();
+  const m = rgt.minutes();
+  const s = rgt.seconds();
+  const _hh = h < 10 ? '0' + h : h;
+  const _mm = m < 10 ? '0' + m : m;
+  const _ss = s < 10 ? '0' + s : s;
+  const hh = _hh === 0 ? '00' : _hh;
+  const mm = _mm === 0 ? '00' : _mm;
+  const ss = _ss === 0 ? '00' : _ss;
+
+  return `${hh}:${mm}:${ss}`;
+}
+
+const remainingGameTimeHumanized = (findTimelineInStore, findGameInStore, timePointer) => {
+  const {
+    tl,
+    game,
+    tp
+  } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
+  const rgt = moment.duration(remainingGameTime(tl, game, tp));
+  return rgt.humanize();
+}
 
 
 module.exports = {
@@ -344,11 +397,15 @@ module.exports = {
     Vue.prototype.$gameStats.activeTimeline = activeTimeline;
     Vue.prototype.$gameStats.gameStartTime = gameStartTime;
     Vue.prototype.$gameStats.gameEndTime = gameEndTime;
+    Vue.prototype.$gameStats.gameEndTimeHumanized = gameEndTimeHumanized;
     Vue.prototype.$gameStats.gameStatus = gameStatus;
     Vue.prototype.$gameStats.gameElapsedDuration = gameElapsedDuration;
     Vue.prototype.$gameStats.gameRunningDuration = gameRunningDuration;
     Vue.prototype.$gameStats.gameLength = gameLength;
     Vue.prototype.$gameStats.timePointer = timePointer;
     Vue.prototype.$gameStats.mostRecentStop = mostRecentStop;
+    Vue.prototype.$gameStats.remainingGameTime = remainingGameTime;
+    Vue.prototype.$gameStats.remainingGameTimeDigital = remainingGameTimeDigital;
+    Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
   }
 }
