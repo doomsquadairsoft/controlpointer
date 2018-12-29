@@ -8,7 +8,7 @@ module.exports = function (app) {
     autoload: true
   });
 
-  Model.ensureIndex({ fieldName: 'duration', unique: false });
+  Model.ensureIndex({ fieldName: 'gameLength', unique: false });
 
   return Model;
 };

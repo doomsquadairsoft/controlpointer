@@ -8,17 +8,19 @@
       <v-container>
         <v-layout align-center justify-center column>
           <div :class="{ 'invis': !devmode }">
+            <p>timePointer={{ timePointer }}</p>
             <p>remainingGameTime={{ remainingGameTime }}</p>
             <p>gamePausedDuration={{ gamePausedDuration }}</p>
             <p>gameEndTime={{ gameEndTime }}</p>
             <p>gameEndTimeHumanized={{ gameEndTimeHumanized }}</p>
             <p>gameStartTime={{ gameStartTime }}</p>
             <p>gameStartTimeHumanized={{ gameStartTimeHumanized }}</p>
-            <p>gameDuration={{ gameDuration }}</p>
+            <p>gameLength={{ gameLength }}</p>
             <p>lastLifecycleEvent={{ lastLifecycleEvent }}</p>
-            <p>elapsedGameTime={{ elapsedGameTime }}</p>
+            <p>gameElapsedDuration={{ gameElapsedDuration }}</p>
             <p>remainingGameTimeDigital={{ remainingGameTimeDigital }}</p>
-            <p>gameState={{ gameState }}</p>
+            <p>gameStatus={{ gameStatus }}</p>
+            <p>gameTest={{ gameTest }}</p>
           </div>
           <lifecycle-display
           :remainingGameTimeDigital="this.remainingGameTimeDigital"
@@ -46,16 +48,22 @@ import moment from 'moment'
 import LifecycleDisplay from './LifecycleDisplay'
 import LifecycleControls from './LifecycleControls'
 import LifecycleLog from './LifecycleLog'
+//import GameStats from '@/../src_shared/GameStats.js'
+
 
 export default {
   name: 'Lifecycle',
   data() {
     return {
       tick: 0,
-      rt: 777
+      rt: 777,
+      timePointer: 0
     }
   },
   props: {
+
+  },
+  watch: {
 
   },
   computed: {
@@ -71,88 +79,47 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
-    gameState() {
-      var lle = this.lastLifecycleEvent;
-      var res = 'Unknown';
-      if (typeof lle === 'undefined') return res
-      if (lle.action === 'start') res = 'Started'
-      if (lle.action === 'stop') res = 'Stopped'
-      if (lle.action === 'pause') res = 'Paused'
-      return res
-    },
-    activeTimeline() {
-      // activeTimeline is an array of cleansed timeline events
-      // following the latest stop event
-      // if there is no stop event, it is the entire cleansed timeline.
-      var cleansedTimeline = this.cleansedTimeline;
-      if (cleansedTimeline.length < 1) return [];
-
-      var lastStopEventIndex = _.findLastIndex(cleansedTimeline, {
-        action: 'stop'
-      })
-      if (lastStopEventIndex === -1)
-        return this.cleansedTimeline
-
-      return this.cleansedTimeline.slice(
-        lastStopEventIndex + 1,
-        this.cleansedTimeline.length
-      )
-
+    //...mapGameStatsFunctions(),
+    gameTest() {
+      //console.log(this.$gameStats.gt)
+      return this.$gameStats.gt(
+        this.findTimelineInStore,
+        this.findGameInStore
+      );
     },
     cleansedTimeline() {
-      // cleansedTimeline is the timeline without duplicate events (see below)
-      var gis = this.findTimelineInStore({
-        query: {
-          $sort: {
-            createdAt: 1
-          }
-        }
-      }).data;
-
-      // remove any duplicate pause or start timeline events
-      // example: start, pause, pause, start, start =>
-      //          start, pause, start
-      // (source and target must also be a match to get rejected)
-      var filtered = _.filter(gis, (g, index, collection) => {
-        // if we aren't iterating on the last array element,
-        // inspect the next element and see if that element's action is a duplicate of this element's action
-        if (index !== collection.length - 1) {
-          if (
-            g.action === collection[index + 1].action &&
-            g.source === collection[index + 1].source &&
-            g.target === collection[index + 1].target
-          ) {
-            collection[index + 1].invalid = true;
-          }
-        }
-        return g.invalid === true ? false : true
-      });
-
-      return filtered;
+      return this.$gameStats.cleansedTimeline(
+        this.findTimelineInStore,
+        this.findGameInStore
+      )
+    },
+    gameStatus() {
+      return this.$gameStats.gameStatus(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
+    },
+    activeTimeline() {
+      return this.$gameStats.activeTimeline(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     },
     gamePausedDuration() {
-      // Gets the total amount of milliseconds that the active game
-      // has spent in the paused state.
-      // Used to determine remaining time in current game
-      var activeTimeline = this.activeTimeline;
-      var reduced = _.reduce(activeTimeline, (accumulator, g, i, coll) => {
-        var res = moment.duration(accumulator);
-        if (i !== coll.length - 1) {
-          if (g.action === 'pause' && coll[i + 1].action === 'start') {
-            var pausedMoment = moment(g.createdAt);
-            var resumedMoment = moment(coll[i + 1].createdAt);
-            var diff = moment.duration(resumedMoment.diff(pausedMoment));
-            //console.log(`rMoment=${moment(coll[i+1].createdAt)}  pMoment=${moment(g.createdAt)}  chrisDiff=${resumedMoment.valueOf()-pausedMoment.valueOf()}  momentDiff=${diff}  acc=${accumulator}`)
-            return moment.duration(accumulator).add(diff); //moment.duration(accumulator).add(diff);
-          }
-        }
-        return accumulator;
-      }, 0);
-      return reduced;
+      return this.$gameStats.gamePausedDuration(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     },
     gameEndTime() {
-      if (this.activeTimeline.length < 1) return moment(0);
-      return moment(this.gameStartTime).add(this.gameDuration).add(this.gamePausedDuration);
+      return this.$gameStats.gameEndTime(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     },
     gameEndTimeHumanized() {
       var gameEndTime = this.gameEndTime
@@ -160,46 +127,21 @@ export default {
       return moment(gameEndTime).format("dddd, MMMM Do YYYY, h:mm:ss a")
     },
     gameStartTime() {
-      var activeTimeline = this.activeTimeline
-      if (activeTimeline.length < 1)
-        return 'n/a';
-      return moment(activeTimeline[0].createdAt);
+      return this.$gameStats.gameStartTime(
+        this.findTimelineInStore,
+        this.findGameInStore
+      )
     },
     gameStartTimeHumanized() {
       var gameStartTime = this.gameStartTime
       if (gameStartTime === 'n/a') return gameStartTime
       return moment(gameStartTime).format("dddd, MMMM Do YYYY, h:mm:ss a");
     },
-    gameDuration() {
-      var gis = this.findGameInStore({
-        query: {
-          $limit: 1,
-          $sort: {
-            createdAt: -1 // most recently created game
-          }
-        }
-      }).data;
-
-      // if there are no games, set to default game length of 22 seconds
-      if (typeof gis.length < 1)
-        return moment.duration({
-          'seconds': 22
-        });
-
-      // If there is a duration object,
-      // set the defined duration
-      if (typeof gis[0] !== 'undefined') {
-        return moment.duration({
-          'milliseconds': gis[0].duration
-        });
-
-        // else there is not a duration object
-        // set a default duration
-      } else {
-        return moment.duration({
-          'milliseconds': 3000
-        });
-      }
+    gameLength() {
+      return this.$gameStats.gameLength(
+        this.findTimelineInStore,
+        this.findGameInStore
+      )
     },
     lastLifecycleEvent() {
       var timeline = this.cleansedTimeline;
@@ -209,54 +151,47 @@ export default {
         return evt.action === 'pause' || evt.action === 'start' || evt.action === 'stop'
       })
     },
-    elapsedGameTime() {
-      var now = this.rt
-      var activeTimeline = this.activeTimeline
-      if (activeTimeline.length < 1) return moment(0)
-      var lastEvent = this.lastLifecycleEvent;
-      var gameState = this.gameState;
-      var lastEventMoment = moment(lastEvent.createdAt)
-      var gamePausedDuration = this.gamePausedDuration;
-      var gameStartTime = this.gameStartTime;
-      var timeBetweenLastEventAndGameStart = lastEventMoment.diff(gameStartTime)
-      if (gameState === 'Paused') {
-        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration);
-      } else if (gameState === 'Started') {
-        return moment.duration(timeBetweenLastEventAndGameStart).subtract(gamePausedDuration).add(now.diff(lastEventMoment));
-      }
+    gameElapsedDuration() {
+      return this.$gameStats.gameElapsedDuration(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     },
     remainingGameTime() {
-      var endTime = this.gameEndTime;
-      var lastEvent = this.lastLifecycleEvent;
-      var lastEventMoment = moment(lastEvent.createdAt);
-      var remaining = endTime.diff(lastEventMoment);
-      var gameState = this.gameState;
-      var now = this.rt;
-      if (gameState === 'Paused') {
-        return moment.duration(remaining);
-      } else if (gameState === 'Started') {
-        var r = moment.duration(remaining).subtract(now.diff(lastEventMoment));
-        if (r.asMilliseconds() < 0) r = moment.duration(0);
-        return r;
-      }
+      return '@TODO'
+      // var endTime = this.gameEndTime;
+      // var lastEvent = this.lastLifecycleEvent;
+      // var lastEventMoment = moment(lastEvent.createdAt);
+      // var remaining = endTime.diff(lastEventMoment);
+      // var gameState = this.gameState;
+      // var now = this.rt;
+      // if (gameState === 'Paused') {
+      //   return moment.duration(remaining);
+      // } else if (gameState === 'Started') {
+      //   var r = moment.duration(remaining).subtract(now.diff(lastEventMoment));
+      //   if (r.asMilliseconds() < 0) r = moment.duration(0);
+      //   return r;
+      // }
     },
     remainingGameTimeDigital() {
-      var rgt = this.remainingGameTime;
-      if (moment.isDuration(rgt)) {
-        var h = rgt.hours();
-        var m = rgt.minutes();
-        var s = rgt.seconds();
-        var _hh = h < 10 ? '0' + h : h;
-        var _mm = m < 10 ? '0' + m : m;
-        var _ss = s < 10 ? '0' + s : s;
-        var hh = _hh === 0 ? '00' : _hh;
-        var mm = _mm === 0 ? '00' : _mm;
-        var ss = _ss === 0 ? '00' : _ss;
-
-        return `${hh}:${mm}:${ss}`;
-      } else {
-        return '00:00:00';
-      }
+      return '66:66:66'
+      // var rgt = this.remainingGameTime;
+      // if (moment.isDuration(rgt)) {
+      //   var h = rgt.hours();
+      //   var m = rgt.minutes();
+      //   var s = rgt.seconds();
+      //   var _hh = h < 10 ? '0' + h : h;
+      //   var _mm = m < 10 ? '0' + m : m;
+      //   var _ss = s < 10 ? '0' + s : s;
+      //   var hh = _hh === 0 ? '00' : _hh;
+      //   var mm = _mm === 0 ? '00' : _mm;
+      //   var ss = _ss === 0 ? '00' : _ss;
+      //
+      //   return `${hh}:${mm}:${ss}`;
+      // } else {
+      //   return '00:00:00';
+      // }
     }
   },
   methods: {

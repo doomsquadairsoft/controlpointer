@@ -1,3 +1,3 @@
 module.exports = {
-  length: 7200000
+  gameLength: 7200000
 }

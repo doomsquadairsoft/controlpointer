@@ -9,4 +9,6 @@ module.exports = {
   gameSettings: require('./gameSettings'),
   simpleGameSettings: require('./simpleGameSettings'),
   centuryGameSettings: require('./centuryGameSettings'),
+  timePointer: require('./timePointer'),
+  invalidGameSettings: require('./invalidGameSettings'),
 }

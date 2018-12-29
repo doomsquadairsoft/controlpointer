@@ -20,5 +20,7 @@ module.exports = [{
 // pausedDuration is  5000
 // runningDuration is 10000
 // elapsedDuration is 15000
-// endTime is (startTime + gameLength - elapsedDuration)
-// 5000 + 300000 - 15000
+// endTime is (startTime + gameLength + pausedDuration)
+// 310000 = 5000 + 300000 + 5000
+
+// runningDuration is ((now - startTime) - pausedDuration)

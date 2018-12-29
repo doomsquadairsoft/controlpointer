@@ -9,7 +9,8 @@ import './api/feathers-client'
 //import 'vuetify/src/stylus/app.styl'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
-import d3 from 'vue-d3'
+import gameStats from '@/../src_shared/gameStats'
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -18,8 +19,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('@/assets/marker_shadow.png'),
 });
 
-
-Vue.use(d3)
+Vue.use(gameStats);
 Vue.use(Vuetify);
 Vue.config.productionTip = true;
 
