@@ -28,7 +28,6 @@ const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
   ) throw new Error('buildParameters received a string as an argument which is not allowed')
   if (typeof timePointer === 'undefined') timePointer = moment().valueOf();
 
-
   var tl;
   if (typeof findTimelineInStore === 'function') {
     tl = findTimelineInStore({
@@ -70,11 +69,12 @@ const gameLength = (findTimelineInStore, findGameInStore, timePointer) => {
     game
   } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
   const gl = game.gameLength;
-  if (typeof game.gameLength === 'undefined') throw new Error('gameLength was not defined in game settings object!')
+  if (typeof game.gameLength === 'undefined') return 50000; //throw new Error('gameLength was not defined in game settings object!')
   return gl;
 }
 
 const gameStartTime = (findTimelineInStore, findGameInStore, timePointer) => {
+  //const { rawtl, game, tp } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
   const tl = activeTimeline(findTimelineInStore, findGameInStore, timePointer);
   const startEvent = R.find(
     R.propEq('action', 'start'),
@@ -136,6 +136,78 @@ const gameStatus = (findTimelineInStore, findGameInStore, timePointer) => {
   };
 }
 
+const activeTimelineVs = (findTimelineInStore, findGameInStore, timePointer) => {
+  const { tl, game, tp } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
+  const at = activeTimeline(tl, game, tp);
+  const get = gameEndTime(tl, game, tp);
+  // timelineData: [{
+  //   at: new Date('2018-12-26 01:00:00'),
+  //   title: 'Game start',
+  //   group: 'Admin',
+  //   classname: 'grnBar',
+  //   symbol: 'symbolStar'
+  // }, {
+  //     from: new Date('2018-12-26 01:01:00'),
+  //     to: new Date('2018-12-26 01:03:00'),
+  //     title: 'BLU controlled the TOWER',
+  //     group: 'TOWER',
+  //     className: 'bluBar',
+  //   },
+  //   {
+  //     from: new Date('2018-12-26 01:03:01'),
+  //     to: new Date('2018-12-26 01:14:00'),
+  //     title: 'RED controlled the TOWER',
+  //     group: 'TOWER',
+  //     className: 'redBar',
+  //   },
+  const adaptToVs = (datum) => {
+    // if it's from admin source, add to vs group Admin
+    var vs = {};
+    if (datum.source === 'admin') {
+      vs.at = moment(datum.createdAt).toDate();
+      vs.symbol = 'symbolDiamond'
+
+      // set color
+      if (datum.action === 'start') {
+        vs.className = 'grnBar';
+      } else if (datum.action === 'cap_blu') {
+        vs.className = 'bluBar'
+      } else if (datum.action === 'cap_red') {
+        vs.className = 'redBar'
+      } else if (datum.action === 'cap_unc') {
+        vs.className = 'gryBar'
+      } else {
+        vs.className = 'ylwBar';
+      }
+
+      // set group
+      vs.group = R.toUpper(datum.target);
+
+    } else {
+      // not admin
+      // not possible yet
+      // @TODO implement virtual control point so we can fill this out
+    }
+
+    // set the title
+    vs.title = `${datum.source} ${datum.action} ${datum.target}`;
+    return vs;
+  };
+
+  const vsTimelineData = R.map(adaptToVs, at);
+
+  // add a point for the end of the game
+  vsTimelineData.push({
+    at: moment(get).toDate(),
+    className: 'redBar',
+    symbol: 'symbolSquare',
+    title: 'End of Game',
+    group: 'GAME'
+  })
+
+  return vsTimelineData;
+}
+
 const activeTimeline = (findTimelineInStore, findGameInStore, timePointer) => {
   // activeTimeline is an array of cleansed timeline events
   // following the latest stop event up until the timePointer
@@ -164,12 +236,10 @@ const activeTimeline = (findTimelineInStore, findGameInStore, timePointer) => {
 
   const relevantTimeline = allEventsOrSome(lastStopEventIndex);
 
-  const pointer = timePointer;
-
   const isEventBeforePointer = (evt) => {
     return R.lte(
       R.prop('createdAt', evt),
-      pointer
+      tp
     );
   }
 
@@ -407,5 +477,24 @@ module.exports = {
     Vue.prototype.$gameStats.remainingGameTime = remainingGameTime;
     Vue.prototype.$gameStats.remainingGameTimeDigital = remainingGameTimeDigital;
     Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
-  }
+    Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
+  },
+  gt,
+  cleansedTimeline: cleansedTimeline,
+  lifecycleTimeline: lifecycleTimeline,
+  gamePausedDuration: gamePausedDuration,
+  activeTimeline,
+  gameStartTime: gameStartTime,
+  gameEndTime: gameEndTime,
+  gameEndTimeHumanized: gameEndTimeHumanized,
+  gameStatus: gameStatus,
+  gameElapsedDuration: gameElapsedDuration,
+  gameRunningDuration: gameRunningDuration,
+  gameLength: gameLength,
+  timePointer: timePointer,
+  mostRecentStop: mostRecentStop,
+  remainingGameTime: remainingGameTime,
+  remainingGameTimeDigital: remainingGameTimeDigital,
+  remainingGameTimeHumanized: remainingGameTimeHumanized,
+  activeTimelineVs: activeTimelineVs,
 }

@@ -7,7 +7,7 @@
     <v-card>
       <v-container>
         <v-layout align-center justify-center column>
-          <div :class="{ 'invis': !devmode }">
+          <div class="scrollArea" :class="{ 'invis': !devmode }">
             <p>timePointer={{ timePointer }}</p>
             <p>remainingGameTime={{ remainingGameTime }}</p>
             <p>gamePausedDuration={{ gamePausedDuration }}</p>
@@ -21,6 +21,9 @@
             <p>remainingGameTimeDigital={{ remainingGameTimeDigital }}</p>
             <p>gameStatus={{ gameStatus }}</p>
             <p>gameTest={{ gameTest }}</p>
+            <p>activeTimeline={{ activeTimeline }}</p>
+            <p>activeTimelineVs={{ activeTimelineVs }}</p>
+            <!-- <p>cleansedTimeline={{ cleansedTimeline }}</p> -->
           </div>
           <lifecycle-display
           :remainingGameTimeDigital="this.remainingGameTimeDigital"
@@ -29,6 +32,9 @@
           <lifecycle-log
           :activeTimeline="this.activeTimeline"
           ></lifecycle-log>
+          <report
+            :timelineData="this.activeTimelineVs"
+          ></report>
         </v-layout>
       </v-container>
     </v-card>
@@ -48,20 +54,72 @@ import moment from 'moment'
 import LifecycleDisplay from './LifecycleDisplay'
 import LifecycleControls from './LifecycleControls'
 import LifecycleLog from './LifecycleLog'
-//import GameStats from '@/../src_shared/GameStats.js'
+import Report from '@/components/Report/Report'
+//import GameStats from '@/../src_shared/gameStats.js'
 
 
 export default {
   name: 'Lifecycle',
   data() {
     return {
-      tick: 0,
-      rt: 777,
-      timePointer: 0
+      tickCount: 0,
+      //rt: 777,
+      timePointer: moment().valueOf(),
+      timelineData: [{
+        at: new Date('2018-12-26 01:00:00'),
+        title: 'Game start',
+        group: 'Admin',
+        className: 'grnBar',
+        symbol: 'symbolDiamond'
+      }, {
+          from: new Date('2018-12-26 01:01:00'),
+          to: new Date('2018-12-26 01:03:00'),
+          title: 'BLU controlled the TOWER',
+          group: 'TOWER',
+          className: 'bluBar',
+        },
+        {
+          from: new Date('2018-12-26 01:03:01'),
+          to: new Date('2018-12-26 01:14:00'),
+          title: 'RED controlled the TOWER',
+          group: 'TOWER',
+          className: 'redBar',
+        },
+        {
+          from: new Date('2018-12-26 01:08:00'),
+          to: new Date('2018-12-26 01:20:00'),
+          title: 'RED controlled the BUNKER',
+          group: 'SANDBAG BUNKER',
+          className: 'redBar',
+        },
+        {
+          from: new Date('2018-12-26 01:00:00'),
+          to: new Date('2018-12-26 01:20:00'),
+          title: 'BLU controlled the GOBLIN FORTRESS',
+          group: 'GOBLIN FORTRESS',
+          className: 'gryBar',
+        },
+        {
+          from: new Date('2018-12-26 01:04:00'),
+          to: new Date('2018-12-26 01:06:00'),
+          title: 'RED controlled the BRIDGE',
+          group: 'BRIDGE',
+          className: 'redBar',
+        }, {
+          from: new Date('2018-12-26 01:06:01'),
+          to: new Date('2018-12-26 01:18:00'),
+          title: 'BLU controlled the BRIDGE',
+          group: 'BRIDGE',
+          className: 'bluBar',
+        }, {
+          from: new Date('2018-12-26 01:18:01'),
+          to: new Date('2018-12-26 01:20:00'),
+          title: 'RED controlled the BRIDGE',
+          group: 'BRIDGE',
+          className: 'redBar',
+        }
+      ]
     }
-  },
-  props: {
-
   },
   watch: {
 
@@ -79,9 +137,7 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
-    //...mapGameStatsFunctions(),
     gameTest() {
-      //console.log(this.$gameStats.gt)
       return this.$gameStats.gt(
         this.findTimelineInStore,
         this.findGameInStore
@@ -102,6 +158,13 @@ export default {
     },
     activeTimeline() {
       return this.$gameStats.activeTimeline(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
+    },
+    activeTimelineVs() {
+      return this.$gameStats.activeTimelineVs(
         this.findTimelineInStore,
         this.findGameInStore,
         this.timePointer
@@ -159,39 +222,18 @@ export default {
       )
     },
     remainingGameTime() {
-      return '@TODO'
-      // var endTime = this.gameEndTime;
-      // var lastEvent = this.lastLifecycleEvent;
-      // var lastEventMoment = moment(lastEvent.createdAt);
-      // var remaining = endTime.diff(lastEventMoment);
-      // var gameState = this.gameState;
-      // var now = this.rt;
-      // if (gameState === 'Paused') {
-      //   return moment.duration(remaining);
-      // } else if (gameState === 'Started') {
-      //   var r = moment.duration(remaining).subtract(now.diff(lastEventMoment));
-      //   if (r.asMilliseconds() < 0) r = moment.duration(0);
-      //   return r;
-      // }
+      return this.$gameStats.remainingGameTime(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     },
     remainingGameTimeDigital() {
-      return '66:66:66'
-      // var rgt = this.remainingGameTime;
-      // if (moment.isDuration(rgt)) {
-      //   var h = rgt.hours();
-      //   var m = rgt.minutes();
-      //   var s = rgt.seconds();
-      //   var _hh = h < 10 ? '0' + h : h;
-      //   var _mm = m < 10 ? '0' + m : m;
-      //   var _ss = s < 10 ? '0' + s : s;
-      //   var hh = _hh === 0 ? '00' : _hh;
-      //   var mm = _mm === 0 ? '00' : _mm;
-      //   var ss = _ss === 0 ? '00' : _ss;
-      //
-      //   return `${hh}:${mm}:${ss}`;
-      // } else {
-      //   return '00:00:00';
-      // }
+      return this.$gameStats.remainingGameTimeDigital(
+        this.findTimelineInStore,
+        this.findGameInStore,
+        this.timePointer
+      )
     }
   },
   methods: {
@@ -204,20 +246,28 @@ export default {
       createTimeline: 'create'
     }),
     updateRemainingTime() {
-      this.tick++
       this.rt = moment()
-      setTimeout(() => this.updateRemainingTime(), 1000)
+      //setTimeout(() => this.updateRemainingTime(), 1000)
+    },
+    tick () {
+      this.tickCount++;
+      this.timePointer = moment().valueOf();
+      this.updateRemainingTime();
     }
   },
   created() {
     this.findTimeline();
     this.findGame();
-    this.updateRemainingTime();
+    this.$options.interval = setInterval(this.tick, 250)
+  },
+  beforeDestroy () {
+    clearInterval(this.$options.timePointerInterval);
   },
   components: {
     LifecycleControls,
     LifecycleDisplay,
     LifecycleLog,
+    Report
   }
 }
 </script>
@@ -225,5 +275,9 @@ export default {
 <style scoped>
   .invis {
     display: none;
+  }
+  .scrollArea {
+    height: 500px;
+    overflow-y: scroll;
   }
 </style>

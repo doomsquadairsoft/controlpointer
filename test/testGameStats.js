@@ -17,8 +17,28 @@ describe('gameStats', function() {
   });
 
 
-  xdescribe('reaminingGameTime()', function() {
-
+  describe('activeTimelineVs()', function() {
+    it('should return an array suited for d3-vs d3Timeline', function() {
+      const atvs = app.$gameStats.activeTimelineVs(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
+      // {
+      //   from: new Date('2018-12-26 01:18:01'),
+      //   to: new Date('2018-12-26 01:20:00'),
+      //   title: 'RED controlled the BRIDGE',
+      //   group: 'BRIDGE',
+      //   className: 'redBar',
+      // }
+      assert.isArray(atvs);
+      const validate = (tli) => {
+        assert.property(tli, 'group');
+        assert.property(tli, 'className');
+        assert.property(tli, 'title');
+        assert.isString(tli.group);
+        assert.isString(tli.className);
+        assert.isString(tli.title);
+        assert.match(tli.className, /redBar|bluBar|gryBar|grnBar|ylwBar/);
+      }
+      R.forEach(validate, atvs);
+    });
   });
 
 
@@ -35,10 +55,14 @@ describe('gameStats', function() {
       const gl = app.$gameStats.gameLength(fixtures.runningTimeline, fixtures.centuryGameSettings);
       assert.equal(gl, 9467280000000);
     });
-    it('should throw an error when a gameLength is not defined', function() {
-      assert.throws(() => {
+    it('should not throw an error when a gameLength is not defined', function() {
+      assert.doesNotThrow(() => {
         app.$gameStats.gameLength(fixtures.timeline, fixtures.invalidGameSettings);
       });
+    });
+    it('should return a sensible default when a gameLength is not defined', function() {
+      const gl = app.$gameStats.gameLength(fixtures.timeline, fixtures.invalidGameSettings);
+      assert.equal(gl, 50000);
     });
   });
 
@@ -193,6 +217,11 @@ describe('gameStats', function() {
   describe('gameStartTime()', function() {
     it('should return a number', function() {
       const gameStartTime = app.$gameStats.gameStartTime(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
+      assert.isNumber(gameStartTime);
+    });
+
+    it('should not require a third parameter (timePointer)', function() {
+      const gameStartTime = app.$gameStats.gameStartTime(fixtures.timeline, fixtures.gameSettings);
       assert.isNumber(gameStartTime);
     });
 

@@ -190,7 +190,8 @@ export default {
         type: "timeline",
         action: "press_blu",
         source: "player",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
     },
     mouseupBlu() {
@@ -199,7 +200,8 @@ export default {
         type: "timeline",
         action: "release_blu",
         source: "player",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
     },
     mousedownRed() {
@@ -208,7 +210,8 @@ export default {
         type: "timeline",
         action: "press_red",
         source: "player",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
     },
     mouseupRed() {
@@ -217,7 +220,8 @@ export default {
         type: "timeline",
         action: "release_red",
         source: "player",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
     },
     changeControllingTeamBlue: function() {
@@ -231,7 +235,8 @@ export default {
         type: "timeline",
         action: "cap_blu",
         source: "admin",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
       //store.dispatch('changeControllingTeamBlue')
       //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
@@ -247,7 +252,8 @@ export default {
         type: "timeline",
         action: "cap_red",
         source: "admin",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
       //this.patchDevice([this._id, {redProgress: 100, bluProgress: 0}, undefined])
     },
@@ -262,7 +268,8 @@ export default {
         type: "timeline",
         action: "cap_unc",
         source: "admin",
-        target: this.did
+        target: this.did,
+        targetId: this._id
       }, {});
       //this.patchDevice([this._id, {redProgress: 0, bluProgress: 0}, undefined])
     },

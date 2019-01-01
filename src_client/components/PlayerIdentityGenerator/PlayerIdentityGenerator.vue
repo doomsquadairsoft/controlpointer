@@ -14,6 +14,10 @@
         <v-layout row wrap>
           <v-card-title>
             <div>
+              <h3>Identity</h3>
+              <p>A custom in-game identity can be created for each of your players. This gives each player a unique persona to act by.</p>
+              <h3>Role</h3>
+              <p>Each player is given a specific role to perform on their team. Roles include <span class="cText cOrange">Captain</span>, <span class="cText cWhite">Medic</span>, <span class="cText cLime">Grenadier</span>, <span class="cText cYellow">Sapper</span>, and <span class="cText cCyan">Rifleman</span>.</p>
               <span class="grey--text">Enter the number of players</span><br>
             </div>
           </v-card-title>
@@ -69,4 +73,24 @@ export default {
 
 </script>
 
-<style></style>
+<style>
+.cText {
+  background-color: black;
+  font-weight: bold;
+}
+.cOrange {
+  color: orange;
+}
+.cCyan {
+  color: cyan;
+}
+.cLime {
+  color: lime;
+}
+.cYellow {
+  color: yellow;
+}
+.cWhite {
+  color: white;
+}
+</style>

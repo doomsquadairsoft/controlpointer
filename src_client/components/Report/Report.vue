@@ -6,7 +6,8 @@
   <v-layout column align-space-around>
     <v-card>
       <v-container>
-        <div id="timeline1"></div>
+        <d3-timeline :data="timelineData" :options="timelineOptions" width="100%" height="300px">
+        </d3-timeline>
       </v-container>
     </v-card>
   </v-layout>
@@ -23,81 +24,49 @@ import {
 
 import moment from 'moment';
 import {
-  timelines
-} from 'd3-timelines';
-import * as d3 from 'd3';
-
+  d3Timeline
+} from 'd3-vs';
 
 export default {
   name: 'Report',
   data() {
     return {
-      tick: 0,
-      rt: 777,
-      testData: [{
-          times: [{
-            "starting_time": 1355752800000,
-            "ending_time": 1355759900000
-          }, {
-            "starting_time": 1355767900000,
-            "ending_time": 1355774400000
-          }]
-        },
-        {
-          times: [{
-            "starting_time": 1355759910000,
-            "ending_time": 1355761900000
-          }, ]
-        },
-        {
-          times: [{
-            "starting_time": 1355761910000,
-            "ending_time": 1355763910000
-          }]
-        }
-      ]
+      timelineOptions: {
+        intervalCornerRadius: 1,
+        liveTimer: false
+      },
+      timelineMargin: {}
     }
   },
   props: {
-
-  },
-  computed: {
-
-  },
-  methods: {
-    calculatePath() {
-      var chart = timelines();
-      var svg = d3.select("#timeline1")
-        .append("svg")
-        .attr("width", 500)
-        .datum(this.testData)
-        .call(chart);
-    },
-    ...mapActions('game', {
-      findGame: 'find',
-      createGame: 'create'
-    }),
-    ...mapActions('timeline', {
-      findTimeline: 'find',
-      createTimeline: 'create'
-    }),
-    updateRemainingTime() {
-      this.tick++
-      this.rt = moment()
-      setTimeout(() => this.updateRemainingTime(), 1000)
+    timelineData: {
+      type: Array,
+      required: true
     }
   },
-  created() {
-    this.findTimeline();
-    this.findGame();
-    this.updateRemainingTime();
-  },
-  mounted() {
-    this.calculatePath();
-  },
-  components: {}
+  components: {
+    d3Timeline
+  }
 }
 </script>
+
+<style>
+.redBar {
+  fill: rgb(244, 67, 54);
+}
+.bluBar {
+  fill: rgb(33, 150, 243);
+}
+.gryBar {
+  fill: rgb(158, 158, 158);
+}
+.grnBar {
+  fill: rgb(76, 175, 80);
+}
+.ylwBar {
+  fill: rgb(255, 193, 7);
+}
+</style>
 
 <style scoped>
 .invis {

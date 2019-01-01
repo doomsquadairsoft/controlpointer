@@ -13,7 +13,7 @@ const apiServerSchema = `${process.env.NODE_ENV === 'production' ? 'https://' : 
 const apiServerHost = config.get('host');
 const apiServerPort = config.get('port');
 const apiServerUri = `${apiServerSchema}${apiServerHost}:${apiServerPort}`;
-//const Marshal = require('./marshal');
+const Marshal = require('./marshal');
 
 
 if (validUrl.isUri(apiServerUri)){
@@ -46,8 +46,8 @@ evts.create({
 
 // Every 1 second, calculate controlpoints
 const tick = () => {
-  //const marshal = new Marshal(timeline, game);
-  //marshal.tick();
+  const marshal = new Marshal(timeline, game, devices);
+  marshal.tick();
 };
 setInterval(tick, 1000);
 

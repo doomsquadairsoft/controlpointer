@@ -11,6 +11,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
         const action = context.data.action || 'unknown!';
         const source = context.data.source || 'unknown!';
         const target = context.data.target || 'unknown!';
+        const targetId = context.data.targetId || 'unknown!';
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
@@ -18,6 +19,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
             action,
             source,
             target,
+            targetId,
             createdAt: new Date().getTime()
         };
 
