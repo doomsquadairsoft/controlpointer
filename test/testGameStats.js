@@ -471,4 +471,51 @@ describe('gameStats', function() {
       R.forEach(validate, tl);
     });
   });
+
+
+  describe('cleansedPressData()', function() {
+    it('should return an array of press data events without duplicate neighboring actions', function() {
+      const pd = app.$gameStats.cleansedPressData(fixtures.controlpointPressData, fixtures.gameSettings);
+
+      assert.isArray(pd);
+      const validate = (pdi, idx, allPd) => {
+        const createdAt = parseInt(R.prop('createdAt', pli));
+        assert.property(pdi, 'type');
+        assert.property(pdi, 'action');
+        assert.property(pdi, 'source');
+        assert.property(pdi, 'target');
+        assert.property(pdi, 'createdAt');
+        assert.property(pdi, '_id');
+
+
+        R.unless(
+          R.equals(allTl.length, idx),
+          assert.notEqual(
+            R.prop('action', tli),
+            R.prop('action', allTl[idx + 1]),
+            'A duplicate timeline action was found in cleansedTimeline\'s output!'
+          )
+        )
+      };
+
+      const forEachIdx = R.addIndex(R.forEach);
+      forEachIdx(validate, tl);
+    });
+
+    it('should have 30 elements', function() {
+      const tl = app.$gameStats.cleansedTimeline(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
+      assert.lengthOf(tl, 30);
+    });
+
+    it('should have chronologically sorted events', function() {
+      const tl = app.$gameStats.cleansedTimeline(fixtures.timeline, fixtures.gameSettings, fixtures.timePointer);
+      var lastTimestamp = 0;
+      const validate = (tli) => {
+        const thisTimestamp = R.prop('createdAt', tli);
+        assert.isAbove(thisTimestamp, lastTimestamp);
+        lastTimestamp = R.prop('createdAt', tli);
+      }
+      R.forEach(validate, tl);
+    });
+  });
 });

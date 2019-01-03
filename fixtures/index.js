@@ -11,4 +11,5 @@ module.exports = {
   centuryGameSettings: require('./centuryGameSettings'),
   timePointer: require('./timePointer'),
   invalidGameSettings: require('./invalidGameSettings'),
+  controlpointPressData: require('./controlpointPressData')
 }

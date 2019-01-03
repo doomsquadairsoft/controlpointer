@@ -46,27 +46,40 @@ module.exports = class Marshal {
     const pressReleaseEvents = R.filter(pressReleaseEvtFilter, at);
     //console.log(pressReleaseEvents);
 
+    //
+
     const echoAll = R.forEach((item) => {
-      //console.log(R.prop('targetId', item));
+      console.log(item);
       //console.log(`action:${R.prop('action', item)} targetId:${R.prop('targetId', item)}`);
-      console.log(item)
+      //console.log(item)
     });
 
 
-    const prePairFilter = (item) => R.test(/press_\w{3}/, R.prop('action', item));
+    const prePairFilter = (item) => R.test(/(release|press)_\w{3}/, R.prop('action', item));
     const prePairs = R.filter(prePairFilter, pressReleaseEvents);
+
+    const testFilter = R.propEq('targetId', '5AEVScKzvclsCpeR');
+    const test = R.filter(fuckAssFilter, prePairs);
 
 
     const exampleOfTheDataWeWantToEndUpWith = [
       [
-        { 'action': 'press_blu' },
-        { 'action': 'press_blu' }
+        { 'action': 'press_blu', targetId: '7' },
+        { 'action': 'release_blu', targetId: '7' }
       ],
       [
-        { 'action': 'press_blu' },
-        { 'action': 'press_blu' }
+        { 'action': 'press_blu', targetId: '8' },
+        { 'action': 'release_blu', targetId: '8' }
       ]
     ];
+
+  const exampleOfTheDataWeHave = [
+    { 'action': 'press_blu', targetId: '8' },
+    { 'action': 'press_blu', targetId: '7' },
+    { 'action': 'release_blu', targetId: '8' },
+    { 'action': 'release_blu', targetId: '7' }
+  ];
+
 
 
   const uniqTargetIds = R.uniq(
@@ -78,13 +91,11 @@ module.exports = class Marshal {
 
 
 
+  //echoAll(test);
 
 
-  // for each uniqTargetId, DO SOMETHING
 
 
-
-  //echoAll(uniqTargetIds);
 
 }
 
