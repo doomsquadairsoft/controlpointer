@@ -59,7 +59,7 @@ module.exports = class Marshal {
     const prePairs = R.filter(prePairFilter, pressReleaseEvents);
 
     const testFilter = R.propEq('targetId', '5AEVScKzvclsCpeR');
-    const test = R.filter(fuckAssFilter, prePairs);
+    const test = R.filter(testFilter, prePairs);
 
 
     const exampleOfTheDataWeWantToEndUpWith = [

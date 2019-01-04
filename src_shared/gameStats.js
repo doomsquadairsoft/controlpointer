@@ -17,7 +17,12 @@ const timePointer = (findTimelineInStore, findGameInStore, timePointer) => {
 
 
 
-
+/**
+ * buildParameters
+ *
+ * Validates parameters sent to function.
+ * Converts feathers service objects into plain old javascript objects for further processing.
+ */
 const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
   if (typeof findTimelineInStore === 'undefined') throw new Error('first parameter to buildParameters must be defined!')
   if (typeof findGameInStore === 'undefined') throw new Error('second parameter to buildParameters must be defined!')
@@ -165,32 +170,34 @@ const activeTimelineVs = (findTimelineInStore, findGameInStore, timePointer) => 
     var vs = {};
     if (datum.source === 'admin') {
       vs.at = moment(datum.createdAt).toDate();
-      vs.symbol = 'symbolDiamond'
-
-      // set color
-      if (datum.action === 'start') {
-        vs.className = 'grnBar';
-      } else if (datum.action === 'cap_blu') {
-        vs.className = 'bluBar'
-      } else if (datum.action === 'cap_red') {
-        vs.className = 'redBar'
-      } else if (datum.action === 'cap_unc') {
-        vs.className = 'gryBar'
-      } else {
-        vs.className = 'ylwBar';
-      }
-
-      // set group
-      vs.group = R.toUpper(datum.target);
+      vs.symbol = 'symbolDiamond';
 
     } else {
       // not admin
       // not possible yet
       // @TODO implement virtual control point so we can fill this out
+      vs.symbol = 'symbolCircle';
+    }
+
+    // set color
+    if (datum.action === 'start') {
+      vs.className = 'grnBar';
+    } else if (datum.action === 'cap_blu') {
+      vs.className = 'bluBar'
+    } else if (datum.action === 'cap_red') {
+      vs.className = 'redBar'
+    } else if (datum.action === 'cap_unc') {
+      vs.className = 'gryBar'
+    } else {
+      vs.className = 'ylwBar';
     }
 
     // set the title
     vs.title = `${datum.source} ${datum.action} ${datum.target}`;
+
+    // set group
+    vs.group = R.toUpper(datum.target);
+
     return vs;
   };
 
@@ -456,6 +463,18 @@ const remainingGameTimeHumanized = (findTimelineInStore, findGameInStore, timePo
   return rgt.humanize();
 }
 
+/**
+ * cleansedPressData
+ *
+ * Is the press_blu release_blu events without neighboring duplicate events
+ */
+const cleansedPressData = (pressData) => {
+  const sortByTimestamp = R.sortBy(R.prop('createdAt'));
+  const sortedPressData = sortByTimestamp(pressData);
+
+  return deDup(sortedPressData);
+};
+
 
 module.exports = {
   install(Vue, opts) {
@@ -480,21 +499,22 @@ module.exports = {
     Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
   },
   gt,
-  cleansedTimeline: cleansedTimeline,
-  lifecycleTimeline: lifecycleTimeline,
-  gamePausedDuration: gamePausedDuration,
+  cleansedTimeline,
+  lifecycleTimeline,
+  gamePausedDuration,
   activeTimeline,
-  gameStartTime: gameStartTime,
-  gameEndTime: gameEndTime,
-  gameEndTimeHumanized: gameEndTimeHumanized,
-  gameStatus: gameStatus,
-  gameElapsedDuration: gameElapsedDuration,
-  gameRunningDuration: gameRunningDuration,
-  gameLength: gameLength,
-  timePointer: timePointer,
-  mostRecentStop: mostRecentStop,
-  remainingGameTime: remainingGameTime,
-  remainingGameTimeDigital: remainingGameTimeDigital,
-  remainingGameTimeHumanized: remainingGameTimeHumanized,
-  activeTimelineVs: activeTimelineVs,
+  gameStartTime,
+  gameEndTime,
+  gameEndTimeHumanized,
+  gameStatus,
+  gameElapsedDuration,
+  gameRunningDuration,
+  gameLength,
+  timePointer,
+  mostRecentStop,
+  remainingGameTime,
+  remainingGameTimeDigital,
+  remainingGameTimeHumanized,
+  activeTimelineVs,
+  cleansedPressData
 }

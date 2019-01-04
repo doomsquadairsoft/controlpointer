@@ -32,6 +32,14 @@ module.exports = [{
   _id: '5fjfk0u9I2QxpUma'
 }, {
   type: 'timeline',
+  action: 'release_blu',
+  source: 'player',
+  target: 'DWARVEN-VILLAGE',
+  targetId: '5AEVScKzvclsCpeR',
+  createdAt: 1546286055988,
+  _id: '5fjfk0u9I2QxpUma'
+}, {
+  type: 'timeline',
   action: 'press_red',
   source: 'player',
   target: 'DWARVEN-VILLAGE',
