@@ -527,4 +527,31 @@ describe('gameStats', function() {
       R.forEach(validate, pd);
     });
   });
+
+
+
+
+  describe('calculatePressProgress()', function() {
+    it('should return an object with red and blu progress integers between 0 and 100', function() {
+      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData);
+      assert.isObject(progress);
+      assert.isNumber(progress.red);
+      assert.isNumber(progress.blu);
+      assert.equal(progress.red, 20, 'red value is unexpected'); // 5437 / 5000 = 1.0874
+      assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
+    });
+
+    it('should show red progress OR blu progress, never both.', function() {
+      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData);
+      assert.isObject(progress);
+      assert.isFalse(
+        R.and(
+          R.gt(progress.red, 0),
+          R.gt(progress.blu, 0)
+        )
+      , 'both red progress and blu progress were greater than zero, but only one should be greater than zero.');
+    });
+
+    xit('should take gameStatus (paused|started) into account')
+  });
 });

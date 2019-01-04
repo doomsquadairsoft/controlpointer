@@ -145,26 +145,6 @@ const activeTimelineVs = (findTimelineInStore, findGameInStore, timePointer) => 
   const { tl, game, tp } = buildParameters(findTimelineInStore, findGameInStore, timePointer);
   const at = activeTimeline(tl, game, tp);
   const get = gameEndTime(tl, game, tp);
-  // timelineData: [{
-  //   at: new Date('2018-12-26 01:00:00'),
-  //   title: 'Game start',
-  //   group: 'Admin',
-  //   classname: 'grnBar',
-  //   symbol: 'symbolStar'
-  // }, {
-  //     from: new Date('2018-12-26 01:01:00'),
-  //     to: new Date('2018-12-26 01:03:00'),
-  //     title: 'BLU controlled the TOWER',
-  //     group: 'TOWER',
-  //     className: 'bluBar',
-  //   },
-  //   {
-  //     from: new Date('2018-12-26 01:03:01'),
-  //     to: new Date('2018-12-26 01:14:00'),
-  //     title: 'RED controlled the TOWER',
-  //     group: 'TOWER',
-  //     className: 'redBar',
-  //   },
   const adaptToVs = (datum) => {
     // if it's from admin source, add to vs group Admin
     var vs = {};
@@ -467,14 +447,99 @@ const remainingGameTimeHumanized = (findTimelineInStore, findGameInStore, timePo
  * cleansedPressData
  *
  * Is the press_blu release_blu events without neighboring duplicate events
+ *
+ * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @return {Array} - pressData without duplicates
  */
 const cleansedPressData = (pressData) => {
   const sortByTimestamp = R.sortBy(R.prop('createdAt'));
   const sortedPressData = sortByTimestamp(pressData);
-
   return deDup(sortedPressData);
 };
 
+
+/**
+ * calculatePressProgress
+ *
+ * Return the team progress percentages at any point in time
+ *
+ * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @param {Number} timePointer - milliseconds since Epoch timestamp of the point in time for which we want to see progress percentages
+ *                               @TODO
+ * @return {Object} progress
+ * @return {Number} progress.red - progress of red team between 0 and 100
+ * @return {Number} progress.blu - progress of blu team between 0 and 100
+ */
+const calculatePressProgress = (pressData) => {
+  const cpd = cleansedPressData(pressData);
+  const captureRate = 5000; // capture rate is 100% per 5 seconds
+
+  const isRed = R.compose(R.test(/_red$/), R.prop('action'));
+  const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
+  const isOdd = R.modulo(R.__, 2);
+
+  const reducer = (acc, thisPdi, idx, pressData) => {
+    // if we are at odd item, skip
+    // (we are testing odd items in the same step as even items are tested)
+    if (isOdd(idx)) return acc;
+
+    // if we are at the last item, consider reduction complete
+    if (R.equals(idx, pressData.length-1)) R.reduced(acc);
+
+    const thisTimestamp = R.prop('createdAt', thisPdi);
+    const thisEventMoment = moment(thisTimestamp);
+    const nextTimestamp = R.prop('createdAt', pressData[idx+1]);
+    const nextEventMoment = moment(nextTimestamp);
+    const heldDuration = moment.duration(nextEventMoment.diff(thisEventMoment)).valueOf();
+    const currentBluDuration = R.prop('blu', acc);
+    const capDuration = R.ifElse(
+      R.gt(9999),
+      R.always(10000),
+      R.always(heldDuration)
+    );
+
+    const redHeldDuration = isRed(thisPdi) ? heldDuration : 0;
+    const bluHeldDuration = isBlu(thisPdi) ? heldDuration : 0;
+
+    //
+    // const question = {
+    //   bluProgress: 100,
+    //   redProgress: 0,
+    //   heldDuration: 20000,
+    //   color: red
+    // };
+    //
+    // const answer = {
+    //   bluProgress: 0,
+    //   redProgress: 100
+    // };
+
+    //console.log(R.multiply(R.divide(redHeldDuration, captureRate), 100))
+    const redProgress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+    const bluProgress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+    //console.log(`redHeldDuration:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, captureRate:${captureRate}, bluProgress:${bluProgress}, redProgress:${redProgress}`)
+
+    return {
+      red: redProgress,
+      blu: bluProgress
+    }
+
+  };
+
+  const indexedReduce = R.addIndex(R.reduce);
+  const result = indexedReduce(reducer, {blu: 0, red: 0}, cpd);
+  // result.blu = indexedReduce(reducer, 0, bluData);
+  // result.red = indexedReduce(reducer, 0, redData);
+
+
+  // look at a press/release pair
+  // If 5 seconds delta in press/release pair, that is 100%.
+  // Any > 5000 ms is ignored.
+  //
+  // we need to return 0-100 at any given point, so we need to calculate historical data in order to derive %
+
+  return result;
+};
 
 module.exports = {
   install(Vue, opts) {
@@ -497,6 +562,8 @@ module.exports = {
     Vue.prototype.$gameStats.remainingGameTimeDigital = remainingGameTimeDigital;
     Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
     Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
+    Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
+    Vue.prototype.$gameStats.calculatePressProgress = calculatePressProgress;
   },
   gt,
   cleansedTimeline,
@@ -516,5 +583,6 @@ module.exports = {
   remainingGameTimeDigital,
   remainingGameTimeHumanized,
   activeTimelineVs,
-  cleansedPressData
+  cleansedPressData,
+  calculatePressProgress
 }
