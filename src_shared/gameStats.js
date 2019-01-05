@@ -468,19 +468,27 @@ const remainingGameTimeHumanized = (findTimelineInStore, findGameInStore, timePo
 /**
  * cleansedPressData
  *
- * Is the press_blu release_blu events without neighboring duplicate events
+ * Gets the press_blu release_blu events without neighboring duplicate events
  *
  * @param {Array} pressData - Array of (press|release)_\w+ events
  * @param {Number} timePointer - the ms epoch timestamp of the point in time we are calculating for
  * @return {Array} - pressData without duplicates
  */
-const cleansedPressData = (pressData, timePointer) => {
-  const { pd, tp } = buildPressParameters(pressData, timePointer);
-  const sortByTimestamp = R.sortBy(R.prop('createdAt'));
+const cleansedPressData = (pressData, gameSettings, timePointer) => {
+  const { tl, tp } = buildParameters(pressData, gameSettings, timePointer);
   const isPropBeforeTp = R.compose(R.gte(tp), R.prop('createdAt'));
-  const timeFilteredData = R.filter(isPropBeforeTp, pd);
+  const sortByTimestamp = R.sortBy(R.prop('createdAt'));
+  const timeFilteredData = R.filter(isPropBeforeTp, tl);
   const sortedPressData = sortByTimestamp(timeFilteredData);
-  return deDup(sortedPressData);
+  const lastStopEventIndex = R.findLastIndex(R.propEq('action', 'stop'), sortedPressData);
+  const slicedData = R.slice(lastStopEventIndex, R.length(sortedPressData), sortedPressData);
+  const activePressData = R.ifElse(
+    R.equals(-1),
+    R.always(sortedPressData),
+    R.always(slicedData)
+  )(lastStopEventIndex);
+  //console.log(`${lastStopEventIndex}|${R.length(activePressData)}, these two should be the same ${R.prop('createdAt', R.last(sortedPressData))}, ${R.prop('createdAt', R.last(activePressData))}`)
+  return deDup(activePressData);
 };
 
 
@@ -503,7 +511,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
   if (R.isNil(targetId)) throw new Error('targetId is undefined!');
   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
   const tid = targetId;
-  const cpd = cleansedPressData(tl, tp);
+  const cpd = cleansedPressData(tl, game, tp);
   const captureRate = game.captureRate;
 
   const isRed = R.compose(R.test(/_red$/), R.prop('action'));
@@ -525,7 +533,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     const heldDuration = moment.duration(nextEventMoment.diff(thisEventMoment)).valueOf();
     const currentBluDuration = R.prop('blu', acc);
     const capDuration = R.ifElse(
-      R.gt(R.reverse(R.multiply(captureRate, 2))),
+      R.lt(R.multiply(captureRate, 2)),
       R.always(R.multiply(captureRate, 2)),
       R.always(heldDuration)
     );
@@ -547,9 +555,39 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     // };
 
     //console.log(R.multiply(R.divide(redHeldDuration, captureRate), 100))
-    const redProgress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
-    const bluProgress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
-    //console.log(`isRed?:${isRed(thisPdi)} isBlu?:${isBlu(thisPdi)} heldDuration:${heldDuration} redHeldDuration:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, captureRate:${captureRate}, bluProgress:${bluProgress}, redProgress:${redProgress}`)
+    const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+    const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+    //console.log(`Red?:${isRed(thisPdi)} Blu?:${isBlu(thisPdi)} heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgress}, redProg:${redProgress}`)
+
+    const computor = (progressOriginal, progressDelta) => {
+      const capPercentage = R.ifElse(
+        R.flip(R.gt)(100),
+        R.always(100),
+        R.identity
+      );
+      const redOrigin = progressOriginal.red;
+      const bluOrigin = progressOriginal.blu;
+      const redDelta = progressDelta.red;
+      const bluDelta = progressDelta.blu;
+      const redProgress = (redDelta) ? capPercentage(redOrigin + redDelta) : 0;
+      const bluProgress = (bluDelta) ? capPercentage(bluOrigin + bluDelta) : 0;
+
+      return { redProgress, bluProgress };
+    }
+
+    const original = {
+      red: acc.red,
+      blu: acc.blu
+    }
+
+    // can only be one of the other color
+    const delta = {
+      red: redProgressSinceLastStep,
+      blu: bluProgressSinceLastStep
+    }
+
+    const { redProgress, bluProgress } = computor(original, delta);
+    //console.log(`${redProgress}, ${bluProgress}`);
 
     return {
       red: redProgress,

@@ -493,31 +493,31 @@ describe('gameStats', function() {
     };
 
     it('should return an array of press data events without duplicate neighboring actions (dupControlpointPressData)', function() {
-      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData);
+      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData, fixtures.gameSettings);
       assert.isArray(pd);
       const forEachIdx = R.addIndex(R.forEach);
       forEachIdx(validate, pd);
     });
 
     it('should return an array of press data events without duplicate neighboring actions (controlpointPressData)', function() {
-      const pd = gameStats.cleansedPressData(fixtures.controlpointPressData);
+      const pd = gameStats.cleansedPressData(fixtures.controlpointPressData, fixtures.gameSettings);
       assert.isArray(pd);
       const forEachIdx = R.addIndex(R.forEach);
       forEachIdx(validate, pd);
     });
 
-    it('should have n elements (controlpointPressData)', function() {
-      const pd = gameStats.cleansedPressData(fixtures.controlpointPressData);
+    it('should have 6 elements (controlpointPressData)', function() {
+      const pd = gameStats.cleansedPressData(fixtures.controlpointPressData, fixtures.gameSettings);
       assert.lengthOf(pd, 6);
     });
 
-    it('should have n elements (dupControlpointPressData)', function() {
-      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData);
+    it('should have 6 elements (dupControlpointPressData)', function() {
+      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData, fixtures.gameSettings);
       assert.lengthOf(pd, 6);
     });
 
     it('should have chronologically sorted events', function() {
-      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData);
+      const pd = gameStats.cleansedPressData(fixtures.dupControlpointPressData, fixtures.gameSettings);
       var lastTimestamp = 0;
       const validate = (pdi) => {
         const thisTimestamp = R.prop('createdAt', pdi);
@@ -525,6 +525,17 @@ describe('gameStats', function() {
         lastTimestamp = R.prop('createdAt', pdi);
       }
       R.forEach(validate, pd);
+    });
+
+    it('should only show the active timeline-- events later than the most recent stop action', function() {
+      const pd = gameStats.cleansedPressData(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      assert.lengthOf(pd, 25);
+    });
+
+    it('should not show any events past the timePointer timestamp', function() {
+      const tp = 1546286053620;
+      const pd = gameStats.cleansedPressData(fixtures.controlpointPressData, fixtures.gameSettings, tp);
+      assert.lengthOf(pd, 2)
     });
   });
 
@@ -582,6 +593,8 @@ describe('gameStats', function() {
         assert.isObject(t);
         assert.isNumber(t.blu);
         assert.isNumber(t.red);
+        assert.isBelow(t.blu, 101, 'blu is too high, should be 0-100');
+        assert.isBelow(t.red, 101, 'red is too high, should be 0-100');
         assert.isString(t.targetId, 'returned progress object should have a targetId prop');
       }
       R.forEach(validate, progress);
@@ -603,6 +616,8 @@ describe('gameStats', function() {
     });
 
     xit('should take gameStatus (paused|started) into account')
+
+    //it('should')
   });
 
   describe('buildPressParameters()', function() {
