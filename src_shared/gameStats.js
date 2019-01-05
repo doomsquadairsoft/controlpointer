@@ -60,6 +60,10 @@ const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
     game = findGameInStore;
   }
 
+  game.captureRate = R.defaultTo(5000, game.captureRate);
+  game.gameLength = R.defaultTo(50000, game.gameLength);
+
+
   const tp = timePointer;
 
   return {
@@ -68,6 +72,22 @@ const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
     tp
   };
 };
+
+const buildPressParameters = (pressData, timePointer) => {
+  const tp = R.ifElse(
+    R.isNil(),
+    R.always(moment().valueOf()),
+    R.always(timePointer)
+  )(timePointer);
+
+  const pd = R.ifElse(
+    R.isNil(),
+    () => { throw new Error('pressData is undefined!') },
+    R.always(pressData)
+  )(pressData);
+
+  return { pd, tp };
+}
 
 const gameLength = (findTimelineInStore, findGameInStore, timePointer) => {
   const {
@@ -443,19 +463,27 @@ const remainingGameTimeHumanized = (findTimelineInStore, findGameInStore, timePo
   return rgt.humanize();
 }
 
+
+
 /**
  * cleansedPressData
  *
  * Is the press_blu release_blu events without neighboring duplicate events
  *
  * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @param {Number} timePointer - the ms epoch timestamp of the point in time we are calculating for
  * @return {Array} - pressData without duplicates
  */
-const cleansedPressData = (pressData) => {
+const cleansedPressData = (pressData, timePointer) => {
+  const { pd, tp } = buildPressParameters(pressData, timePointer);
   const sortByTimestamp = R.sortBy(R.prop('createdAt'));
-  const sortedPressData = sortByTimestamp(pressData);
+  const isPropBeforeTp = R.compose(R.gte(tp), R.prop('createdAt'));
+  const timeFilteredData = R.filter(isPropBeforeTp, pd);
+  const sortedPressData = sortByTimestamp(timeFilteredData);
   return deDup(sortedPressData);
 };
+
+
 
 
 /**
@@ -464,15 +492,19 @@ const cleansedPressData = (pressData) => {
  * Return the team progress percentages at any point in time
  *
  * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @param {Object} gameSettings - Game configuration info
  * @param {Number} timePointer - milliseconds since Epoch timestamp of the point in time for which we want to see progress percentages
- *                               @TODO
+ * @param {String} targetId - the ID of the D3VICE which we will be calculating percentages for
  * @return {Object} progress
  * @return {Number} progress.red - progress of red team between 0 and 100
  * @return {Number} progress.blu - progress of blu team between 0 and 100
  */
-const calculatePressProgress = (pressData) => {
-  const cpd = cleansedPressData(pressData);
-  const captureRate = 5000; // capture rate is 100% per 5 seconds
+const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) => {
+  if (R.isNil(targetId)) throw new Error('targetId is undefined!');
+  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+  const tid = targetId;
+  const cpd = cleansedPressData(tl, tp);
+  const captureRate = game.captureRate;
 
   const isRed = R.compose(R.test(/_red$/), R.prop('action'));
   const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
@@ -493,13 +525,13 @@ const calculatePressProgress = (pressData) => {
     const heldDuration = moment.duration(nextEventMoment.diff(thisEventMoment)).valueOf();
     const currentBluDuration = R.prop('blu', acc);
     const capDuration = R.ifElse(
-      R.gt(9999),
-      R.always(10000),
+      R.gt(R.reverse(R.multiply(captureRate, 2))),
+      R.always(R.multiply(captureRate, 2)),
       R.always(heldDuration)
     );
 
-    const redHeldDuration = isRed(thisPdi) ? heldDuration : 0;
-    const bluHeldDuration = isBlu(thisPdi) ? heldDuration : 0;
+    const redHeldDuration = isRed(thisPdi) ? capDuration(heldDuration) : 0;
+    const bluHeldDuration = isBlu(thisPdi) ? capDuration(heldDuration) : 0;
 
     //
     // const question = {
@@ -517,11 +549,12 @@ const calculatePressProgress = (pressData) => {
     //console.log(R.multiply(R.divide(redHeldDuration, captureRate), 100))
     const redProgress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
     const bluProgress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
-    //console.log(`redHeldDuration:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, captureRate:${captureRate}, bluProgress:${bluProgress}, redProgress:${redProgress}`)
+    //console.log(`isRed?:${isRed(thisPdi)} isBlu?:${isBlu(thisPdi)} heldDuration:${heldDuration} redHeldDuration:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, captureRate:${captureRate}, bluProgress:${bluProgress}, redProgress:${redProgress}`)
 
     return {
       red: redProgress,
-      blu: bluProgress
+      blu: bluProgress,
+      targetId: tid
     }
 
   };
@@ -540,6 +573,41 @@ const calculatePressProgress = (pressData) => {
 
   return result;
 };
+
+
+
+/**
+ * calculateDevicesProgress
+ *
+ * Return the team progress percentages at any point in time
+ *
+ * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @param {Number} timePointer - milliseconds since Epoch timestamp of the point in time for which we want to see progress percentages
+ *                               @TODO
+ * @return {Array} progresses
+ */
+const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
+  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+  const uniqTargetIds = R.uniq(
+    R.map(
+      R.prop('targetId'),
+      tl
+    )
+  );
+  const rejectList = R.anyPass([
+    R.equals('undefined'),
+    R.equals('unknown!'),
+    R.isNil(),
+  ]);
+
+  const prunedUniqTargetIds = R.reject(rejectList, uniqTargetIds);
+
+  const win = (targetId, idx) => {
+    return calculatePressProgress(tl, game, tp, targetId);
+  };
+  return R.map(win, prunedUniqTargetIds);
+};
+
 
 module.exports = {
   install(Vue, opts) {
@@ -564,6 +632,8 @@ module.exports = {
     Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
     Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
     Vue.prototype.$gameStats.calculatePressProgress = calculatePressProgress;
+    Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
+    Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
   },
   gt,
   cleansedTimeline,
@@ -584,5 +654,7 @@ module.exports = {
   remainingGameTimeHumanized,
   activeTimelineVs,
   cleansedPressData,
-  calculatePressProgress
+  calculatePressProgress,
+  calculateDevicesProgress,
+  buildPressParameters,
 }

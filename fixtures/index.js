@@ -13,4 +13,5 @@ module.exports = {
   invalidGameSettings: require('./invalidGameSettings'),
   controlpointPressData: require('./controlpointPressData'),
   dupControlpointPressData: require('./dupControlpointPressData'),
+  largeControlpointPressData: require('./largeControlpointPressData'),
 }

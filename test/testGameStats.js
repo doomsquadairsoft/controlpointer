@@ -533,7 +533,8 @@ describe('gameStats', function() {
 
   describe('calculatePressProgress()', function() {
     it('should return an object with red and blu progress integers between 0 and 100', function() {
-      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData);
+      const tid = '5AEVScKzvclsCpeR';
+      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
       assert.isNumber(progress.red);
       assert.isNumber(progress.blu);
@@ -541,8 +542,15 @@ describe('gameStats', function() {
       assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
     });
 
+    it('should throw if there isn\'t a fourth parameter', function() {
+      assert.throws(() => {
+        gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer);
+      });
+    });
+
     it('should show red progress OR blu progress, never both.', function() {
-      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData);
+      const tid = '5AEVScKzvclsCpeR';
+      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer, tid);
       assert.isObject(progress);
       assert.isFalse(
         R.and(
@@ -553,5 +561,58 @@ describe('gameStats', function() {
     });
 
     xit('should take gameStatus (paused|started) into account')
+    it('should not take into account any events past the timePointer parameter', function() {
+      const tp = 1546286053620;
+      const tid = '5AEVScKzvclsCpeR';
+      const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, tp, tid);
+      assert.isObject(progress);
+      assert.equal(progress.red, 88);
+      assert.equal(progress.blu, 0);
+    });
   });
+
+
+
+  describe('calculateDevicesProgress()', function() {
+    it('should return an array of progress objects', function() {
+      const progress = gameStats.calculateDevicesProgress(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      assert.isArray(progress);
+      assert.lengthOf(progress, 2);
+      const validate = (t) => {
+        assert.isObject(t);
+        assert.isNumber(t.blu);
+        assert.isNumber(t.red);
+        assert.isString(t.targetId, 'returned progress object should have a targetId prop');
+      }
+      R.forEach(validate, progress);
+      //assert.equal(progress[0].blu, 20, 'red value is unexpected'); // 5437 / 5000 = 1.0874
+      //assert.equal(progress[0].blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
+    });
+
+    it('should show red progress OR blu progress, never both.', function() {
+      const progress = gameStats.calculateDevicesProgress(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      assert.isArray(progress);
+      assert.lengthOf(progress, 2);
+      assert.isObject(progress[0]);
+      assert.isFalse(
+        R.and(
+          R.gt(progress[0].red, 0),
+          R.gt(progress[0].blu, 0)
+        )
+      , 'both red progress and blu progress were greater than zero, but only one should be greater than zero.');
+    });
+
+    xit('should take gameStatus (paused|started) into account')
+  });
+
+  describe('buildPressParameters()', function() {
+    it('should return an object with {Array} pd and {Number} tp', function() {
+      const build = gameStats.buildPressParameters(fixtures.controlpointPressData, fixtures.timePointer);
+      assert.isObject(build);
+      assert.isArray(build.pd);
+      assert.isNumber(build.tp);
+      assert.equal(build.tp, fixtures.timePointer);
+    });
+  });
+
 });
