@@ -543,8 +543,8 @@ describe('gameStats', function() {
 
 
   describe('calculatePressProgress()', function() {
+    const tid = '5AEVScKzvclsCpeR';
     it('should return an object with red and blu progress integers between 0 and 100', function() {
-      const tid = '5AEVScKzvclsCpeR';
       const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
       assert.isNumber(progress.red);
@@ -560,7 +560,6 @@ describe('gameStats', function() {
     });
 
     it('should show red progress OR blu progress, never both.', function() {
-      const tid = '5AEVScKzvclsCpeR';
       const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer, tid);
       assert.isObject(progress);
       assert.isFalse(
@@ -574,11 +573,24 @@ describe('gameStats', function() {
     xit('should take gameStatus (paused|started) into account')
     it('should not take into account any events past the timePointer parameter', function() {
       const tp = 1546286053620;
-      const tid = '5AEVScKzvclsCpeR';
       const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, tp, tid);
       assert.isObject(progress);
       assert.equal(progress.red, 88);
       assert.equal(progress.blu, 0);
+    });
+
+    it('should ignore duplicate press or release actions', function() {
+      const progress = gameStats.calculatePressProgress(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
+      assert.isObject(progress);
+      assert.equal(progress.red, 20, 'red value is unexpected'); // 5437 / 5000 = 1.0874
+      assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
+    });
+
+    it('should not return data which contains a stop event', function() {
+      const progress = gameStats.calculatePressProgress(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
+      assert.isObject(progress);
+      const validate = (itm) => { assert.notPropertyVal(itm, 'action', 'stop'); };
+      R.forEach(validate, progress);
     });
   });
 
@@ -617,7 +629,17 @@ describe('gameStats', function() {
 
     xit('should take gameStatus (paused|started) into account')
 
-    //it('should')
+    it('should not return data which contains a stop event', function() {
+      const progress = gameStats.calculateDevicesProgress(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      assert.isArray(progress)
+      assert.isObject(progress[0]);
+      console.log(progress)
+      const validate = (itm) => {
+        console.log(`-----> VALIDATING: ${itm}`);
+        assert.notPropertyVal(itm, 'action', 'stop');
+      };
+      R.forEach(validate, progress[0]);
+    });
   });
 
   describe('buildPressParameters()', function() {
@@ -627,6 +649,28 @@ describe('gameStats', function() {
       assert.isArray(build.pd);
       assert.isNumber(build.tp);
       assert.equal(build.tp, fixtures.timePointer);
+    });
+  });
+
+  describe('pairify()', function() {
+    it('should return with an array of alternating press, release event objects', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      //assert.hasAllKeys(pairs, ['type', 'action', 'source', '_id', 'createdAt', 'target']);
+      assert.isArray(pairs);
+      const forEachIndexed = R.addIndex(R.forEach);
+      forEachIndexed((p, idx) => {
+        const isOdd = R.modulo(R.__, 2);
+        const isEven = R.complement(isOdd);
+        const actionProp = R.prop('action', p);
+        if (isEven(idx))
+          assert.match(actionProp, /^press_\w{3}$/, `Position ${idx} (even) event was not an expected PRESS event`)
+        else
+          assert.match(actionProp, /^release_\w{3}$/, `Position ${idx} (odd) event was not an expected RELEASE event`)
+        assert.property(p, 'action');
+        assert.property(p, 'createdAt');
+        assert.property(p, 'target');
+        assert.property(p, 'source');
+      }, pairs);
     });
   });
 

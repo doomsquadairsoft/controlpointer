@@ -492,7 +492,82 @@ const cleansedPressData = (pressData, gameSettings, timePointer) => {
 };
 
 
+// forEach pressData
+// find first press or release event
+// if first found was a release, consider the start event the press.
+// if first found was a press, match with the next release event
 
+/**
+ * pairify
+ * Construct an array of pairs of press/release events
+ */
+const pairify = (pressData, gameSettings, timePointer) => {
+  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+
+  var processIndex = 0;
+  var pairs = [];
+  var counter = 0;
+
+
+  const isPressEvent = R.propSatisfies(R.test(/^press_\w{3}$/), 'action');
+  const isReleaseEvent = R.propSatisfies(R.test(/^release_\w{3}$/), 'action');
+
+
+
+  // take a slice of the tl array, find a press action event
+  // take a slice of the tl array, find a release action event
+  // repeat until processIndex equals the size of the original timeline
+
+  const findNextPressEvent = (timeline) => {
+    // console.log(timeline.length)
+    // console.log(timeline)
+    const idx = R.findIndex(isPressEvent, timeline);
+    const evt = timeline[idx];
+    return { idx, evt };
+  }
+
+  const findNextReleaseEvent = (timeline) => {
+    const idx = R.findIndex(isReleaseEvent, timeline);
+    const evt = timeline[idx];
+    return { idx, evt };
+  }
+
+  while (processIndex < tl.length) {
+    var res;
+    if (pairs.length % 2 === 0) {
+      res = findNextPressEvent(
+        R.slice(
+          R.add(processIndex, 0),
+          R.length(tl),
+          tl
+        )
+      );
+    }
+    else {
+      res = findNextReleaseEvent(
+        R.slice(
+          R.add(processIndex, 0),
+          R.length(tl),
+          tl
+        )
+      );
+    }
+
+    if (res.idx === -1) break;
+
+    processIndex += res.idx;
+    pairs.push(res.evt);
+    counter += 1;
+  }
+
+  // R.forEach((p) => {
+  //   console.log(`action:${R.prop('action', p)}, createdAt:${R.prop('createdAt', p)}`)
+  // }, pairs);
+
+  return pairs;
+
+
+};
 
 /**
  * calculatePressProgress
@@ -517,6 +592,10 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
   const isRed = R.compose(R.test(/_red$/), R.prop('action'));
   const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
   const isOdd = R.modulo(R.__, 2);
+
+
+
+
 
   const reducer = (acc, thisPdi, idx, pressData) => {
     // if we are at odd item, skip
@@ -557,7 +636,8 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     //console.log(R.multiply(R.divide(redHeldDuration, captureRate), 100))
     const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
     const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
-    //console.log(`Red?:${isRed(thisPdi)} Blu?:${isBlu(thisPdi)} heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgress}, redProg:${redProgress}`)
+    const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } }
+    console.log(`|${color()}| action:${thisPdi.action}, nextEventMoment:${nextEventMoment.valueOf()}, heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgressSinceLastStep}, redProg:${redProgressSinceLastStep}`)
 
     const computor = (progressOriginal, progressDelta) => {
       const capPercentage = R.ifElse(
@@ -672,6 +752,7 @@ module.exports = {
     Vue.prototype.$gameStats.calculatePressProgress = calculatePressProgress;
     Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
     Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
+    Vue.prototype.$gameStats.pairify = pairify;
   },
   gt,
   cleansedTimeline,
@@ -695,4 +776,5 @@ module.exports = {
   calculatePressProgress,
   calculateDevicesProgress,
   buildPressParameters,
+  pairify
 }

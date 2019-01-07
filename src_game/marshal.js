@@ -33,74 +33,8 @@ module.exports = class Marshal {
 
       // get info on control point button presses
       const activeTimeline = gameStats.activeTimeline(tl, game);
-      this.calculateDeviceProgress(tl, game, devices);
+      const progress = gameStats.calculateDevicesProgress(tl, game);
+      console.log(progress);
     });
-
-
   }
-
-  calculateDeviceProgress(tl, game, devices) {
-    const at = gameStats.activeTimeline(tl, game);
-    const pressReleaseEvtFilter = (tli) =>
-      R.test(playerButtonRegex, R.prop('action', tli))
-    const pressReleaseEvents = R.filter(pressReleaseEvtFilter, at);
-    //console.log(pressReleaseEvents);
-
-    //
-
-    const echoAll = R.forEach((item) => {
-      console.log(item);
-      //console.log(`action:${R.prop('action', item)} targetId:${R.prop('targetId', item)}`);
-      //console.log(item)
-    });
-
-
-    const prePairFilter = (item) => R.test(/(release|press)_\w{3}/, R.prop('action', item));
-    const prePairs = R.filter(prePairFilter, pressReleaseEvents);
-
-    const testFilter = R.propEq('targetId', '5AEVScKzvclsCpeR');
-    const test = R.filter(testFilter, prePairs);
-
-
-    const exampleOfTheDataWeWantToEndUpWith = [
-      [
-        { 'action': 'press_blu', targetId: '7' },
-        { 'action': 'release_blu', targetId: '7' }
-      ],
-      [
-        { 'action': 'press_blu', targetId: '8' },
-        { 'action': 'release_blu', targetId: '8' }
-      ]
-    ];
-
-  const exampleOfTheDataWeHave = [
-    { 'action': 'press_blu', targetId: '8' },
-    { 'action': 'press_blu', targetId: '7' },
-    { 'action': 'release_blu', targetId: '8' },
-    { 'action': 'release_blu', targetId: '7' }
-  ];
-
-
-
-  const uniqTargetIds = R.uniq(
-    R.map(
-      R.prop('targetId'),
-      prePairs
-    )
-  );
-
-
-
-  //echoAll(test);
-
-
-
-
-
-}
-
-  // Compile Array of (press|release)_\s+ events.
-  // Compute the current (timePointer) progress state of each device.
-  // for each press_\s+ release_\s pair, get the diff.
-  // Starting with gameStartTime, add up the diffs
 }
