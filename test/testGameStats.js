@@ -653,12 +653,19 @@ describe('gameStats', function() {
   });
 
   describe('pairify()', function() {
-    it('should return with an array of alternating press, release event objects', function() {
-      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings);
-      //assert.hasAllKeys(pairs, ['type', 'action', 'source', '_id', 'createdAt', 'target']);
-      assert.isArray(pairs);
+    it('should return an object containing red and blu pair arrays', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, undefined, fixtures.targetId);
+      assert.isObject(pairs);
+      assert.isArray(pairs.blu);
+      assert.isArray(pairs.red);
+    });
+
+
+    it('should return arrays of pairs alternating press, release event objects', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, undefined, fixtures.targetId);
+      assert.isObject(pairs);
       const forEachIndexed = R.addIndex(R.forEach);
-      forEachIndexed((p, idx) => {
+      const validate = forEachIndexed((p, idx, allP) => {
         const isOdd = R.modulo(R.__, 2);
         const isEven = R.complement(isOdd);
         const actionProp = R.prop('action', p);
@@ -670,8 +677,76 @@ describe('gameStats', function() {
         assert.property(p, 'createdAt');
         assert.property(p, 'target');
         assert.property(p, 'source');
-      }, pairs);
+      });
+      validate(pairs.red);
+      validate(pairs.blu);
     });
+
+    it('should return arrays of pairs with chronologically sorted timestamps', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, undefined, fixtures.targetId);
+      assert.isObject(pairs);
+      const forEachIndexed = R.addIndex(R.forEach);
+      const validate = forEachIndexed((p, idx, allP) => {
+        const thisTimestamp = p.createdAt;
+        var nextTimestamp;
+        if (idx === allP.length-1)
+          nextTimestamp = thisTimestamp + 1;
+        else
+          nextTimestamp = allP[idx+1]['createdAt'];
+        assert.isAtMost(thisTimestamp, nextTimestamp);
+      });
+      validate(pairs.red);
+      validate(pairs.blu);
+    });
+
+    it('should return with an array of pairs all from the same controlpoint', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, undefined, fixtures.targetId);
+      assert.isObject(pairs);
+      const forEachIndexed = R.addIndex(R.forEach);
+      const validate = forEachIndexed((p, idx, allP) => {
+        const thisEventTarget = p.target;
+        var nextEventTarget;
+        if (idx === allP.length-1) nextEventTarget = thisEventTarget;
+        else nextEventTarget = allP[idx+1]['target'];
+        assert.equal(thisEventTarget, nextEventTarget);
+      });
+      validate(pairs.red);
+      validate(pairs.blu);
+    });
+
+    it('should return an array with pairs all from the same button colour', function() {
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, undefined, fixtures.targetId);
+      assert.isObject(pairs);
+      const forEachIndexed = R.addIndex(R.forEach);
+      const validate = forEachIndexed((p, idx, allP) => {
+        const eventColor = R.compose(
+          R.nth(2),
+          R.match(/(press|release)_(\w{3})/),
+          R.prop('action')
+        );
+        const thisEventColor = eventColor(p);
+        var nextEventColor;
+        if (idx === allP.length-1) nextEventColor = eventColor(p);
+        else nextEventColor = eventColor(allP[idx+1]);
+        assert.equal(thisEventColor, nextEventColor);
+      });
+      validate(pairs.red);
+      validate(pairs.blu);
+    });
+
+    it('should respect the timePointer parameter', function() {
+      const tp = 1546277315659;
+      const pairs = gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, tp, fixtures.targetId);
+      assert.lengthOf(pairs.red, 2);
+      assert.lengthOf(pairs.blu, 4);
+    });
+
+    it('should throw if not receiving a targetId', function() {
+      assert.throws(() => {
+        gameStats.pairify(fixtures.largeControlpointPressData, fixtures.gameSettings, fixtures.timePointer);
+      }, /targetId/);
+    });
+
   });
 
 });

@@ -5,8 +5,6 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
 
-        console.log('ima timeline hook!')
-
         const type = context.data.type || 'timeline';
         const action = context.data.action || 'unknown!';
         const source = context.data.source || 'unknown!';

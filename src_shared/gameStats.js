@@ -1,5 +1,11 @@
 const R = require('ramda');
 const moment = require('moment');
+const chalk = require('chalk');
+const columns = require('cli-columns');
+
+
+const isOdd = R.modulo(R.__, 2);
+const isEven = R.complement(isOdd);
 
 /*
  * GameStats
@@ -501,16 +507,21 @@ const cleansedPressData = (pressData, gameSettings, timePointer) => {
  * pairify
  * Construct an array of pairs of press/release events
  */
-const pairify = (pressData, gameSettings, timePointer) => {
+const pairify = (pressData, gameSettings, timePointer, targetId) => {
   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+  if (typeof targetId === 'undefined') throw new Error('targetId passed to pairify is undefined!')
 
   var processIndex = 0;
   var pairs = [];
-  var counter = 0;
 
+  const cpd = cleansedPressData(tl, game, tp);
+  const targetFilter = R.propEq('targetId', targetId);
+  const targetPressData = R.filter(targetFilter, cpd);
 
-  const isPressEvent = R.propSatisfies(R.test(/^press_\w{3}$/), 'action');
-  const isReleaseEvent = R.propSatisfies(R.test(/^release_\w{3}$/), 'action');
+  const isBluPressEvent = R.propSatisfies(R.test(/^press_blu$/), 'action');
+  const isBluReleaseEvent = R.propSatisfies(R.test(/^release_blu$/), 'action');
+  const isRedPressEvent = R.propSatisfies(R.test(/^press_red$/), 'action');
+  const isRedReleaseEvent = R.propSatisfies(R.test(/^release_red$/), 'action');
 
 
 
@@ -518,53 +529,95 @@ const pairify = (pressData, gameSettings, timePointer) => {
   // take a slice of the tl array, find a release action event
   // repeat until processIndex equals the size of the original timeline
 
-  const findNextPressEvent = (timeline) => {
+  const findNextPressEvent = (colour, timeline) => {
     // console.log(timeline.length)
     // console.log(timeline)
-    const idx = R.findIndex(isPressEvent, timeline);
+    var idx;
+    if (colour === 'blu')
+      idx = R.findIndex(isBluPressEvent, timeline);
+    else
+      idx = R.findIndex(isRedPressEvent, timeline);
     const evt = timeline[idx];
     return { idx, evt };
   }
 
-  const findNextReleaseEvent = (timeline) => {
-    const idx = R.findIndex(isReleaseEvent, timeline);
+  const findNextReleaseEvent = (colour, timeline) => {
+    var idx
+    if (colour === 'blu')
+      idx = R.findIndex(isBluReleaseEvent, timeline);
+    else
+      idx = R.findIndex(isRedReleaseEvent, timeline);
     const evt = timeline[idx];
     return { idx, evt };
   }
 
-  while (processIndex < tl.length) {
-    var res;
-    if (pairs.length % 2 === 0) {
-      res = findNextPressEvent(
-        R.slice(
-          R.add(processIndex, 0),
-          R.length(tl),
-          tl
-        )
-      );
-    }
-    else {
-      res = findNextReleaseEvent(
-        R.slice(
-          R.add(processIndex, 0),
-          R.length(tl),
-          tl
-        )
-      );
+
+  const getPair = (colour, pressData) => {
+
+    const getPressEvent = (c, pIdx) => {
+      if (pair.length % 2 === 0) {
+        res = findNextPressEvent(
+          c,
+          R.slice(
+            pIdx,
+            R.length(targetPressData),
+            targetPressData
+          )
+        );
+      }
+      else {
+        res = findNextReleaseEvent(
+          c,
+          R.slice(
+            pIdx,
+            R.length(targetPressData),
+            targetPressData
+          )
+        );
+      }
+      return res;
+    };
+
+    var processIndex = 0;
+    var pair = [];
+    while (processIndex < tl.length) {
+      const res = getPressEvent(colour, processIndex);
+      if (res.idx === -1) break;
+      processIndex += res.idx;
+      pair.push(res.evt);
     }
 
-    if (res.idx === -1) break;
-
-    processIndex += res.idx;
-    pairs.push(res.evt);
-    counter += 1;
+    return pair;
   }
 
+  const getPairs = (pressData) => {
+    const redPairs = getPair('red', targetPressData);
+    const bluPairs = getPair('blu', targetPressData);
+    return {
+      red: redPairs,
+      blu: bluPairs
+    }
+  }
+
+
+  const ps = getPairs(targetPressData);
   // R.forEach((p) => {
-  //   console.log(`action:${R.prop('action', p)}, createdAt:${R.prop('createdAt', p)}`)
-  // }, pairs);
-
-  return pairs;
+  //   const values = [
+  //       `${chalk.red('action:')}${R.prop('action', p)}`,
+  //       `${chalk.red('createdAt:')}${R.prop('createdAt', p)}`,
+  //       `${chalk.red('target:')}${R.prop('target', p)}`
+  //   ];
+  //   console.log(columns(values));
+  // }, ps.red);
+  // R.forEach((p) => {
+  //   const values = [
+  //       `${chalk.blue('action:')}${R.prop('action', p)}`,
+  //       `${chalk.blue('createdAt:')}${R.prop('createdAt', p)}`,
+  //       `${chalk.blue('target:')}${R.prop('target', p)}`
+  //   ];
+  //   console.log(columns(values));
+  // }, ps.blu)
+  return ps;
 
 
 };
@@ -586,7 +639,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
   if (R.isNil(targetId)) throw new Error('targetId is undefined!');
   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
   const tid = targetId;
-  const cpd = cleansedPressData(tl, game, tp);
+  const pairs = pairify(tl, game, tp, tid);
   const captureRate = game.captureRate;
 
   const isRed = R.compose(R.test(/_red$/), R.prop('action'));
@@ -637,7 +690,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
     const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
     const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } }
-    console.log(`|${color()}| action:${thisPdi.action}, nextEventMoment:${nextEventMoment.valueOf()}, heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgressSinceLastStep}, redProg:${redProgressSinceLastStep}`)
+    //console.log(`|${color()}| action:${thisPdi.action}, nextEventMoment:${nextEventMoment.valueOf()}, heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgressSinceLastStep}, redProg:${redProgressSinceLastStep}`)
 
     const computor = (progressOriginal, progressDelta) => {
       const capPercentage = R.ifElse(
@@ -678,7 +731,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
   };
 
   const indexedReduce = R.addIndex(R.reduce);
-  const result = indexedReduce(reducer, {blu: 0, red: 0}, cpd);
+  const result = indexedReduce(reducer, {blu: 0, red: 0}, pairs);
   // result.blu = indexedReduce(reducer, 0, bluData);
   // result.red = indexedReduce(reducer, 0, redData);
 
