@@ -546,6 +546,7 @@ describe('gameStats', function() {
     const tid = '5AEVScKzvclsCpeR';
     it('should return an object with red and blu progress integers between 0 and 100', function() {
       const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
+      console.log(progress)
       assert.isObject(progress);
       assert.isNumber(progress.red);
       assert.isNumber(progress.blu);
@@ -748,5 +749,102 @@ describe('gameStats', function() {
     });
 
   });
+
+  describe('pad', function() {
+    it('should ensure input string outputs as default 8 spaces', function() {
+      const output = gameStats.pad('hi');
+      assert.lengthOf(output, 8);
+    });
+
+    it('should accept a parameter n which ensures output string is n length', function() {
+      const output = gameStats.pad(20, 'hello');
+      assert.lengthOf(output, 20);
+    });
+    it('should throw if no params received', function() {
+      assert.throws(() => {
+        gameStats.pad();
+      });
+    });
+    it('should work on numbers', function() {
+      const output = gameStats.pad(20, 12);
+      assert.lengthOf(output, 20);
+    })
+  });
+
+  describe('capPercentage', function() {
+    it('should not let a number go above 100', function() {
+      const capped = gameStats.capPercentage(500);
+      assert.equal(capped, 100);
+    });
+    it('should not let a number go below 0', function() {
+      const capped = gameStats.capPercentage(-200);
+      assert.equal(capped, 0);
+    });
+  });
+
+  describe('teamProgressCompute()', function() {
+    it('should subtract the controlling team progress when opposing team holds button', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamProgressCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 50,
+        blu: 0
+      });
+    });
+
+    it('should increment the capturing teams progress when the opposing teams progress is 0', function() {
+      const origin = {
+        red: 0,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamProgressCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 50
+      });
+    });
+
+    it('should flip the score when a delta is 200%', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 200,
+        blu: 0
+      };
+      const score = gameStats.teamProgressCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 100
+      });
+    });
+  });
+  //
+  // describe('gainingTeamCompute()', function() {
+  //   xit('should be a pimp', function() {
+  //     const origin = {
+  //       red: 100,
+  //       blu: 0
+  //     };
+  //     const delta = {
+  //       red: 0,
+  //       blu: 50
+  //     };
+  //     const score = gameStats.gainingTeamCompute('red', origin, delta);
+  //     assert.equals(capped, 0);
+  //   });
+  // });
 
 });

@@ -622,6 +622,37 @@ const pairify = (pressData, gameSettings, timePointer, targetId) => {
 
 };
 
+const teamProgressCompute = (origin, delta) => {
+  return {
+    red: capPercentage((origin.blu === 0) ? delta.red : (origin.red-delta.blu)),
+    blu: capPercentage((origin.red === 0) ? delta.blu : (origin.blu-delta.blu))
+  }
+}
+//
+// const loosingTeamCompute = (colour, origin, delta) => {
+//   if (colour === 'red') {
+//     return capPercentage(origin.red-delta.blu);
+//   }
+//   else if (colour === 'blu') {
+//     return capPercentage(origin.blu-delta.red);
+//   }
+// };
+//
+// const gainingTeamCompute = (colour, origin, delta) => {
+//   if (colour === 'red') {
+//     return capPercentage((origin.blu === 0) ? delta.red : 0);
+//   }
+//   else if (colour === 'blu') {
+//     return capPercentage((origin.red === 0) ? delta.blu : 0);
+//   }
+// };
+
+const capPercentage = (number) => {
+  if (number > 100) number = 100;
+  if (number < 0) number = 0;
+  return number
+}
+
 /**
  * calculatePressProgress
  *
@@ -639,14 +670,44 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
   if (R.isNil(targetId)) throw new Error('targetId is undefined!');
   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
   const tid = targetId;
-  const pairs = pairify(tl, game, tp, tid);
+  const ps = pairify(tl, game, tp, tid);
+  const pairs = R.sortBy(R.prop('createdAt'), R.concat(ps.red, ps.blu));
   const captureRate = game.captureRate;
 
   const isRed = R.compose(R.test(/_red$/), R.prop('action'));
   const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
-  const isOdd = R.modulo(R.__, 2);
 
 
+  const progressComputer = (progressOriginal, progressDelta) => {
+
+    const redOrigin = progressOriginal.red;
+    const bluOrigin = progressOriginal.blu;
+    const redDelta = progressDelta.red;
+    const bluDelta = progressDelta.blu;
+
+    // origin { red: 100, blu: 0 }
+    // delta  { red: 0,  blu: 50 }
+    // answer { red: 50, blu: 0 }
+    // answer = { red: (origin.red-delta.blu), blu: ((origin.red === 0) ? delta.blu : 0) }
+
+
+
+
+    // origin { red: 0,  blu: 100 }
+    // delta  { red: 50, blu: 0 } gainingTeam: red
+    // answer { red: 0,  blu: 50 }
+
+    // origin { red: 0,  blu: 50 }
+    // delta  { red: 50, blu: 0 } gainingTeam: red
+    // answer { red: 100,  blu: 0 }
+
+    const teamProgress = teamProgressCompute(progressOriginal, progressDelta);
+
+    return {
+      redProgress: teamProgress.red,
+      bluProgress: teamProgress.blu
+    };
+  }
 
 
 
@@ -689,24 +750,30 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     //console.log(R.multiply(R.divide(redHeldDuration, captureRate), 100))
     const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
     const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
-    const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } }
-    //console.log(`|${color()}| action:${thisPdi.action}, nextEventMoment:${nextEventMoment.valueOf()}, heldDur:${heldDuration} redHeldDur:${redHeldDuration}, bluHeldDuration:${bluHeldDuration}, caprate:${captureRate}, bluProg:${bluProgressSinceLastStep}, redProg:${redProgressSinceLastStep}`)
+    const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } };
 
-    const computor = (progressOriginal, progressDelta) => {
-      const capPercentage = R.ifElse(
-        R.flip(R.gt)(100),
-        R.always(100),
-        R.identity
-      );
-      const redOrigin = progressOriginal.red;
-      const bluOrigin = progressOriginal.blu;
-      const redDelta = progressDelta.red;
-      const bluDelta = progressDelta.blu;
-      const redProgress = (redDelta) ? capPercentage(redOrigin + redDelta) : 0;
-      const bluProgress = (bluDelta) ? capPercentage(bluOrigin + bluDelta) : 0;
+    console.log(`${chalk.white('color:')}${color() === 'Red' ? chalk.red(pad(4, 'Red')) : chalk.blue(pad(4, 'Blue'))} `+
+                `${chalk.white('action:')}${R.prop('action', thisPdi)} `+
+                `${chalk.white('thisEventMoment:')}${thisEventMoment.valueOf()} `+
+                `${chalk.white('nextEventMoment:')}${nextEventMoment.valueOf()} `+
+                `${chalk.white('heldDur:')}${pad(5, heldDuration)} `+
+                `${chalk.red('redHeldDur:')}${pad(5, redHeldDuration)} `+
+                `${chalk.blue('bluHeldDur:')}${pad(5, bluHeldDuration)} `+
+                `${chalk.red('redProg:')}${pad(3, redProgressSinceLastStep)} `+
+                `${chalk.blue('bluProg:')}${pad(3, bluProgressSinceLastStep)}`+
+                `${chalk.white('originalRed:')}${pad(3, acc.red)}`+
+                `${chalk.white('originalBlu:')}${pad(3, acc.blu)}`
+              );
 
-      return { redProgress, bluProgress };
-    }
+    //
+    // console.log(
+    //   columns(values, {
+    //     width: 70,
+    //     newline: '',
+    //     character: ' ',
+    //     padding: 1
+    //   }
+    // ));
 
     const original = {
       red: acc.red,
@@ -719,7 +786,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
       blu: bluProgressSinceLastStep
     }
 
-    const { redProgress, bluProgress } = computor(original, delta);
+    const { redProgress, bluProgress } = progressComputer(original, delta);
     //console.log(`${redProgress}, ${bluProgress}`);
 
     return {
@@ -732,8 +799,6 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
 
   const indexedReduce = R.addIndex(R.reduce);
   const result = indexedReduce(reducer, {blu: 0, red: 0}, pairs);
-  // result.blu = indexedReduce(reducer, 0, bluData);
-  // result.red = indexedReduce(reducer, 0, redData);
 
 
   // look at a press/release pair
@@ -779,6 +844,24 @@ const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
   return R.map(win, prunedUniqTargetIds);
 };
 
+const pad = (amt, txt) => {
+  if (typeof amt === 'undefined') throw new Error('pad requires >=1 parameter');
+  const doPad = (acc, char) => {
+    return R.concat(acc, ' ');
+  };
+  if (typeof txt === 'undefined') {
+    txt = amt;
+    amt = 8;
+  };
+  txt = txt.toString();
+  const txtLength = R.length(txt);
+  if (txtLength < amt) {
+    const addThisMany = (amt-txtLength);
+    const finalTxt = R.reduce(doPad, txt, R.times(R.identity, addThisMany));
+    return finalTxt;
+  }
+  return txt;
+};
 
 module.exports = {
   install(Vue, opts) {
@@ -806,6 +889,9 @@ module.exports = {
     Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
     Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
     Vue.prototype.$gameStats.pairify = pairify;
+    Vue.prototype.$gameStats.capPercentage = capPercentage;
+    Vue.prototype.$gameStats.pad = pad;
+    Vue.prototype.$gameStats.teamProgressCompute = teamProgressCompute;
   },
   gt,
   cleansedTimeline,
@@ -829,5 +915,8 @@ module.exports = {
   calculatePressProgress,
   calculateDevicesProgress,
   buildPressParameters,
-  pairify
+  pairify,
+  pad,
+  capPercentage,
+  teamProgressCompute,
 }
