@@ -623,9 +623,23 @@ const pairify = (pressData, gameSettings, timePointer, targetId) => {
 };
 
 const teamProgressCompute = (origin, delta) => {
+  // origin { red: 100, blu: 0 }
+  // delta  { red: 0,  blu: 200 }
+  // answer { red: 0, blu: 100 }
+  // answer = { red: (origin.red-delta.blu), blu: capPercentage(origin.blu + delta.blu) }
+
+  // origin { red: 0,  blu: 100 }
+  // delta  { red: 50, blu: 0 } gainingTeam: red
+  // answer { red: 0,  blu: 50 }
+
+  // origin { red: 0,  blu: 50 }
+  // delta  { red: 50, blu: 0 } gainingTeam: red
+  // answer { red: 100,  blu: 0 }
+
   return {
-    red: capPercentage((origin.blu === 0) ? delta.red : (origin.red-delta.blu)),
-    blu: capPercentage((origin.red === 0) ? delta.blu : (origin.blu-delta.blu))
+    //                               v- gaining the point       v- losing the point
+    red: capPercentage((delta.red) ? (origin.red + delta.red) : (origin.red-delta.blu)),
+    blu: capPercentage((delta.blu) ? (origin.blu + delta.blu) : (origin.blu-delta.blu))
   }
 }
 //
@@ -685,21 +699,7 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     const redDelta = progressDelta.red;
     const bluDelta = progressDelta.blu;
 
-    // origin { red: 100, blu: 0 }
-    // delta  { red: 0,  blu: 50 }
-    // answer { red: 50, blu: 0 }
-    // answer = { red: (origin.red-delta.blu), blu: ((origin.red === 0) ? delta.blu : 0) }
 
-
-
-
-    // origin { red: 0,  blu: 100 }
-    // delta  { red: 50, blu: 0 } gainingTeam: red
-    // answer { red: 0,  blu: 50 }
-
-    // origin { red: 0,  blu: 50 }
-    // delta  { red: 50, blu: 0 } gainingTeam: red
-    // answer { red: 100,  blu: 0 }
 
     const teamProgress = teamProgressCompute(progressOriginal, progressDelta);
 

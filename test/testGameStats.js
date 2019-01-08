@@ -815,14 +815,14 @@ describe('gameStats', function() {
       });
     });
 
-    it('should flip the score when a delta is 200%', function() {
+    it('should flip the score when red origin is 100 but then blu comes along with a delta of 200', function() {
       const origin = {
         red: 100,
         blu: 0
       };
       const delta = {
-        red: 200,
-        blu: 0
+        red: 0,
+        blu: 200
       };
       const score = gameStats.teamProgressCompute(origin, delta);
       assert.deepEqual(score, {
