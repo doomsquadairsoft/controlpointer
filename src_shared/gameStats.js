@@ -636,11 +636,37 @@ const teamProgressCompute = (origin, delta) => {
   // delta  { red: 50, blu: 0 } gainingTeam: red
   // answer { red: 100,  blu: 0 }
 
-  return {
-    //                               v- gaining the point       v- losing the point
-    red: capPercentage((delta.red) ? (origin.red + delta.red) : (origin.red-delta.blu)),
-    blu: capPercentage((delta.blu) ? (origin.blu + delta.blu) : (origin.blu-delta.blu))
+  const gainingAlgo = (color, origin, delta) => {
+
+    if (color === 'red')
+      if (origin.blu - delta.red < 0)
+        return (origin.red + delta.red - origin.blu);
+
+    if (color === 'blu')
+      if (origin.red - delta.blu < 0)
+        return (origin.blu + delta.blu - origin.red);
+
+    return 0;
+  };
+
+  const losingAlgo = (color, origin, delta) => {
+    if (color === 'red') return (origin.red-delta.blu);
+    if (color === 'blu') return (origin.blu-delta.red);
+    return 0;
   }
+
+  return {
+    red: capPercentage(
+      (delta.red) ?
+      gainingAlgo('red', origin, delta) :
+      losingAlgo('red', origin, delta)
+    ),
+    blu: capPercentage(
+      (delta.blu) ?
+      gainingAlgo('blu', origin, delta) :
+      losingAlgo('blu', origin, delta)
+    )
+  };
 }
 //
 // const loosingTeamCompute = (colour, origin, delta) => {
@@ -665,6 +691,65 @@ const capPercentage = (number) => {
   if (number > 100) number = 100;
   if (number < 0) number = 0;
   return number
+}
+
+
+const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
+  const lastGameStatus = R.prop('gameStatus', lastStepMetadata);
+  const isLifeCycleEvent = R.test(/start|pause|stop/, R.prop('action', R.__));
+  const isStopEvent = R.equals('stop', R.prop('action', R.__));
+  const isStartEvent = R.equals('start', R.prop('action', R.__));
+  const isPauseEvent = R.equals('pause', R.prop('action', R.__));
+
+  // if this
+  if (moment(lastStepMetadata.gameEndTime).isAfter(moment())) return { msg: 'over', code: 2};
+  // if last evt action was stop and this event action is not a lifecycle action, return stopped
+  if (
+    R.and(
+      R.propEq('msg', 'stopped', lastGameStatus),
+      R.not(isLifeCycleEvent(thisStepEvent))
+    )
+  ) return lastGameStatus;
+  if (isStartEvent(thisStepEvent)) return { msg: 'running', code: 0 };
+  if (isPauseEvent(thisStepEvent)) return { msg: 'paused', code: 1 };
+  if (isStopEvent(thisStepEvent)) return { msg: 'stopped', code: 3 };
+};
+
+
+const calculateMetadata = (timeline, gameSettings, timePointer) => {
+  const { tl, game, tp } = buildParameters(timeline, gameSettings, timePointer);
+
+  // things we compute as we go along
+  // * gameStatus (started, stopped, paused, over)
+  // * remainingGameTime
+  // * gameStartTime
+  // * gamePausedDuration
+  // * gameElapsedDuration
+  // * gameRunningDuration
+  // * gameEndTime
+  // * pressProgress
+  // * devicesProgress
+
+  const isTimepointerAfter = (acc, evt) => { R.gt(timePointer, R.prop('createdAt', evt)) };
+  const initialAccumulator = {
+    gameStatus: { msg: 'stopped', code: 3 },
+    remainingGameTime: 0,
+    gameStartTime: moment().valueOf(),
+    gamePausedDuration: 0,
+    gameElapsedDuration: 0,
+    gameRunningDuration: 0,
+    gameEndTime: 0,
+    devicesProgress: [],
+  };
+
+  // Sequentially turn events into metadata
+  const _calculateGameMetadata = (acc, evt) => {
+      acc.remainingGameTime = moment(acc.remainingGameTime).subtract(moment(R.prop('createdAt', evt)));
+      acc.gameStatus = deriveGameStatus(acc, R.prop('gameStatus', evt));
+      R.prop('action', evt);
+  };
+
+  return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialAccumulator, tl);
 }
 
 /**
@@ -698,8 +783,6 @@ const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) 
     const bluOrigin = progressOriginal.blu;
     const redDelta = progressDelta.red;
     const bluDelta = progressDelta.blu;
-
-
 
     const teamProgress = teamProgressCompute(progressOriginal, progressDelta);
 
@@ -892,6 +975,7 @@ module.exports = {
     Vue.prototype.$gameStats.capPercentage = capPercentage;
     Vue.prototype.$gameStats.pad = pad;
     Vue.prototype.$gameStats.teamProgressCompute = teamProgressCompute;
+    Vue.prototype.$gameStats.calculateMetadata = calculateMetadata;
   },
   gt,
   cleansedTimeline,
@@ -919,4 +1003,5 @@ module.exports = {
   pad,
   capPercentage,
   teamProgressCompute,
+  calculateMetadata,
 }

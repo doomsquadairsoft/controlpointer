@@ -9,6 +9,7 @@ module.exports = {
   stoppedTimeline: require('./stoppedTimeline'),
   runningTimeline: require('./runningTimeline'),
   finishedTimeline: require('./finishedTimeline'),
+  stoplessTimeline: require('./stoplessTimeline'),
   simpleGameSettings: require('./simpleGameSettings'),
   centuryGameSettings: require('./centuryGameSettings'),
   invalidGameSettings: require('./invalidGameSettings'),

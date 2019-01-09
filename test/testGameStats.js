@@ -546,11 +546,10 @@ describe('gameStats', function() {
     const tid = '5AEVScKzvclsCpeR';
     it('should return an object with red and blu progress integers between 0 and 100', function() {
       const progress = gameStats.calculatePressProgress(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
-      console.log(progress)
       assert.isObject(progress);
       assert.isNumber(progress.red);
       assert.isNumber(progress.blu);
-      assert.equal(progress.red, 20, 'red value is unexpected'); // 5437 / 5000 = 1.0874
+      assert.equal(progress.red, 83, 'red value is unexpected'); // 5437 / 5000 = 1.0874
       assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
     });
 
@@ -583,7 +582,7 @@ describe('gameStats', function() {
     it('should ignore duplicate press or release actions', function() {
       const progress = gameStats.calculatePressProgress(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
-      assert.equal(progress.red, 20, 'red value is unexpected'); // 5437 / 5000 = 1.0874
+      assert.equal(progress.red, 83, 'red value is unexpected'); // 5437 / 5000 = 1.0874
       assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
     });
 
@@ -592,6 +591,27 @@ describe('gameStats', function() {
       assert.isObject(progress);
       const validate = (itm) => { assert.notPropertyVal(itm, 'action', 'stop'); };
       R.forEach(validate, progress);
+    });
+
+    it('should respect a cap_red admin override', function() {
+      const tp = 1546127512637; // time point of a cap_red on controlpoint asdf
+      const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
+      const progress = gameStats.calculatePressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
+      assert.isObject(progress);
+      console.log(progress)
+      assert.equal(progress.red, 100);
+      assert.equal(progress.blu, 0);
+    });
+
+    it('should respect a cap_blu admin override', function() {
+      const tp = 1546127433580; // time point of a cap_blu on controlpoint asdf
+      const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
+      const progress = gameStats.calculatePressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
+      assert.isObject(progress);
+      console.log(progress)
+
+      assert.equal(progress.red, 0);
+      assert.equal(progress.blu, 100);
     });
   });
 
@@ -830,6 +850,24 @@ describe('gameStats', function() {
         blu: 100
       });
     });
+
+    it('should be a gentle bb', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 125
+      };
+      const score = gameStats.teamProgressCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 25
+      });
+    });
+
+
   });
   //
   // describe('gainingTeamCompute()', function() {
@@ -846,5 +884,55 @@ describe('gameStats', function() {
   //     assert.equals(capped, 0);
   //   });
   // });
+
+  describe('calculateMetadata()', function() {
+
+    it('should compute the answer to life, the universe, and everything.', function() {
+      const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      assert.isObject(metadata);
+      assert.isObject(metadata.gameStatus);
+      assert.isString(metadata.gameStatus.msg);
+      assert.isNumber(metadata.gameStatus.code);
+      assert.isNumber(metadata.remainingGameTime);
+      assert.isNumber(metadata.gameStartTime);
+      assert.isNumber(metadata.gamePausedDuration);
+      assert.isNumber(metadata.gameElapsedDuration);
+      assert.isNumber(metadata.gameRunningDuration);
+      assert.isNumber(metadata.gameEndTime);
+      assert.isArray(metadata.devicesProgress);
+      assert.lengthOf(metadata.devicesProgress, 2);
+      const validate = (t) => {
+        assert.isObject(t);
+        assert.isNumber(t.blu);
+        assert.isNumber(t.red);
+        assert.isBelow(t.blu, 101, 'blu is too high, should be 0-100');
+        assert.isBelow(t.red, 101, 'red is too high, should be 0-100');
+        assert.isAbove(t.blu, 0, 'blu is too low, should be 0-100');
+        assert.isAbove(t.red, 0, 'red is too low, should be 0-100');
+        assert.isString(t.targetId, 'returned progress object should have a targetId prop');
+      }
+      R.forEach(validate, metadata.devicesProgress);
+    });
+
+    xit('should respect the timePointer parameter', function() {    });
+
+    it('should know that at n, blu/red progress was 100/0, remaining game time was n, and gameStatus was running.', function() {
+      const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
+
+    })
+  });
+
+  describe('deriveGameStatus()', function() {
+    it('should accept lastStepMetadata and thisStepEvent as arguments', function() {
+      const gameStatus = gameStats.deriveGameStatus();
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveGameStatus();
+      });
+    });
+
+  })
 
 });

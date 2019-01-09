@@ -26,7 +26,10 @@ sauce: https://stackoverflow.com/a/46337736/1004931
   </v-flex> <!-- /.selectableControlPoint  -->
   <div @touchstart="catchDoubleTaps" class="invis" :class="{ 'fullscreen-container': isFullscreen }">
     <div class="fullscreen-header">
-      <v-progress-linear v-model="bluProgress" height="25" color="blue" background-color="grey"></v-progress-linear>
+      <div class="stackhere">
+        <v-progress-linear class="samespace" v-model="bluProgress" height="25" color="blue" background-opacity="0"></v-progress-linear>
+        <v-progress-linear class="samespace flipped" v-model="redProgress" height="25" color="red" background-opacity="0"></v-progress-linear>
+      </div>
       <v-progress-linear :class="{'hidden': !isBtnHeld }" :indeterminate="true" color="purple"></v-progress-linear>
     </div>
     <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
@@ -51,8 +54,8 @@ import {
   mapMutations
 } from 'vuex'
 
-import store from '@/store';
-import _ from 'lodash';
+//import store from '@/store';
+//import _ from 'lodash';
 import Vue from 'vue'
 
 export default {
@@ -118,33 +121,9 @@ export default {
   computed: {
     isBtnHeld() {
       return (this.isBluHeld || this.isRedHeld) ? true : false
-    },
-    controllingColor() {
-      if (this.bluProgress < 100 && this.redProgress < 100) {
-        return 'grey';
-      } else if (this.redProgress >= 100 && this.bluProgress === 0) {
-        return 'red';
-      } else if (this.bluProgress >= 100 && this.redProgress === 0) {
-        return 'blue';
-      }
-    },
-    controlledByTeam() {
-      if (this.bluProgress < 100 && this.redProgress < 100) {
-        return 'Uncontrolled';
-      } else if (this.redProgress >= 100 && this.bluProgress === 0) {
-        return 'Controlled by Red Team';
-      } else if (this.bluProgress >= 100 && this.redProgress === 0) {
-        return 'Controlled by Blu Team';
-      }
     }
   },
   methods: {
-    updateServer () {
-      console.log('update tick')
-      if (this.isBluHeld) {
-        console.log('updating the server');
-      }
-    },
     ...mapGetters('devices', {
       getCopy: 'getCopy'
     }),
@@ -152,31 +131,6 @@ export default {
       if (!this.isFullscreen) document.body.classList.add('noscroll')
       else document.body.classList.remove('noscroll')
       this.isFullscreen = !this.isFullscreen;
-    },
-    incrementBluProgress() {
-      const device = store.state.devices.keyedById[this._id];
-      const old = device.bluProgress;
-      const neu = old + 25;
-      const id = device._id;
-
-      this.patchDevice([id, {
-        bluProgress: neu
-      }])
-
-    },
-    incrementRedProgress() {
-      const device = store.state.devices.keyedById[this._id];
-      const old = device.redProgress;
-      const neu = old + 25;
-      const id = device._id;
-
-      this.patchDevice([id, {
-        redProgress: neu
-      }])
-    },
-    advanceBlu() {
-      console.log('advancing blu')
-      this.test -= 10;
     },
     catchDoubleTaps(evt) {
       if (evt.touches.length < 2) {
@@ -224,55 +178,6 @@ export default {
         targetId: this._id
       }, {});
     },
-    changeControllingTeamBlue: function() {
-      this.patchDevice([
-        this._id, {
-          bluProgress: 100,
-          redProgress: 0
-        }, {}
-      ]);
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "cap_blu",
-        source: "admin",
-        target: this.did,
-        targetId: this._id
-      }, {});
-      //store.dispatch('changeControllingTeamBlue')
-      //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
-    },
-    changeControllingTeamRed: function() {
-      this.patchDevice([
-        this._id, {
-          bluProgress: 0,
-          redProgress: 100
-        }, {}
-      ]);
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "cap_red",
-        source: "admin",
-        target: this.did,
-        targetId: this._id
-      }, {});
-      //this.patchDevice([this._id, {redProgress: 100, bluProgress: 0}, undefined])
-    },
-    changeControllingTeamUnc: function() {
-      this.patchDevice([
-        this._id, {
-          bluProgress: 0,
-          redProgress: 0
-        }, {}
-      ]);
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "cap_unc",
-        source: "admin",
-        target: this.did,
-        targetId: this._id
-      }, {});
-      //this.patchDevice([this._id, {redProgress: 0, bluProgress: 0}, undefined])
-    },
     deleteDevice: function() {
       if (this.deletable) {
         this.removeDevice(this._id)
@@ -304,6 +209,20 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.stackhere {
+  position: relative;
+  height: 50px;
+}
+.samespace {
+  position: absolute;
+}
+.flipped {
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
 .icon {
   height: 1em;
 }

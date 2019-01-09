@@ -6,8 +6,9 @@
   <v-layout column align-space-around>
     <v-card>
       <v-container>
-        <d3-timeline :data="timelineData" :options="timelineOptions" width="100%" height="300px">
-        </d3-timeline>
+        @todo insert timeline when game is over
+        <!-- <d3-timeline :data="timelineData" :options="timelineOptions" width="100%" height="300px">
+        </d3-timeline> -->
       </v-container>
     </v-card>
   </v-layout>

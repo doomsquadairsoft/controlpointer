@@ -35,6 +35,13 @@ module.exports = class Marshal {
       const activeTimeline = gameStats.activeTimeline(tl, game);
       const progress = gameStats.calculateDevicesProgress(tl, game);
       console.log(progress);
+
+      R.forEach((d) => {
+        if (typeof d.targetId !== 'undefined')
+          this.devicesService.patch(d.targetId, {bluProgress: d.blu, redProgress: d.red}, {});
+      }, progress);
+
+
     });
   }
 }

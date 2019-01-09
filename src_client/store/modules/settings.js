@@ -1,7 +1,7 @@
 export default {
     state: {
       theme: 'dark',
-      devmode: true
+      devmode: false
     },
     getters: {
         theme: state => {
