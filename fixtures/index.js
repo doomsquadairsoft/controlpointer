@@ -6,6 +6,8 @@ module.exports = {
   gameSettings: require('./gameSettings'),
   simpleTimeline: require('./simpleTimeline'),
   pausedTimeline: require('./pausedTimeline'),
+  pausedMetadata: require('./pausedMetadata'),
+  initialMetadata: require('./initialMetadata'),
   stoppedTimeline: require('./stoppedTimeline'),
   runningTimeline: require('./runningTimeline'),
   finishedTimeline: require('./finishedTimeline'),

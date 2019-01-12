@@ -695,11 +695,12 @@ const capPercentage = (number) => {
 
 
 const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameStatus requires two parameters');
   const lastGameStatus = R.prop('gameStatus', lastStepMetadata);
-  const isLifeCycleEvent = R.test(/start|pause|stop/, R.prop('action', R.__));
-  const isStopEvent = R.equals('stop', R.prop('action', R.__));
-  const isStartEvent = R.equals('start', R.prop('action', R.__));
-  const isPauseEvent = R.equals('pause', R.prop('action', R.__));
+  const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
+  const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
+  const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
+  const isPauseEvent = R.compose(R.equals('pause'), R.prop('action',));
 
   // if this
   if (moment(lastStepMetadata.gameEndTime).isAfter(moment())) return { msg: 'over', code: 2};
@@ -715,7 +716,79 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   if (isStopEvent(thisStepEvent)) return { msg: 'stopped', code: 3 };
 };
 
+const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
+  // rgt = endTime - now
+  const get = lastStepMetadata.gameEndTime;
+  const ca = thisStepEvent.createdAt;
+  return moment(ca).diff(moment(get)).valueOf();
+};
 
+
+const deriveGameStartTime= (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameStartTime requires two parameters');
+  return lastStepMetadata.gameStartTime;
+};
+
+const deriveGamePausedDuration= (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGamePausedDuration requires two parameters');
+  // if the game is paused, incr the pause metadata
+  const gpd = moment.duration(lastStepMetadata.gamePausedDuration);
+  const ca = moment(thisStepEvent.createdAt);
+  const mt = moment(lastStepMetadata.metadataTimestamp);
+  if (lastStepMetadata.gameStatus.msg === 'paused') {
+    return gpd.add(mt.diff(ca)).valueOf();
+  }
+  return gpd.valueOf();
+};
+
+const deriveGameElapsedDuration= (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameElapsedDuration requires two parameters');
+  const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
+  const mt = moment(lastStepMetadata.metadataTimestamp);
+  const ca = moment(thisStepEvent.createdAt);
+  const el = moment.duration(mt.diff(ca));
+  return ged.add(el).valueOf();
+};
+
+const deriveGameRunningDuration= (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameRunningDuration requires two parameters');
+  const grd = moment.duration(lastStepMetadata.gameRunningDuration);
+  const mt = moment(thisStepEvent.metadataTimestamp);
+  const ca = moment(thisStepEvent.createdAt);
+  const elapsed = moment.duration(mt.diff(ca));
+  const action = thisStepEvent.action;
+  const status = lastStepMetadata.gameStatus.msg;
+  if (status === 'running' && (action !== 'pause' && action !== 'stop'))
+    return grd.add(elapsed).valueOf();
+  return grd.valueOf();
+};
+
+const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameEndTime requires two parameters');
+  const lget = moment(lastStepMetadata.gameEndTime);
+  const gst = moment(lastStepMetadata.gameStartTime);
+  const gl = lastStepMetadata.gameLength;
+  const gpd = lastStepMetadata.gamePausedDuration;
+  const status = lastStepMetadata.gameStatus.msg;
+  if (lget.valueOf() === 0)
+    return gst.add(gl).add(gpd).valueOf();
+  if (status === 'paused')
+    return lget.add(elapsed).valueOf();
+  return lget.valueOf();
+};
+
+const deriveDevicesProgress= (lastStepMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveDevicesProgress requires two parameters');
+};
+
+
+
+/**
+ * calculateMetadata
+ *
+ * Calculates the state of the entire game based on the timeline, gameSettings, and timePointer it is given.
+ */
 const calculateMetadata = (timeline, gameSettings, timePointer) => {
   const { tl, game, tp } = buildParameters(timeline, gameSettings, timePointer);
 
@@ -731,7 +804,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // * devicesProgress
 
   const isTimepointerAfter = (acc, evt) => { R.gt(timePointer, R.prop('createdAt', evt)) };
-  const initialAccumulator = {
+  const initialMetadata = {
     gameStatus: { msg: 'stopped', code: 3 },
     remainingGameTime: 0,
     gameStartTime: moment().valueOf(),
@@ -749,7 +822,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
       R.prop('action', evt);
   };
 
-  return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialAccumulator, tl);
+  return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
 }
 
 /**
@@ -976,6 +1049,14 @@ module.exports = {
     Vue.prototype.$gameStats.pad = pad;
     Vue.prototype.$gameStats.teamProgressCompute = teamProgressCompute;
     Vue.prototype.$gameStats.calculateMetadata = calculateMetadata;
+    Vue.prototype.$gameStats.deriveGameStatus = deriveGameStatus;
+    Vue.prototype.$gameStats.deriveRemainingGameTime = deriveRemainingGameTime;
+    Vue.prototype.$gameStats.deriveGameStartTime = deriveGameStartTime;
+    Vue.prototype.$gameStats.deriveGamePausedDuration = deriveGamePausedDuration;
+    Vue.prototype.$gameStats.deriveGameElapsedDuration = deriveGameElapsedDuration;
+    Vue.prototype.$gameStats.deriveGameRunningDuration = deriveGameRunningDuration;
+    Vue.prototype.$gameStats.deriveGameEndTime = deriveGameEndTime;
+    Vue.prototype.$gameStats.deriveDevicesProgress = deriveDevicesProgress;
   },
   gt,
   cleansedTimeline,
@@ -1004,4 +1085,12 @@ module.exports = {
   capPercentage,
   teamProgressCompute,
   calculateMetadata,
+  deriveGameStatus,
+  deriveRemainingGameTime,
+  deriveGameStartTime,
+  deriveGamePausedDuration,
+  deriveGameElapsedDuration,
+  deriveGameRunningDuration,
+  deriveGameEndTime,
+  deriveDevicesProgress,
 }

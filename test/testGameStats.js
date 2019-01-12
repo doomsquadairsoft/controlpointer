@@ -886,7 +886,6 @@ describe('gameStats', function() {
   // });
 
   describe('calculateMetadata()', function() {
-
     it('should compute the answer to life, the universe, and everything.', function() {
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
       assert.isObject(metadata);
@@ -914,7 +913,12 @@ describe('gameStats', function() {
       R.forEach(validate, metadata.devicesProgress);
     });
 
-    xit('should respect the timePointer parameter', function() {    });
+    it('should respect the timePointer parameter', function() {
+      const tp = 1546127512637;
+      const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings, tp);
+      assert.equal(metadata.devicesProgress.hG9RdwPn1HH4bZLk.red, 100);
+      assert.equal(metadata.devicesProgress.hG9RdwPn1HH4bZLk.blu, 0);
+    });
 
     it('should know that at n, blu/red progress was 100/0, remaining game time was n, and gameStatus was running.', function() {
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
@@ -924,7 +928,10 @@ describe('gameStats', function() {
 
   describe('deriveGameStatus()', function() {
     it('should accept lastStepMetadata and thisStepEvent as arguments', function() {
-      const gameStatus = gameStats.deriveGameStatus();
+      const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isObject(gameStatus);
+      assert.isString(gameStatus.msg);
+      assert.isNumber(gameStatus.code);
     });
 
     it('should throw if not receiving two arguments', function() {
@@ -933,6 +940,120 @@ describe('gameStats', function() {
       });
     });
 
-  })
+    it('should return running', function() {
+      const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 0);
+      assert.equal(gameStatus.msg, 'running');
+    });
+  });
+
+  describe('deriveRemainingGameTime()', function() {
+    it('should return the remaining game time as a number', function() {
+      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNumber(remainingGameTime);
+      assert.equal(remainingGameTime, 1546134474574);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveRemainingGameTime();
+      });
+    });
+  });
+
+  describe('deriveGameStartTime()', function() {
+    it('should return the game start time as a ms since epoch number', function() {
+      const gameStartTime = gameStats.deriveGameStartTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNumber(gameStartTime);
+      assert.equal(gameStartTime, fixtures.initialMetadata.gameStartTime);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveGameStartTime();
+      });
+    });
+  });
+
+
+  describe('deriveGamePausedDuration()', function() {
+    it('should return the ms that the game has been paused for (running time excluded)', function() {
+      const gamePausedDuration = gameStats.deriveGamePausedDuration(fixtures.pausedMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gamePausedDuration);
+      assert.equal(gamePausedDuration, 950613463);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.gamePausedDuration();
+      });
+    });
+  });
+
+  describe('deriveGameElapsedDuration()', function() {
+    it('should return the ms that the game has been running for (paused time included)', function() {
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gameElapsedDuration);
+      assert.equal(gameElapsedDuration, 950613463);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.gameElapsedDuration();
+      });
+    });
+  });
+
+  describe('deriveGameRunningDuration()', function() {
+    it('should return the ms that the game has been running for (paused time excluded)', function() {
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 0);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.gameRunningDuration();
+      });
+    });
+  });
+
+
+  describe('deriveGameEndTime()', function() {
+    it('should return the timestamp of the time at which the game will end', function() {
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gameEndTime);
+      assert.equal(gameEndTime, 1547079620007);
+    });
+
+    it('should return the timestamp of the time at which the game will end', function() {
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNumber(gameEndTime);
+      assert.equal(gameEndTime, 1547079620007);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveGameEndTime();
+      });
+    });
+  });
+
+
+  describe('deriveDevicesProgress()', function() {
+    it('should return an array of device progress objects', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 0);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveDevicesProgress();
+      });
+    });
+  });
+
 
 });
