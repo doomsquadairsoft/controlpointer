@@ -869,21 +869,6 @@ describe('gameStats', function() {
 
 
   });
-  //
-  // describe('gainingTeamCompute()', function() {
-  //   xit('should be a pimp', function() {
-  //     const origin = {
-  //       red: 100,
-  //       blu: 0
-  //     };
-  //     const delta = {
-  //       red: 0,
-  //       blu: 50
-  //     };
-  //     const score = gameStats.gainingTeamCompute('red', origin, delta);
-  //     assert.equals(capped, 0);
-  //   });
-  // });
 
   describe('calculateMetadata()', function() {
     it('should compute the answer to life, the universe, and everything.', function() {
@@ -952,7 +937,7 @@ describe('gameStats', function() {
     it('should return the remaining game time as a number', function() {
       const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
       assert.isNumber(remainingGameTime);
-      assert.equal(remainingGameTime, 1546134474574);
+      assert.equal(remainingGameTime, 945145433);
     });
 
     it('should throw if not receiving two arguments', function() {
@@ -1047,10 +1032,66 @@ describe('gameStats', function() {
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 0);
     });
+    it('should show the appropriate values after a release_blu action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[15])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      const n = 50;
+      assert.equals(devicesProgress[0].blu_incomplete, n);
+    });
+
+    it('should show the appropriate values after a press_red action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.timelinePressRelease[0])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      const correctAnswer = [
+        { targetId: 'hG9RdwPn1HH4bZLk', red_incomplete: 1546277128992, blu_incomplete: 0, red: 0, blu: 0 },
+      ];
+      assert.deepEqual(devicesProgress, correctAnswer);
+    });
+
+    it('should show the appropriate values after a release_red action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.timelinePressRelease[1])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      const n = 50;
+      assert.equals(devicesProgress[0].red, n);
+    });
+
+    it('should return an array containing device progress objects when evaluating an admin cap_red action', function() {
+      console.log(fixtures.largeControlpointPressData[13])
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.property(devicesProgress[0], 'targetId');
+      assert.property(devicesProgress[0], 'red');
+      assert.property(devicesProgress[0], 'blu');
+      assert.equal(devicesProgress[0]['targetId'], '3J3qKsCboWqbpe2G');
+      assert.equal(devicesProgress[0]['blu'], 0);
+      assert.equal(devicesProgress[0]['red'], 100);
+    });
 
     it('should throw if not receiving two arguments', function() {
       assert.throws(() => {
         gameStats.deriveDevicesProgress();
+      });
+    });
+  });
+
+  describe('deriveDevProgress()', function() {
+    it('should accept metadata object, timeline event, and deviceId, returning an progress object', function() {
+      const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13], '3J3qKsCboWqbpe2G');
+
+    });
+    it('should throw if not receiving three arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveDevProgress();
+      });
+      assert.throws(() => {
+        gameStats.deriveDevProgress(fixtures.initialMetadata);
+      });
+      assert.throws(() => {
+        gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
       });
     });
   });

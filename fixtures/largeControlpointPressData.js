@@ -109,6 +109,8 @@ module.exports = [{
     "action": "cap_red",
     "source": "admin",
     "target": "Waterfall",
+    "targetId": "hG9RdwPn1HH4bZLk",
+    "targetId_note": "I monkey patched this to build a test. this is not Waterfall's real targetId!!!",
     "createdAt": 1546135982747,
     "_id": "3J3qKsCboWqbpe2G"
   },

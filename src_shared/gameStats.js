@@ -719,9 +719,19 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
 const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
   // rgt = endTime - now
-  const get = lastStepMetadata.gameEndTime;
-  const ca = thisStepEvent.createdAt;
-  return moment(ca).diff(moment(get)).valueOf();
+
+  const rget = lastStepMetadata.gameEndTime || deriveGameEndTime(lastStepMetadata, thisStepEvent);
+  const get = moment(rget);
+  const ca = moment(thisStepEvent.createdAt);
+  const rgt = moment.duration(lastStepMetadata.remainingGameTime);
+  const status = lastStepMetadata.gameStatus.msg;
+  const mt = moment(lastStepMetadata.metadataTimestamp);
+  //console.log(`get:${get.valueOf()} ca:${ca.valueOf()} rgt:${rgt.valueOf()}`)
+  if (rgt.valueOf() === 0)
+    return get.diff(ca).valueOf();
+  if (status === 'paused' || status === 'stopped')
+    return rgt.valueOf();
+  return get.diff(ca).valueOf();
 };
 
 
@@ -778,8 +788,135 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   return lget.valueOf();
 };
 
-const deriveDevicesProgress= (lastStepMetadata, thisStepEvent) => {
+const deriveDevicesProgress = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveDevicesProgress requires two parameters');
+  const ca = moment(thisStepEvent.createdAt);
+  const status = lastStepMetadata.gameStatus.msg;
+  const action = thisStepEvent.action;
+
+  const targetId = thisStepEvent.targetId;
+  const captureRate = lastStepMetadata.captureRate;
+  console.log(chalk.yellow('YEET'))
+  const devices = R.uniq(
+    R.append(
+      thisStepEvent.targetId,
+      R.pluck('targetId', lastStepMetadata.devicesProgress)
+    )
+  );
+
+
+  const isRed = R.compose(R.test(/_red$/), R.prop('action'));
+  const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
+
+  return R.map((id) => {
+    return deriveDevProgress(lastStepMetadata, thisStepEvent, id);
+  }, devices);
+};
+
+
+const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
+  if (typeof deviceId === 'undefined') throw new Error('deriveDevProgress requires three parameters');
+  const action = thisStepEvent.action;
+  const pointRegex = /(press|release|cap)_(\w{3})/;
+  const detailedAction = R.match(pointRegex, action)[1];
+  const devicesProgress = lastStepMetadata.devicesProgress;
+
+  const fetchLastProgress = R.find(R.pick('targetId', R._), devicesProgress);
+
+  if (detailedAction === 'cap') {
+    // admin action
+    return devicesProgress;
+  }
+
+  if (detailedAction === 'press') {
+    // player press button
+
+    const old = devicesProgress;
+    const neu = {
+      red_incomplete: isRed(thisStepEvent) ? ca.valueOf() : 0,
+      blu_incomplete: isBlu(thisStepEvent) ? ca.valueOf() : 0,
+      red: 0,
+      blu: 0,
+      targetId: targetId
+    };
+    const answer = R.mergeRight(old, neu);
+    return answer;
+  }
+
+  if (detailedAction === 'release') {
+    const old = fetchLastProgress(deviceId);
+    const lastRedPressTime = moment(R.prop('red_incomplete'), foo);
+    const lastBluPressTime = moment(R.prop('blu_incomplete'), foo);
+
+    const _redHeldDuration = moment.duration(ca.diff(lastRedPressTime)).valueOf();
+    const _bluHeldDuration = moment.duration(ca.diff(lastBluPressTime)).valueOf();
+
+    const capDuration = R.ifElse(
+      R.lt(R.multiply(captureRate, 2)),
+      R.always(R.multiply(captureRate, 2)),
+      R.always(heldDuration)
+    );
+
+    const redHeldDuration = isRed(thisStepEvent) ? capDuration(_redHeldDuration) : 0;
+    const bluHeldDuration = isBlu(thisStepEvent) ? capDuration(_bluHeldDuration) : 0;
+
+    const redProgressSinceLastPress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+    const bluProgressSinceLastPress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+
+    const neu = {
+      red_incomplete: isRed(thisStepEvent) ? 0 : old.red_incomplete,
+      blu_incomplete: isBlu(thisStepEvent) ? 0 : old.blu_incomplete,
+      blu: bluProgressSinceLastPress,
+      red: redProgressSinceLastPress,
+      targetId: deviceId
+    }
+    const answer = R.mergeRight(old, neu);
+    return answer;
+  }
+
+
+  // unknown action or a non-device related action
+  return lastStepMetadata.devicesProgress;
+
+
+
+  // IDK
+    // if (detailedAction === 'cap') {
+    //   // admin action
+    //   return devicesProgress;
+    // }
+    //
+    // else if (detailedAction === 'press') {
+    //   // player press button
+    //   return R.map(devProgress,
+    // }
+    //
+    // else if (detailedAction === 'release') {
+    //   const foo = R.find(R.propEq('targetId', targetId), devicesProgress);
+    //   const lastRedPressTime = moment(R.prop('red_incomplete'), foo);
+    //   const lastBluPressTime = moment(R.prop('blu_incomplete'), foo);
+    //
+    //   const _redHeldDuration = moment.duration(ca.diff(lastRedPressTime)).valueOf();
+    //   const _bluHeldDuration = moment.duration(ca.diff(lastBluPressTime)).valueOf();
+    //
+    //   const capDuration = R.ifElse(
+    //     R.lt(R.multiply(captureRate, 2)),
+    //     R.always(R.multiply(captureRate, 2)),
+    //     R.always(heldDuration)
+    //   );
+    //
+    //   const redHeldDuration = isRed(thisStepEvent) ? capDuration(_redHeldDuration) : 0;
+    //   const bluHeldDuration = isBlu(thisStepEvent) ? capDuration(_bluHeldDuration) : 0;
+    //
+    //   const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+    //   const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+    //
+    //   const old = devicesProgress;
+    //   const delta = {
+    //     red: redProgressSinceLastStep,
+    //     blu: bluProgressSinceLastStep
+    //   };
+    //   return [progressComputer(old, delta)];
 };
 
 
@@ -807,7 +944,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   const initialMetadata = {
     gameStatus: { msg: 'stopped', code: 3 },
     remainingGameTime: 0,
-    gameStartTime: moment().valueOf(),
+    gameStartTime: timePointer,
     gamePausedDuration: 0,
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
@@ -817,9 +954,14 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
 
   // Sequentially turn events into metadata
   const _calculateGameMetadata = (acc, evt) => {
-      acc.remainingGameTime = moment(acc.remainingGameTime).subtract(moment(R.prop('createdAt', evt)));
-      acc.gameStatus = deriveGameStatus(acc, R.prop('gameStatus', evt));
-      R.prop('action', evt);
+      acc.gameStatus = deriveGameStatus(acc, evt);
+      acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
+      acc.gameStartTime = deriveGameStartTime(acc, evt);
+      acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
+      acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt);
+      acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
+      acc.gameEndTime = deriveGameEndTime(acc, evt);
+      acc.devicesProgress = deriveDevicesProgress(acc, evt);
   };
 
   return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
@@ -1057,6 +1199,7 @@ module.exports = {
     Vue.prototype.$gameStats.deriveGameRunningDuration = deriveGameRunningDuration;
     Vue.prototype.$gameStats.deriveGameEndTime = deriveGameEndTime;
     Vue.prototype.$gameStats.deriveDevicesProgress = deriveDevicesProgress;
+    Vue.prototype.$gameStats.deriveDevProgress = deriveDevProgress;
   },
   gt,
   cleansedTimeline,
@@ -1093,4 +1236,5 @@ module.exports = {
   deriveGameRunningDuration,
   deriveGameEndTime,
   deriveDevicesProgress,
+  deriveDevProgress,
 }
