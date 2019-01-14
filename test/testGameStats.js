@@ -598,7 +598,6 @@ describe('gameStats', function() {
       const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
       const progress = gameStats.calculatePressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
       assert.isObject(progress);
-      console.log(progress)
       assert.equal(progress.red, 100);
       assert.equal(progress.blu, 0);
     });
@@ -608,7 +607,6 @@ describe('gameStats', function() {
       const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
       const progress = gameStats.calculatePressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
       assert.isObject(progress);
-      console.log(progress)
 
       assert.equal(progress.red, 0);
       assert.equal(progress.blu, 100);
@@ -654,9 +652,7 @@ describe('gameStats', function() {
       const progress = gameStats.calculateDevicesProgress(fixtures.largeControlpointPressData, fixtures.gameSettings);
       assert.isArray(progress)
       assert.isObject(progress[0]);
-      console.log(progress)
       const validate = (itm) => {
-        console.log(`-----> VALIDATING: ${itm}`);
         assert.notPropertyVal(itm, 'action', 'stop');
       };
       R.forEach(validate, progress[0]);
@@ -1037,7 +1033,7 @@ describe('gameStats', function() {
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 1);
       const n = 50;
-      assert.equals(devicesProgress[0].blu_incomplete, n);
+      assert.equal(devicesProgress[0].blu_incomplete, n);
     });
 
     it('should show the appropriate values after a press_red action', function() {
@@ -1055,11 +1051,10 @@ describe('gameStats', function() {
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 1);
       const n = 50;
-      assert.equals(devicesProgress[0].red, n);
+      assert.equal(devicesProgress[0].red, n);
     });
 
     it('should return an array containing device progress objects when evaluating an admin cap_red action', function() {
-      console.log(fixtures.largeControlpointPressData[13])
       const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 1);
@@ -1094,6 +1089,52 @@ describe('gameStats', function() {
         gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
       });
     });
+  });
+
+  describe('deriveDevices()', function() {
+    it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
+      const devices = gameStats.deriveDevices(fixtures.initialMetadata, fixtures.timelinePressRelease[0]);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 1);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
+    });
+
+    it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
+      const devices = gameStats.deriveDevices(fixtures.pressedMetadata, fixtures.dupControlpointPressData[0]);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 2);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk', '5AEVScKzvclsCpeR']);
+    });
+  });
+
+  describe('buttonReleaseDeltaCompute()', function() {
+    xit('should return an object containing the changed progress data', function() {
+      const delta = buttonReleaseDeltaCompute(original, delta);
+      assert.isObject(delta);
+      assert.deepEqual(delta, {
+        red: 6,
+        blu: 6,
+        red_incomplete: 6,
+        blu_incomplete: 6,
+        targetId: 'hG9RdwPn1HH4bZLk'
+      })
+    })
+  });
+
+  describe('buttonReleaseProgressCompute()', function() {
+    xit('should return an object containing the new progress data', function() {
+      const original = {};
+      const delta = {};
+      const progress = buttonReleaseProgressCompute(original, delta);
+      assert.isObject(progress);
+      assert.deepEqual(progress, {
+        red: 6,
+        blu: 6,
+        red_incomplete: 6,
+        blu_incomplete: 6,
+        targetId: 'hG9RdwPn1HH4bZLk'
+      })
+    })
   });
 
 
