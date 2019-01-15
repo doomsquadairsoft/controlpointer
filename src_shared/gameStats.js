@@ -607,25 +607,125 @@ const pairify = (pressData, gameSettings, timePointer, targetId) => {
 
 };
 
+
+/**
+ * buttonPressProgressCompute
+ *
+ * Return the team progress percentages at any point in time
+ *
+ * @param {Array} pressData - Array of (press|release)_\w+ events
+ * @param {Object} gameSettings - Game configuration info
+ * @param {Number} timePointer - milliseconds since Epoch timestamp of the point in time for which we want to see progress percentages
+ * @param {String} targetId - the ID of the D3VICE which we will be calculating percentages for
+ * @return {Object} progress
+ * @return {Number} progress.red - progress of red team between 0 and 100
+ * @return {Number} progress.blu - progress of blu team between 0 and 100
+ */
+const buttonPressProgressCompute = (pressData, gameSettings, timePointer, targetId) => {
+  if (R.isNil(targetId)) throw new Error('targetId is undefined!');
+  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+  const tid = targetId;
+  const ps = pairify(tl, game, tp, tid);
+  const pairs = R.sortBy(R.prop('createdAt'), R.concat(ps.red, ps.blu));
+  const captureRate = game.captureRate;
+
+  const isRed = R.compose(R.test(/_red$/), R.prop('action'));
+  const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
+
+  const progressComputer = (progressOriginal, progressDelta) => {
+    const redOrigin = progressOriginal.red;
+    const bluOrigin = progressOriginal.blu;
+    const redDelta = progressDelta.red;
+    const bluDelta = progressDelta.blu;
+    const teamProgress = teamProgressCompute(progressOriginal, progressDelta);
+
+    return {
+      redProgress: teamProgress.red,
+      bluProgress: teamProgress.blu
+    };
+  }
+  const reducer = (acc, thisPdi, idx, pressData) => {
+    // if we are at odd item, skip
+    // (we are testing odd items in the same step as even items are tested)
+    if (isOdd(idx)) return acc;
+    // if we are at the last item, consider reduction complete
+    if (R.equals(idx, pressData.length-1)) R.reduced(acc);
+    const thisTimestamp = R.prop('createdAt', thisPdi);
+    const thisEventMoment = moment(thisTimestamp);
+    const nextTimestamp = R.prop('createdAt', pressData[idx+1]);
+    const nextEventMoment = moment(nextTimestamp);
+    const heldDuration = moment.duration(nextEventMoment.diff(thisEventMoment)).valueOf();
+    const currentBluDuration = R.prop('blu', acc);
+    const capDuration = R.ifElse(
+      R.lt(R.multiply(captureRate, 2)),
+      R.always(R.multiply(captureRate, 2)),
+      R.identity()
+    );
+    const redHeldDuration = isRed(thisPdi) ? capDuration(heldDuration) : 0;
+    const bluHeldDuration = isBlu(thisPdi) ? capDuration(heldDuration) : 0;
+    const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+    const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+    const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } };
+    console.log(`${chalk.white('color:')}${color() === 'Red' ? chalk.red(pad(4, 'Red')) : chalk.blue(pad(4, 'Blue'))} `+
+                `${chalk.white('action:')}${R.prop('action', thisPdi)} `+
+                `${chalk.white('thisEventMoment:')}${thisEventMoment.valueOf()} `+
+                `${chalk.white('nextEventMoment:')}${nextEventMoment.valueOf()} `+
+                `${chalk.white('heldDur:')}${pad(5, heldDuration)} `+
+                `${chalk.red('redHeldDur:')}${pad(5, redHeldDuration)} `+
+                `${chalk.blue('bluHeldDur:')}${pad(5, bluHeldDuration)} `+
+                `${chalk.red('redProg:')}${pad(3, redProgressSinceLastStep)} `+
+                `${chalk.blue('bluProg:')}${pad(3, bluProgressSinceLastStep)}`+
+                `${chalk.white('originalRed:')}${pad(3, acc.red)}`+
+                `${chalk.white('originalBlu:')}${pad(3, acc.blu)}`
+              );
+    const original = {
+      red: acc.red,
+      blu: acc.blu
+    }
+    // can only be one of the other color
+    const delta = {
+      red: redProgressSinceLastStep,
+      blu: bluProgressSinceLastStep
+    }
+    const { redProgress, bluProgress } = progressComputer(original, delta);
+    return {
+      red: redProgress,
+      blu: bluProgress,
+      targetId: tid
+    }
+  };
+  const indexedReduce = R.addIndex(R.reduce);
+  const result = indexedReduce(reducer, {blu: 0, red: 0}, pairs);
+  // look at a press/release pair
+  // If 5 seconds delta in press/release pair, that is 100%.
+  // Any > 5000 ms is ignored.
+  //
+  // we need to return 0-100 at any given point, so we need to calculate historical data in order to derive %
+  return result;
+};
 const buttonReleaseProgressCompute = (originalData, deltaData) => {
+  if (typeof deltaData === 'undefined') throw new Error('buttonReleaseProgressCompute requires 2 params');
+  const { red, blu } = teamProgressCompute(originalData, deltaData);
   return R.mergeRight(originalData, deltaData);
 }
 
 const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
+  if (typeof deviceId === 'undefined') throw new Error('buttonReleaseDeltaCompute requires 3 params');
   const devicesProgress = lastStepMetadata.devicesProgress;
   const captureRate = lastStepMetadata.captureRate;
   const ca = moment(thisStepEvent.createdAt);
-  //const old = R.find(R.prop('targetId', deviceId), devicesProgress);
-  const lastRedPressTime = moment(R.prop('red_incomplete', devicesProgress));
-  const lastBluPressTime = moment(R.prop('blu_incomplete', devicesProgress));
+  const old = R.find(R.propEq('targetId', deviceId), devicesProgress);
+
+  const lastRedPressTime = moment(R.prop('redIncomplete', old));
+  const lastBluPressTime = moment(R.prop('bluIncomplete', old));
 
   const _redHeldDuration = moment.duration(ca.diff(lastRedPressTime)).valueOf();
   const _bluHeldDuration = moment.duration(ca.diff(lastBluPressTime)).valueOf();
 
   const capDuration = R.ifElse(
-    R.lt(R.multiply(captureRate, 2)),
+    R.gt(R.__, R.multiply(captureRate, 2)),
     R.always(R.multiply(captureRate, 2)),
-    R.always()
+    R.identity()
   );
 
   const redHeldDuration = isRed(thisStepEvent) ? capDuration(_redHeldDuration) : 0;
@@ -634,20 +734,26 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
   const redProgressSinceLastPress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
   const bluProgressSinceLastPress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
 
-
   const pre = {
     blu: bluProgressSinceLastPress,
     red: redProgressSinceLastPress,
     targetId: deviceId
   };
 
+  return pre;
   // reset the *_incomplete number for the chosen team
-  if (isRed(thisStepEvent)) return R.assoc('red_incomplete', 0, pre);
-  if (isBlu(thisStepEvent)) return R.assoc('blu_incomplete', 0, pre);
+  //if (isRed(thisStepEvent)) return R.assoc('redIncomplete', 0, pre);
+  //if (isBlu(thisStepEvent)) return R.assoc('bluIncomplete', 0, pre);
 
 }
 
 const teamProgressCompute = (origin, delta) => {
+  if (typeof delta === 'undefined') throw new Error('teamProgressCompute requires two parameters!')
+  const o = R.ifElse(
+    R.either(R.isNil(), R.isEmpty()),
+    R.always({red: 0, blu: 0}),
+    R.identity()
+  )(origin);
   // origin { red: 100, blu: 0 }
   // delta  { red: 0,  blu: 200 }
   // answer { red: 0, blu: 100 }
@@ -683,34 +789,26 @@ const teamProgressCompute = (origin, delta) => {
   return {
     red: capPercentage(
       (delta.red) ?
-      gainingAlgo('red', origin, delta) :
-      losingAlgo('red', origin, delta)
+      gainingAlgo('red', o, delta) :
+      losingAlgo('red', o, delta)
     ),
     blu: capPercentage(
       (delta.blu) ?
-      gainingAlgo('blu', origin, delta) :
-      losingAlgo('blu', origin, delta)
+      gainingAlgo('blu', o, delta) :
+      losingAlgo('blu', o, delta)
     )
   };
 }
-//
-// const loosingTeamCompute = (colour, origin, delta) => {
-//   if (colour === 'red') {
-//     return capPercentage(origin.red-delta.blu);
-//   }
-//   else if (colour === 'blu') {
-//     return capPercentage(origin.blu-delta.red);
-//   }
-// };
-//
-// const gainingTeamCompute = (colour, origin, delta) => {
-//   if (colour === 'red') {
-//     return capPercentage((origin.blu === 0) ? delta.red : 0);
-//   }
-//   else if (colour === 'blu') {
-//     return capPercentage((origin.red === 0) ? delta.blu : 0);
-//   }
-// };
+
+const incompleteProgressCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
+  if (typeof deviceId === 'undefined') throw new Error('incompleteProgressCompute requires 3 parameters!');
+  const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
+  const old = R.find(R.propEq('targetId', deviceId), devicesProgress);
+  const isRedIncomplete = R.propIs(Number, 'redIncomplete', old);
+  const isBluIncomplete = R.propIs(Number, 'bluIncomplete', old);
+  if (isBlu(thisStepEvent)) return { bluIncomplete: null, redIncomplete: R.prop('redIncomplete', old) || null };
+  if (isRed(thisStepEvent)) return { bluIncomplete: R.prop('bluIncomplete', old) || null, redIncomplete: null };
+};
 
 const capPercentage = (number) => {
   if (number > 100) number = 100;
@@ -837,8 +935,6 @@ const deriveDevicesProgress = (lastStepMetadata, thisStepEvent) => {
   const captureRate = lastStepMetadata.captureRate;
   const devices = deriveDevices(lastStepMetadata, thisStepEvent);
 
-
-
   if (devices.length < 1) return [];
   return R.map((id) => {
     return deriveDevProgress(lastStepMetadata, thisStepEvent, id);
@@ -856,21 +952,31 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   const devicesProgress = lastStepMetadata.devicesProgress;
   const ca = moment(thisStepEvent.createdAt);
   const captureRate = lastStepMetadata.captureRate;
-  const isRed = R.compose(R.test(/_red$/), R.prop('action'));
-  const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
   const lastProgress = R.find(R.propEq('targetId', deviceId), devicesProgress);
+  console.log(chalk.yellow(`DETAILED ACTION: ${detailedAction}`))
+  console.log(chalk.cyan(devicesProgress))
 
   if (detailedAction === 'cap') {
     // admin action
-    return devicesProgress;
+    const origin = lastProgress;
+    const delta = {
+      red: isRed(thisStepEvent) ? 200 : 0,
+      blu: isBlu(thisStepEvent) ? 200 : 0
+    };
+    console.log(chalk.yellow('origin'));
+    console.log(origin);
+    console.log(chalk.yellow('delta'));
+    console.log(delta);
+    const { red, blu } = teamProgressCompute(origin, delta);
+    return { red: red, blu: blu, targetId: deviceId };
   }
 
   if (detailedAction === 'press') {
     // player press button
     const old = lastProgress;
     const neu = {
-      red_incomplete: isRed(thisStepEvent) ? ca.valueOf() : 0,
-      blu_incomplete: isBlu(thisStepEvent) ? ca.valueOf() : 0,
+      redIncomplete: isRed(thisStepEvent) ? ca.valueOf() : 0,
+      bluIncomplete: isBlu(thisStepEvent) ? ca.valueOf() : 0,
       red: 0,
       blu: 0,
       targetId: deviceId
@@ -883,9 +989,16 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     // player release button
     const original = lastProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
-    return buttonReleaseProgressCompute(original, delta);
+    const { red, blu } = teamProgressCompute(original, delta);
+    const { redIncomplete, bluIncomplete } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
+    return {
+      red: red,
+      blu: blu,
+      redIncomplete: redIncomplete,
+      bluIncomplete: bluIncomplete,
+      targetId: deviceId
+    }
   }
-
 
   // unknown action or a non-device related action
   return lastStepMetadata.devicesProgress;
@@ -911,12 +1024,11 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // * gameEndTime
   // * pressProgress
   // * devicesProgress
-
   const isTimepointerAfter = (acc, evt) => { R.gt(timePointer, R.prop('createdAt', evt)) };
   const initialMetadata = {
     gameStatus: { msg: 'stopped', code: 3 },
     remainingGameTime: 0,
-    gameStartTime: timePointer,
+    gameStartTime: tp,
     gamePausedDuration: 0,
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
@@ -939,135 +1051,6 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
 }
 
-/**
- * calculatePressProgress
- *
- * Return the team progress percentages at any point in time
- *
- * @param {Array} pressData - Array of (press|release)_\w+ events
- * @param {Object} gameSettings - Game configuration info
- * @param {Number} timePointer - milliseconds since Epoch timestamp of the point in time for which we want to see progress percentages
- * @param {String} targetId - the ID of the D3VICE which we will be calculating percentages for
- * @return {Object} progress
- * @return {Number} progress.red - progress of red team between 0 and 100
- * @return {Number} progress.blu - progress of blu team between 0 and 100
- */
-const calculatePressProgress = (pressData, gameSettings, timePointer, targetId) => {
-  if (R.isNil(targetId)) throw new Error('targetId is undefined!');
-  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
-  const tid = targetId;
-  const ps = pairify(tl, game, tp, tid);
-  const pairs = R.sortBy(R.prop('createdAt'), R.concat(ps.red, ps.blu));
-  const captureRate = game.captureRate;
-
-  const isRed = R.compose(R.test(/_red$/), R.prop('action'));
-  const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
-
-
-  const progressComputer = (progressOriginal, progressDelta) => {
-
-    const redOrigin = progressOriginal.red;
-    const bluOrigin = progressOriginal.blu;
-    const redDelta = progressDelta.red;
-    const bluDelta = progressDelta.blu;
-
-    const teamProgress = teamProgressCompute(progressOriginal, progressDelta);
-
-    return {
-      redProgress: teamProgress.red,
-      bluProgress: teamProgress.blu
-    };
-  }
-
-
-
-  const reducer = (acc, thisPdi, idx, pressData) => {
-    // if we are at odd item, skip
-    // (we are testing odd items in the same step as even items are tested)
-    if (isOdd(idx)) return acc;
-
-    // if we are at the last item, consider reduction complete
-    if (R.equals(idx, pressData.length-1)) R.reduced(acc);
-
-    const thisTimestamp = R.prop('createdAt', thisPdi);
-    const thisEventMoment = moment(thisTimestamp);
-    const nextTimestamp = R.prop('createdAt', pressData[idx+1]);
-    const nextEventMoment = moment(nextTimestamp);
-    const heldDuration = moment.duration(nextEventMoment.diff(thisEventMoment)).valueOf();
-    const currentBluDuration = R.prop('blu', acc);
-    const capDuration = R.ifElse(
-      R.lt(R.multiply(captureRate, 2)),
-      R.always(R.multiply(captureRate, 2)),
-      R.always(heldDuration)
-    );
-
-    const redHeldDuration = isRed(thisPdi) ? capDuration(heldDuration) : 0;
-    const bluHeldDuration = isBlu(thisPdi) ? capDuration(heldDuration) : 0;
-
-    //
-    // const question = {
-    //   bluProgress: 100,
-    //   redProgress: 0,
-    //   heldDuration: 20000,
-    //   color: red
-    // };
-    //
-    // const answer = {
-    //   bluProgress: 0,
-    //   redProgress: 100
-    // };
-
-    const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
-    const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
-    const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } };
-
-    console.log(`${chalk.white('color:')}${color() === 'Red' ? chalk.red(pad(4, 'Red')) : chalk.blue(pad(4, 'Blue'))} `+
-                `${chalk.white('action:')}${R.prop('action', thisPdi)} `+
-                `${chalk.white('thisEventMoment:')}${thisEventMoment.valueOf()} `+
-                `${chalk.white('nextEventMoment:')}${nextEventMoment.valueOf()} `+
-                `${chalk.white('heldDur:')}${pad(5, heldDuration)} `+
-                `${chalk.red('redHeldDur:')}${pad(5, redHeldDuration)} `+
-                `${chalk.blue('bluHeldDur:')}${pad(5, bluHeldDuration)} `+
-                `${chalk.red('redProg:')}${pad(3, redProgressSinceLastStep)} `+
-                `${chalk.blue('bluProg:')}${pad(3, bluProgressSinceLastStep)}`+
-                `${chalk.white('originalRed:')}${pad(3, acc.red)}`+
-                `${chalk.white('originalBlu:')}${pad(3, acc.blu)}`
-              );
-
-
-    const original = {
-      red: acc.red,
-      blu: acc.blu
-    }
-
-    // can only be one of the other color
-    const delta = {
-      red: redProgressSinceLastStep,
-      blu: bluProgressSinceLastStep
-    }
-
-    const { redProgress, bluProgress } = progressComputer(original, delta);
-
-    return {
-      red: redProgress,
-      blu: bluProgress,
-      targetId: tid
-    }
-
-  };
-
-  const indexedReduce = R.addIndex(R.reduce);
-  const result = indexedReduce(reducer, {blu: 0, red: 0}, pairs);
-
-
-  // look at a press/release pair
-  // If 5 seconds delta in press/release pair, that is 100%.
-  // Any > 5000 ms is ignored.
-  //
-  // we need to return 0-100 at any given point, so we need to calculate historical data in order to derive %
-
-  return result;
-};
 
 
 
@@ -1098,7 +1081,7 @@ const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
   const prunedUniqTargetIds = R.reject(rejectList, uniqTargetIds);
 
   const win = (targetId, idx) => {
-    return calculatePressProgress(tl, game, tp, targetId);
+    return buttonPressProgressCompute(tl, game, tp, targetId);
   };
   return R.map(win, prunedUniqTargetIds);
 };
@@ -1144,7 +1127,7 @@ module.exports = {
     Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
     Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
     Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
-    Vue.prototype.$gameStats.calculatePressProgress = calculatePressProgress;
+    Vue.prototype.$gameStats.buttonPressProgressCompute = buttonPressProgressCompute;
     Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
     Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
     Vue.prototype.$gameStats.pairify = pairify;
@@ -1164,6 +1147,7 @@ module.exports = {
     Vue.prototype.$gameStats.deriveDevices = deriveDevices;
     Vue.prototype.$gameStats.buttonReleaseProgressCompute = buttonReleaseProgressCompute;
     Vue.prototype.$gameStats.buttonReleaseDeltaCompute = buttonReleaseDeltaCompute;
+    Vue.prototype.$gameStats.incompleteProgressCompute = incompleteProgressCompute;
   },
   gt,
   cleansedTimeline,
@@ -1184,7 +1168,7 @@ module.exports = {
   remainingGameTimeHumanized,
   activeTimelineVs,
   cleansedPressData,
-  calculatePressProgress,
+  buttonPressProgressCompute,
   calculateDevicesProgress,
   buildPressParameters,
   pairify,
@@ -1204,4 +1188,5 @@ module.exports = {
   deriveDevices,
   buttonReleaseDeltaCompute,
   buttonReleaseProgressCompute,
+  incompleteProgressCompute,
 }

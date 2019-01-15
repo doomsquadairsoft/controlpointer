@@ -7,9 +7,10 @@ module.exports = {
     gameRunningDuration: 0,
     gameEndTime: 0,
     devicesProgress: [
-      { targetId: 'hG9RdwPn1HH4bZLk', red_incomplete: 1546277128992, red: 0, blu: 0 }
+      { targetId: 'hG9RdwPn1HH4bZLk', redIncomplete: 1546277128992, red: 0, blu: 0 }
     ],
     devices: ['hG9RdwPn1HH4bZLk'],
     metadataTimestamp: 1547072420007,
     gameLength: 7200000,
+    captureRate: 5000
 };
