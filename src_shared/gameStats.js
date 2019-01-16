@@ -609,7 +609,7 @@ const pairify = (pressData, gameSettings, timePointer, targetId) => {
 
 
 /**
- * buttonPressProgressCompute
+ * buttonPressProgress
  *
  * Return the team progress percentages at any point in time
  *
@@ -621,7 +621,7 @@ const pairify = (pressData, gameSettings, timePointer, targetId) => {
  * @return {Number} progress.red - progress of red team between 0 and 100
  * @return {Number} progress.blu - progress of blu team between 0 and 100
  */
-const buttonPressProgressCompute = (pressData, gameSettings, timePointer, targetId) => {
+const buttonPressProgress = (pressData, gameSettings, timePointer, targetId) => {
   if (R.isNil(targetId)) throw new Error('targetId is undefined!');
   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
   const tid = targetId;
@@ -666,18 +666,18 @@ const buttonPressProgressCompute = (pressData, gameSettings, timePointer, target
     const redProgressSinceLastStep = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
     const bluProgressSinceLastStep = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
     const color = () => { if (redHeldDuration) { return 'Red' } else if (bluHeldDuration) {  return 'Blu' } };
-    console.log(`${chalk.white('color:')}${color() === 'Red' ? chalk.red(pad(4, 'Red')) : chalk.blue(pad(4, 'Blue'))} `+
-                `${chalk.white('action:')}${R.prop('action', thisPdi)} `+
-                `${chalk.white('thisEventMoment:')}${thisEventMoment.valueOf()} `+
-                `${chalk.white('nextEventMoment:')}${nextEventMoment.valueOf()} `+
-                `${chalk.white('heldDur:')}${pad(5, heldDuration)} `+
-                `${chalk.red('redHeldDur:')}${pad(5, redHeldDuration)} `+
-                `${chalk.blue('bluHeldDur:')}${pad(5, bluHeldDuration)} `+
-                `${chalk.red('redProg:')}${pad(3, redProgressSinceLastStep)} `+
-                `${chalk.blue('bluProg:')}${pad(3, bluProgressSinceLastStep)}`+
-                `${chalk.white('originalRed:')}${pad(3, acc.red)}`+
-                `${chalk.white('originalBlu:')}${pad(3, acc.blu)}`
-              );
+    // console.log(`${chalk.white('color:')}${color() === 'Red' ? chalk.red(pad(4, 'Red')) : chalk.blue(pad(4, 'Blue'))} `+
+    //             `${chalk.white('action:')}${R.prop('action', thisPdi)} `+
+    //             `${chalk.white('thisEventMoment:')}${thisEventMoment.valueOf()} `+
+    //             `${chalk.white('nextEventMoment:')}${nextEventMoment.valueOf()} `+
+    //             `${chalk.white('heldDur:')}${pad(5, heldDuration)} `+
+    //             `${chalk.red('redHeldDur:')}${pad(5, redHeldDuration)} `+
+    //             `${chalk.blue('bluHeldDur:')}${pad(5, bluHeldDuration)} `+
+    //             `${chalk.red('redProg:')}${pad(3, redProgressSinceLastStep)} `+
+    //             `${chalk.blue('bluProg:')}${pad(3, bluProgressSinceLastStep)}`+
+    //             `${chalk.white('originalRed:')}${pad(3, acc.red)}`+
+    //             `${chalk.white('originalBlu:')}${pad(3, acc.blu)}`
+    //           );
     const original = {
       red: acc.red,
       blu: acc.blu
@@ -803,7 +803,7 @@ const teamProgressCompute = (origin, delta) => {
 const incompleteProgressCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof deviceId === 'undefined') throw new Error('incompleteProgressCompute requires 3 parameters!');
   const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
-  const old = R.find(R.propEq('targetId', deviceId), devicesProgress);
+  const old = R.defaultTo({ redIncomplete: null, bluIncomplete: null }, R.find(R.propEq('targetId', deviceId), devicesProgress));
   const isRedIncomplete = R.propIs(Number, 'redIncomplete', old);
   const isBluIncomplete = R.propIs(Number, 'bluIncomplete', old);
   if (isBlu(thisStepEvent)) return { bluIncomplete: null, redIncomplete: R.prop('redIncomplete', old) || null };
@@ -836,9 +836,8 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
   const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
   const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
-  const isPauseEvent = R.compose(R.equals('pause'), R.prop('action',));
+  const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
 
-  // if this
   if (moment(lastStepMetadata.gameEndTime).isAfter(moment())) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
@@ -856,26 +855,30 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
   // rgt = endTime - now
 
-  const rget = lastStepMetadata.gameEndTime || deriveGameEndTime(lastStepMetadata, thisStepEvent);
-  const get = moment(rget);
-  const ca = moment(thisStepEvent.createdAt);
-  const rgt = moment.duration(lastStepMetadata.remainingGameTime);
-  const status = lastStepMetadata.gameStatus.msg;
-  const mt = moment(lastStepMetadata.metadataTimestamp);
-  if (rgt.valueOf() === 0)
-    return get.diff(ca).valueOf();
-  if (status === 'paused' || status === 'stopped')
-    return rgt.valueOf();
-  return get.diff(ca).valueOf();
+  const rg = R.prop('gameEndTime', lastStepMetadata);
+  if (R.isNil(rg)) return null;
+  const get = moment(rg);
+
+  const ca = moment(R.prop('createdAt', thisStepEvent));
+
+  return get.diff(ca);
 };
 
 
-const deriveGameStartTime= (lastStepMetadata, thisStepEvent) => {
+const deriveGameStartTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameStartTime requires two parameters');
-  return lastStepMetadata.gameStartTime;
+  const lastGameStartTime = R.prop('gameStartTime', lastStepMetadata);
+  if (
+    R.and(
+      R.propEq('action', 'start', thisStepEvent),
+      R.isNil(lastGameStartTime)
+    )
+  ) return R.prop('createdAt', thisStepEvent);
+  if (R.isNil(lastGameStartTime)) return null;
+  return lastGameStartTime;
 };
 
-const deriveGamePausedDuration= (lastStepMetadata, thisStepEvent) => {
+const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGamePausedDuration requires two parameters');
   // if the game is paused, incr the pause metadata
   const gpd = moment.duration(lastStepMetadata.gamePausedDuration);
@@ -887,7 +890,7 @@ const deriveGamePausedDuration= (lastStepMetadata, thisStepEvent) => {
   return gpd.valueOf();
 };
 
-const deriveGameElapsedDuration= (lastStepMetadata, thisStepEvent) => {
+const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameElapsedDuration requires two parameters');
   const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
   const mt = moment(lastStepMetadata.metadataTimestamp);
@@ -896,7 +899,7 @@ const deriveGameElapsedDuration= (lastStepMetadata, thisStepEvent) => {
   return ged.add(el).valueOf();
 };
 
-const deriveGameRunningDuration= (lastStepMetadata, thisStepEvent) => {
+const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameRunningDuration requires two parameters');
   const grd = moment.duration(lastStepMetadata.gameRunningDuration);
   const mt = moment(thisStepEvent.metadataTimestamp);
@@ -911,11 +914,15 @@ const deriveGameRunningDuration= (lastStepMetadata, thisStepEvent) => {
 
 const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameEndTime requires two parameters');
-  const lget = moment(lastStepMetadata.gameEndTime);
+  if (R.isNil(R.prop('gameStartTime', lastStepMetadata))) return null;
   const gst = moment(lastStepMetadata.gameStartTime);
+  const lget = moment(lastStepMetadata.gameEndTime);
   const gl = lastStepMetadata.gameLength;
   const gpd = lastStepMetadata.gamePausedDuration;
   const status = lastStepMetadata.gameStatus.msg;
+  const ca = moment(thisStepEvent.createdAt);
+  const mt = moment(thisStepEvent.metadataTimestamp);
+  const elapsed = moment.duration(mt.diff(ca));
   if (lget.valueOf() === 0)
     return gst.add(gl).add(gpd).valueOf();
   if (status === 'paused')
@@ -953,8 +960,6 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   const ca = moment(thisStepEvent.createdAt);
   const captureRate = lastStepMetadata.captureRate;
   const lastProgress = R.find(R.propEq('targetId', deviceId), devicesProgress);
-  console.log(chalk.yellow(`DETAILED ACTION: ${detailedAction}`))
-  console.log(chalk.cyan(devicesProgress))
 
   if (detailedAction === 'cap') {
     // admin action
@@ -963,10 +968,6 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
       red: isRed(thisStepEvent) ? 200 : 0,
       blu: isBlu(thisStepEvent) ? 200 : 0
     };
-    console.log(chalk.yellow('origin'));
-    console.log(origin);
-    console.log(chalk.yellow('delta'));
-    console.log(delta);
     const { red, blu } = teamProgressCompute(origin, delta);
     return { red: red, blu: blu, targetId: deviceId };
   }
@@ -989,6 +990,9 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     // player release button
     const original = lastProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
+    console.log(`lastProgress:${original} delta:${delta} devId:${deviceId}`);
+    console.log(delta);
+    console.log(thisStepEvent);
     const { red, blu } = teamProgressCompute(original, delta);
     const { redIncomplete, bluIncomplete } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
     return {
@@ -1001,7 +1005,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   }
 
   // unknown action or a non-device related action
-  return lastStepMetadata.devicesProgress;
+  return lastProgress;
 };
 
 
@@ -1024,28 +1028,40 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // * gameEndTime
   // * pressProgress
   // * devicesProgress
-  const isTimepointerAfter = (acc, evt) => { R.gt(timePointer, R.prop('createdAt', evt)) };
+  console.log(`tl.length:${chalk.green(R.length(tl))}`)
+
+  var count = 0;
+  const isTimepointerAfter = (acc, evt) => {
+    count ++;
+    console.log(`count:${chalk.yellow(count)} tp:${chalk.cyan(tp)} ca:${chalk.blue(R.prop('createdAt', evt))} (tp>ca:${R.gt(tp, R.prop('createdAt', evt))}) action:${chalk.red(R.prop('action', evt))}`);
+    return R.gt(tp, R.prop('createdAt', evt))
+  };
+
   const initialMetadata = {
     gameStatus: { msg: 'stopped', code: 3 },
-    remainingGameTime: 0,
-    gameStartTime: tp,
+    remainingGameTime: null,
+    gameStartTime: null,
     gamePausedDuration: 0,
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
     gameEndTime: 0,
     devicesProgress: [],
+    gameLength: gameSettings.gameLength
   };
 
   // Sequentially turn events into metadata
+  // ORDER MATTERS! Put dependencies first.
   const _calculateGameMetadata = (acc, evt) => {
-      acc.gameStatus = deriveGameStatus(acc, evt);
-      acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
-      acc.gameStartTime = deriveGameStartTime(acc, evt);
-      acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
-      acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt);
-      acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
-      acc.gameEndTime = deriveGameEndTime(acc, evt);
-      acc.devicesProgress = deriveDevicesProgress(acc, evt);
+    acc.gameStatus = deriveGameStatus(acc, evt);
+    acc.gameStartTime = deriveGameStartTime(acc, evt);
+    acc.gameEndTime = deriveGameEndTime(acc, evt);
+    acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
+    acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
+    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt);
+    acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
+    acc.devicesProgress = deriveDevicesProgress(acc, evt);
+    console.log(acc);
+    return acc;
   };
 
   return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
@@ -1081,7 +1097,7 @@ const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
   const prunedUniqTargetIds = R.reject(rejectList, uniqTargetIds);
 
   const win = (targetId, idx) => {
-    return buttonPressProgressCompute(tl, game, tp, targetId);
+    return buttonPressProgress(tl, game, tp, targetId);
   };
   return R.map(win, prunedUniqTargetIds);
 };
@@ -1127,7 +1143,7 @@ module.exports = {
     Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
     Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
     Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
-    Vue.prototype.$gameStats.buttonPressProgressCompute = buttonPressProgressCompute;
+    Vue.prototype.$gameStats.buttonPressProgress = buttonPressProgress;
     Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
     Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
     Vue.prototype.$gameStats.pairify = pairify;
@@ -1168,7 +1184,7 @@ module.exports = {
   remainingGameTimeHumanized,
   activeTimelineVs,
   cleansedPressData,
-  buttonPressProgressCompute,
+  buttonPressProgress,
   calculateDevicesProgress,
   buildPressParameters,
   pairify,

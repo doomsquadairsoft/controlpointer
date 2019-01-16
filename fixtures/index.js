@@ -11,6 +11,7 @@ module.exports = {
   pressedMetadata: require('./pressedMetadata'),
   stoppedTimeline: require('./stoppedTimeline'),
   runningTimeline: require('./runningTimeline'),
+  skeletonMetadata: require('./skeletonMetadata'),
   finishedTimeline: require('./finishedTimeline'),
   stoplessTimeline: require('./stoplessTimeline'),
   simpleGameSettings: require('./simpleGameSettings'),

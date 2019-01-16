@@ -542,10 +542,10 @@ describe('gameStats', function() {
 
 
 
-  describe('buttonPressProgressCompute()', function() {
+  describe('buttonPressProgress()', function() {
     const tid = '5AEVScKzvclsCpeR';
     it('should return an object with red and blu progress integers between 0 and 100', function() {
-      const progress = gameStats.buttonPressProgressCompute(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
+      const progress = gameStats.buttonPressProgress(fixtures.controlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
       assert.isNumber(progress.red);
       assert.isNumber(progress.blu);
@@ -555,12 +555,12 @@ describe('gameStats', function() {
 
     it('should throw if there isn\'t a fourth parameter', function() {
       assert.throws(() => {
-        gameStats.buttonPressProgressCompute(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer);
+        gameStats.buttonPressProgress(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer);
       });
     });
 
     it('should show red progress OR blu progress, never both.', function() {
-      const progress = gameStats.buttonPressProgressCompute(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer, tid);
+      const progress = gameStats.buttonPressProgress(fixtures.controlpointPressData, fixtures.gameSettings, fixtures.timePointer, tid);
       assert.isObject(progress);
       assert.isFalse(
         R.and(
@@ -573,21 +573,21 @@ describe('gameStats', function() {
     xit('should take gameStatus (paused|started) into account')
     it('should not take into account any events past the timePointer parameter', function() {
       const tp = 1546286053620;
-      const progress = gameStats.buttonPressProgressCompute(fixtures.controlpointPressData, fixtures.gameSettings, tp, tid);
+      const progress = gameStats.buttonPressProgress(fixtures.controlpointPressData, fixtures.gameSettings, tp, tid);
       assert.isObject(progress);
       assert.equal(progress.red, 88);
       assert.equal(progress.blu, 0);
     });
 
     it('should ignore duplicate press or release actions', function() {
-      const progress = gameStats.buttonPressProgressCompute(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
+      const progress = gameStats.buttonPressProgress(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
       assert.equal(progress.red, 83, 'red value is unexpected'); // 5437 / 5000 = 1.0874
       assert.equal(progress.blu, 0, 'blu value is unexpected'); // 1264 / 5000 = 0.2528
     });
 
     it('should not return data which contains a stop event', function() {
-      const progress = gameStats.buttonPressProgressCompute(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
+      const progress = gameStats.buttonPressProgress(fixtures.dupControlpointPressData, fixtures.gameSettings, undefined, tid);
       assert.isObject(progress);
       const validate = (itm) => { assert.notPropertyVal(itm, 'action', 'stop'); };
       R.forEach(validate, progress);
@@ -596,7 +596,8 @@ describe('gameStats', function() {
     it('should respect a cap_red admin override', function() {
       const tp = 1546127512637; // time point of a cap_red on controlpoint asdf
       const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
-      const progress = gameStats.buttonPressProgressCompute(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
+      const progress = gameStats.buttonPressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
+      console.log(progress)
       assert.isObject(progress);
       assert.equal(progress.red, 100);
       assert.equal(progress.blu, 0);
@@ -605,7 +606,7 @@ describe('gameStats', function() {
     it('should respect a cap_blu admin override', function() {
       const tp = 1546127433580; // time point of a cap_blu on controlpoint asdf
       const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
-      const progress = gameStats.buttonPressProgressCompute(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
+      const progress = gameStats.buttonPressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
       assert.isObject(progress);
 
       assert.equal(progress.red, 0);
@@ -896,8 +897,9 @@ describe('gameStats', function() {
   });
 
   describe('calculateMetadata()', function() {
+
     it('should compute the answer to life, the universe, and everything.', function() {
-      const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
+      const metadata = gameStats.calculateMetadata(fixtures.stoplessTimeline, fixtures.gameSettings);
       assert.isObject(metadata);
       assert.isObject(metadata.gameStatus);
       assert.isString(metadata.gameStatus.msg);
@@ -908,6 +910,8 @@ describe('gameStats', function() {
       assert.isNumber(metadata.gameElapsedDuration);
       assert.isNumber(metadata.gameRunningDuration);
       assert.isNumber(metadata.gameEndTime);
+      assert.isNumber(metadata.gameLength);
+      assert.propertyVal(metadata, 'theAnswer', 42);
       assert.isArray(metadata.devicesProgress);
       assert.lengthOf(metadata.devicesProgress, 2);
       const validate = (t) => {
@@ -954,7 +958,7 @@ describe('gameStats', function() {
       });
     });
 
-    it('should return running', function() {
+    it('should return running when thisStepEvent action is start', function() {
       const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
       assert.isObject(gameStatus);
       assert.equal(gameStatus.code, 0);
@@ -964,9 +968,14 @@ describe('gameStats', function() {
 
   describe('deriveRemainingGameTime()', function() {
     it('should return the remaining game time as a number', function() {
-      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.pausedMetadata, fixtures.largeControlpointPressData[0]);
       assert.isNumber(remainingGameTime);
       assert.equal(remainingGameTime, 945145433);
+    });
+
+    it('should defer deriving the remaining game time if there is not enough information', function() {
+      const remainingGameTime = gameStats.deriveRemainingGameTime({}, fixtures.largeControlpointPressData[0]);
+      assert.isNull(remainingGameTime);
     });
 
     it('should throw if not receiving two arguments', function() {
@@ -980,13 +989,30 @@ describe('gameStats', function() {
     it('should return the game start time as a ms since epoch number', function() {
       const gameStartTime = gameStats.deriveGameStartTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
       assert.isNumber(gameStartTime);
-      assert.equal(gameStartTime, fixtures.initialMetadata.gameStartTime);
+      assert.equal(gameStartTime, fixtures.largeControlpointPressData[0].createdAt);
     });
 
     it('should throw if not receiving two arguments', function() {
       assert.throws(() => {
         gameStats.deriveGameStartTime();
       });
+    });
+
+    it('should be able to derive start time without metadata, only requiring a stepEvent with a start action and createdAt timestamp', function() {
+      const startEvent = fixtures.largeControlpointPressData[0];
+      const gameStartTime = gameStats.deriveGameStartTime({}, startEvent);
+      assert.isNumber(gameStartTime);
+      assert.equal(gameStartTime, startEvent.createdAt);
+    });
+
+    it('should defer deriving gameStartTime if the stepEvent is not a start event', function() {
+      const pauseEvent = fixtures.largeControlpointPressData[1];
+      const releaseEvent = fixtures.largeControlpointPressData[2];
+      const gameStartTime = gameStats.deriveGameStartTime({}, pauseEvent);
+      assert.isNull(gameStartTime);
+
+      const gameStartTime2 = gameStats.deriveGameStartTime({}, releaseEvent);
+      assert.isNull(gameStartTime2);
     });
   });
 
@@ -1036,15 +1062,33 @@ describe('gameStats', function() {
 
   describe('deriveGameEndTime()', function() {
     it('should return the timestamp of the time at which the game will end', function() {
-      const gameEndTime = gameStats.deriveGameEndTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[1]);
       assert.isNumber(gameEndTime);
       assert.equal(gameEndTime, 1547079620007);
     });
 
     it('should return the timestamp of the time at which the game will end', function() {
-      const gameEndTime = gameStats.deriveGameEndTime(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[0]);
       assert.isNumber(gameEndTime);
       assert.equal(gameEndTime, 1547079620007);
+    });
+
+    it('should return null if the gameStartTime is null', function() {
+      const nullStartMetadata = {
+        gameStatus: { msg: 'stopped', code: 3 },
+        remainingGameTime: null,
+        gameStartTime: null,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 0,
+        gameRunningDuration: 0,
+        gameEndTime: null,
+        devicesProgress: [],
+        metadataTimestamp: 1547072420007,
+        gameLength: 7200000,
+        captureRate: 5000
+      };
+      const gameEndTime = gameStats.deriveGameEndTime(nullStartMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNull(gameEndTime);
     });
 
     it('should throw if not receiving two arguments', function() {
@@ -1153,8 +1197,9 @@ describe('gameStats', function() {
         red: 200,
         blu: 0,
         targetId: 'hG9RdwPn1HH4bZLk'
-      })
+      });
     });
+    xit('should cope with an empty ')
     it('should throw if not receiving 3 params', function() {
       assert.throws(() => {
         gameStats.buttonReleaseDeltaCompute();
@@ -1209,6 +1254,10 @@ describe('gameStats', function() {
       assert.throws(() => {
         gameStats.ute(fixtures.initialMetadata, fixtures.timelinePressRelease);
       })
+    });
+    it('should gracefully handle an empty redIncomplete or bluIncomplete', function() {
+      const { redIncomplete, bluIncomplete } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], '');
+
     });
   });
 

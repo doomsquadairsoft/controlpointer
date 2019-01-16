@@ -5,7 +5,9 @@ module.exports = {
     gamePausedDuration: 0,
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
-    gameEndTime: 0,
+    gameEndTime: 1547079620007,
     devicesProgress: [],
-    metadataTimestamp: 1547072420007
+    metadataTimestamp: 1547072420007,
+    gameLength: 7200000,
+    captureRate: 5000,
 };
