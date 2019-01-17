@@ -918,8 +918,8 @@ describe('gameStats', function() {
         assert.isNumber(t.red);
         assert.isBelow(t.blu, 101, 'blu is too high, should be 0-100');
         assert.isBelow(t.red, 101, 'red is too high, should be 0-100');
-        assert.isAbove(t.blu, 0, 'blu is too low, should be 0-100');
-        assert.isAbove(t.red, 0, 'red is too low, should be 0-100');
+        assert.isAbove(t.blu, -1, 'blu is too low, should be 0-100');
+        assert.isAbove(t.red, -1, 'red is too low, should be 0-100');
         assert.isString(t.targetId, 'returned progress object should have a targetId prop');
       }
       R.forEach(validate, metadata.devicesProgress);

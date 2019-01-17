@@ -1070,6 +1070,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt);
     acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
     acc.devicesProgress = deriveDevicesProgress(acc, evt);
+    acc.theAnswer = 42;
     console.log(acc);
     return acc;
   };
