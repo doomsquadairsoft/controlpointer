@@ -902,8 +902,6 @@ describe('gameStats', function() {
       const metadata = gameStats.calculateMetadata(fixtures.stoplessTimeline, fixtures.gameSettings);
       assert.isObject(metadata);
       assert.isObject(metadata.gameStatus);
-      assert.isString(metadata.gameStatus.msg);
-      assert.isNumber(metadata.gameStatus.code);
       assert.isNumber(metadata.remainingGameTime);
       assert.isNumber(metadata.gameStartTime);
       assert.isNumber(metadata.gamePausedDuration);
@@ -927,11 +925,35 @@ describe('gameStats', function() {
       R.forEach(validate, metadata.devicesProgress);
     });
 
+    it('should correctly compute the metadata after the first event.', function() {
+      const metadata = gameStats.calculateMetadata(fixtures.stoplessTimeline, fixtures.gameSettings, 1546120347408);
+      assert.isObject(metadata);
+      assert.isObject(metadata.gameStatus);
+      assert.deepEqual(metadata.gameStatus, { msg: 'running', code: 0 });
+      assert.isNumber(metadata.remainingGameTime);
+      assert.propertyVal(metadata, 'remainingGameTime', 7200000);
+      assert.isNumber(metadata.gameStartTime);
+      assert.propertyVal(metadata, 'gameStartTime', 1546120347408);
+      assert.isNumber(metadata.gamePausedDuration);
+      assert.propertyVal(metadata, 'gamePausedDuration', 0);
+      assert.isNumber(metadata.gameElapsedDuration);
+      assert.propertyVal(metadata, 'gameElapsedDuration', 1575901672);
+      assert.isNumber(metadata.gameRunningDuration);
+      assert.propertyVal(metadata, 'gameRunningDuration', 1575901672);
+      assert.isNumber(metadata.gameEndTime);
+      assert.propertyVal(metadata, 'gameEndTime', 1546127547408);
+      assert.isNumber(metadata.gameLength);
+      assert.propertyVal(metadata, 'gameLength', 7200000);
+      assert.propertyVal(metadata, 'theAnswer', 42);
+      assert.isArray(metadata.devicesProgress);
+      assert.lengthOf(metadata.devicesProgress, 0);
+    });
+
     it('should respect the timePointer parameter', function() {
       const tp = 1546127512637;
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings, tp);
       const hg9 = R.find(R.propEq('targetId', 'hG9RdwPn1HH4bZLk'), metadata.devicesProgress);
-      console.log(metadata)
+      console.log(metadata);
       assert.isObject(metadata);
       assert.isObject(hg9);
       assert.property(hg9, 'red');
@@ -941,10 +963,11 @@ describe('gameStats', function() {
     it('should know that at n, blu/red progress was 100/0, remaining game time was n, and gameStatus was running.', function() {
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
 
-    })
+    });
   });
 
   describe('deriveGameStatus()', function() {
+    // running, paused, over, stopped -- 0, 1, 2, 3
     it('should accept lastStepMetadata and thisStepEvent as arguments', function() {
       const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
       assert.isObject(gameStatus);
@@ -959,10 +982,32 @@ describe('gameStats', function() {
     });
 
     it('should return running when thisStepEvent action is start', function() {
-      const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
+      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.largeControlpointPressData[0]);
       assert.isObject(gameStatus);
       assert.equal(gameStatus.code, 0);
       assert.equal(gameStatus.msg, 'running');
+    });
+
+    it('should return \'running\' when the thisStepEvent timestamp is less than (before) gameEndTime', function() {
+      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[0]);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 0);
+      assert.equal(gameStatus.msg, 'running');
+    });
+
+    it('should return \'paused\' when the thisStepEvent action is pause', function() {
+      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[3]);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 1);
+      assert.equal(gameStatus.msg, 'paused');
+    });
+
+
+    it('should return \'over\' when the thisStepEvent timestamp is greater than (after) gameEndTime', function() {
+      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[5]);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 2);
+      assert.equal(gameStatus.msg, 'over');
     });
   });
 

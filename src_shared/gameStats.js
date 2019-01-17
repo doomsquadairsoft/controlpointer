@@ -837,8 +837,11 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
   const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
   const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
+  const ca = moment(R.prop('createdAt', thisStepEvent));
+  const get = moment(R.prop('gameEndTime', lastStepMetadata));
+  console.log(`get:${chalk.red(get.valueOf())}, ca:${chalk.red(ca.valueOf())} (get<ca?${get.isSameOrBefore(ca)}), action:${thisStepEvent.action}, isLifeCycleEvent?${isLifeCycleEvent(thisStepEvent)}, isStopEvent?${isStopEvent(thisStepEvent)}, isStartEvent?${isStartEvent(thisStepEvent)}, isPauseEvent?${isPauseEvent(thisStepEvent)}`)
 
-  if (moment(lastStepMetadata.gameEndTime).isAfter(moment())) return { msg: 'over', code: 2};
+  if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
     R.and(
