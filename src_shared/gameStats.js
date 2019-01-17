@@ -15,6 +15,13 @@ const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
  * Handles calculation of game timers.
  */
 
+
+/**
+ * timePointer
+ *
+ * The time pointer tells the library to "go back in time"
+ * and determine what the state of the game was at that point in time.
+ */
 const timePointer = (findTimelineInStore, findGameInStore, timePointer) => {
   const {
     tl,
@@ -703,11 +710,7 @@ const buttonPressProgress = (pressData, gameSettings, timePointer, targetId) => 
   // we need to return 0-100 at any given point, so we need to calculate historical data in order to derive %
   return result;
 };
-const buttonReleaseProgressCompute = (originalData, deltaData) => {
-  if (typeof deltaData === 'undefined') throw new Error('buttonReleaseProgressCompute requires 2 params');
-  const { red, blu } = teamProgressCompute(originalData, deltaData);
-  return R.mergeRight(originalData, deltaData);
-}
+
 
 const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof lastStepMetadata === 'undefined') throw new Error('first param lastStepMetadata passed to buttonReleaseDeltaCompute is not defined')
@@ -851,6 +854,7 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
 
+  console.log(`${chalk.yellow(get.isSameOrBefore(ca))} get:${get.valueOf()} ca:${ca.valueOf()}`)
   if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
@@ -902,17 +906,19 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
 
 const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameElapsedDuration requires two parameters');
-  const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
-  const mt = moment(lastStepMetadata.metadataTimestamp);
+  // const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
+  // const mt = moment(lastStepMetadata.metadataTimestamp); // ccc
   const ca = moment(thisStepEvent.createdAt);
-  const el = moment.duration(mt.diff(ca));
-  return ged.add(el).valueOf();
+  const gst = moment(lastStepMetadata.gameStartTime);
+  //const delta = moment.duration(mt.diff(ca));
+  const ged = ca.diff(gst).valueOf();
+  return ged;
 };
 
 const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameRunningDuration requires two parameters');
   const grd = moment.duration(lastStepMetadata.gameRunningDuration);
-  const mt = moment(thisStepEvent.metadataTimestamp);
+  const mt = moment(lastStepMetadata.metadataTimestamp);
   const ca = moment(thisStepEvent.createdAt);
   const elapsed = moment.duration(mt.diff(ca));
   const action = thisStepEvent.action;
@@ -960,7 +966,10 @@ const deriveDevicesProgress = (lastStepMetadata, thisStepEvent) => {
   }, devices);
 };
 
-
+const deriveMetadataTimestamp = (lastStepMetadata, thisStepEvent) => {
+  const mt = thisStepEvent.createdAt;
+  return mt;
+};
 
 
 const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
@@ -1043,7 +1052,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   const isTimepointerAfter = (acc, evt) => {
     count ++;
     console.log(`count:${chalk.yellow(count)} tp:${chalk.cyan(tp)} ca:${chalk.blue(R.prop('createdAt', evt))} (tp>ca:${R.gt(tp, R.prop('createdAt', evt))}) action:${chalk.red(R.prop('action', evt))}`);
-    return R.gt(tp, R.prop('createdAt', evt))
+    return R.gte(tp, R.prop('createdAt', evt))
   };
 
   const initialMetadata = {
@@ -1055,6 +1064,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     gameRunningDuration: 0,
     gameEndTime: 0,
     devicesProgress: [],
+    metadataTimestamp: null,
     gameLength: gameSettings.gameLength,
     captureRate: gameSettings.captureRate
   };
@@ -1062,12 +1072,13 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // Sequentially turn events into metadata
   // ORDER MATTERS! Put dependencies first.
   const _calculateGameMetadata = (acc, evt) => {
-    acc.gameStatus = deriveGameStatus(acc, evt);
+    acc.metadataTimestamp = deriveMetadataTimestamp(acc, evt);
     acc.gameStartTime = deriveGameStartTime(acc, evt);
     acc.gameEndTime = deriveGameEndTime(acc, evt);
+    acc.gameStatus = deriveGameStatus(acc, evt);
     acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
     acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
-    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt);
+    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt); // depends on gameStartTime
     acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
     acc.devicesProgress = deriveDevicesProgress(acc, evt);
     acc.theAnswer = 42;
@@ -1172,9 +1183,9 @@ module.exports = {
     Vue.prototype.$gameStats.deriveDevicesProgress = deriveDevicesProgress;
     Vue.prototype.$gameStats.deriveDevProgress = deriveDevProgress;
     Vue.prototype.$gameStats.deriveDevices = deriveDevices;
-    Vue.prototype.$gameStats.buttonReleaseProgressCompute = buttonReleaseProgressCompute;
     Vue.prototype.$gameStats.buttonReleaseDeltaCompute = buttonReleaseDeltaCompute;
     Vue.prototype.$gameStats.incompleteProgressCompute = incompleteProgressCompute;
+    Vue.prototype.$gameStats.deriveMetadataTimestamp = deriveMetadataTimestamp;
   },
   gt,
   cleansedTimeline,
@@ -1214,6 +1225,6 @@ module.exports = {
   deriveDevProgress,
   deriveDevices,
   buttonReleaseDeltaCompute,
-  buttonReleaseProgressCompute,
   incompleteProgressCompute,
+  deriveMetadataTimestamp,
 }
