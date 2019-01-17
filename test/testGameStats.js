@@ -1002,7 +1002,6 @@ describe('gameStats', function() {
       assert.equal(gameStatus.msg, 'paused');
     });
 
-
     it('should return \'over\' when the thisStepEvent timestamp is greater than (after) gameEndTime', function() {
       const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[5]);
       assert.isObject(gameStatus);
@@ -1192,6 +1191,18 @@ describe('gameStats', function() {
       assert.propertyVal(devicesProgress[0], 'red', 100);
     });
 
+    it('should return an array containing device progress objects when evaluating an admin cap_blu action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[97]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.property(devicesProgress[0], 'targetId');
+      assert.property(devicesProgress[0], 'red');
+      assert.property(devicesProgress[0], 'blu');
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+      assert.propertyVal(devicesProgress[0], 'blu', 100);
+      assert.propertyVal(devicesProgress[0], 'red', 0);
+    });
+
     it('should throw if not receiving two arguments', function() {
       assert.throws(() => {
         gameStats.deriveDevicesProgress();
@@ -1200,11 +1211,51 @@ describe('gameStats', function() {
   });
 
   describe('deriveDevProgress()', function() {
+    const capRedEvt = fixtures.largeControlpointPressData[13];
+    const capUncEvt = fixtures.largeControlpointPressData[27];
+    const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
+
     it('should accept metadata object, timeline event, and deviceId, returning an progress object', function() {
       const tid = '3J3qKsCboWqbpe2G';
       const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13], tid);
       assert.propertyVal(devProgress, 'targetId', tid)
     });
+
+    it('should show red: 0, blu: 0 when processing a cap_unc event', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, capUncEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        targetId: tid,
+        red: 0,
+        blu: 0
+      });
+    });
+
+    it('should handle a cap_red followed by a cap_unc', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.redMetadata, capUncEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        targetId: tid,
+        red: 0,
+        blu: 0
+      });
+    });
+
+    it('should ignore release_(red|blu) events without pre-existing (red|blu)Incomplete data', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.uncMetadata, releaseBluEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        redIncomplete: null,
+        bluIncomplete: null,
+        targetId: tid,
+        red: 100,
+        blu: 0
+      });
+    });
+
     it('should throw if not receiving three arguments', function() {
       assert.throws(() => {
         gameStats.deriveDevProgress();
@@ -1232,19 +1283,45 @@ describe('gameStats', function() {
       assert.lengthOf(devices, 2);
       assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk', '5AEVScKzvclsCpeR']);
     });
+
+    it('should ignore id \'unknown!\'', function() {
+      const unknownTargetIdEvt = fixtures.largeControlpointPressData[164];
+      const devices = gameStats.deriveDevices(fixtures.pressedMetadata, unknownTargetIdEvt);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 1);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
+    });
   });
 
   describe('buttonReleaseDeltaCompute()', function() {
+    const tid = 'hG9RdwPn1HH4bZLk';
+    const releaseEvent = fixtures.timelinePressRelease[1];
+    const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
+
     it('should return an object containing the changed progress data', function() {
-      const delta = gameStats.buttonReleaseDeltaCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], 'hG9RdwPn1HH4bZLk');
+      const delta = gameStats.buttonReleaseDeltaCompute(fixtures.pressedMetadata, releaseEvent, tid);
       assert.isObject(delta);
       assert.deepEqual(delta, {
         red: 200,
         blu: 0,
-        targetId: 'hG9RdwPn1HH4bZLk'
+        targetId: tid
       });
     });
-    xit('should cope with an empty ')
+    it('should return red:0, blu:0 when no (red|blu)Incomplete data exists', function() {
+      const releaseEvent = fixtures.largeControlpointPressData[158]; // ca 1546277131169
+      const delta = gameStats.buttonReleaseDeltaCompute(fixtures.releasedMetadata, releaseEvent, tid);
+      assert.isObject(delta);
+      assert.deepEqual(delta, {
+        red: 0,
+        blu: 0,
+        targetId: tid
+      });
+    });
+    it('should throw if captureRate is undefined', function() {
+      assert.throws(() => {
+        gameStats.buttonReleaseDeltaCompute(fixtures.noCaptureRateMetadata, releaseBluEvt, tid);
+      }, /captureRate/);
+    });
     it('should throw if not receiving 3 params', function() {
       assert.throws(() => {
         gameStats.buttonReleaseDeltaCompute();

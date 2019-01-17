@@ -710,11 +710,20 @@ const buttonReleaseProgressCompute = (originalData, deltaData) => {
 }
 
 const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
+  if (typeof lastStepMetadata === 'undefined') throw new Error('first param lastStepMetadata passed to buttonReleaseDeltaCompute is not defined')
   if (typeof deviceId === 'undefined') throw new Error('buttonReleaseDeltaCompute requires 3 params');
-  const devicesProgress = lastStepMetadata.devicesProgress;
+  if (typeof lastStepMetadata.captureRate === 'undefined') throw new Error('lastStepMetadata.captureRate passed to buttonReleaseDeltaCompute() is undefined!');
   const captureRate = lastStepMetadata.captureRate;
+  const devicesProgress = lastStepMetadata.devicesProgress;
   const ca = moment(thisStepEvent.createdAt);
   const old = R.find(R.propEq('targetId', deviceId), devicesProgress);
+
+  const emptyDelta = { blu: 0, red: 0, targetId: deviceId };
+  if (
+    (isRed(thisStepEvent) && old.redIncomplete === null) ||
+    (isBlu(thisStepEvent) && old.bluIncomplete === null)
+  ) return emptyDelta;
+
 
   const lastRedPressTime = moment(R.prop('redIncomplete', old));
   const lastBluPressTime = moment(R.prop('bluIncomplete', old));
@@ -739,6 +748,7 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
     red: redProgressSinceLastPress,
     targetId: deviceId
   };
+
 
   return pre;
   // reset the *_incomplete number for the chosen team
@@ -824,6 +834,7 @@ const deriveDevices = (lastStepMetadata, thisStepEvent) => {
   const c = R.reject((itm) => {
     if (R.isNil(itm)) return true;
     if (R.isEmpty(itm)) return true;
+    if (R.equals(itm, 'unknown!')) return true;
   }, R.flatten([d, tid]));
 
   if (R.lt(R.length(c), 1)) return [];
@@ -839,15 +850,11 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
-  console.log(`get:${chalk.red(get.valueOf())}, ca:${chalk.red(ca.valueOf())} (get<ca?${get.isSameOrBefore(ca)}), action:${thisStepEvent.action}, isLifeCycleEvent?${isLifeCycleEvent(thisStepEvent)}, isStopEvent?${isStopEvent(thisStepEvent)}, isStartEvent?${isStartEvent(thisStepEvent)}, isPauseEvent?${isPauseEvent(thisStepEvent)}`)
 
   if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
-    R.and(
-      R.propEq('msg', 'stopped', lastGameStatus),
       R.not(isLifeCycleEvent(thisStepEvent))
-    )
   ) return lastGameStatus;
   if (isStartEvent(thisStepEvent)) return { msg: 'running', code: 0 };
   if (isPauseEvent(thisStepEvent)) return { msg: 'paused', code: 1 };
@@ -926,6 +933,8 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(thisStepEvent.createdAt);
   const mt = moment(thisStepEvent.metadataTimestamp);
   const elapsed = moment.duration(mt.diff(ca));
+  //console.log(`get:${chalk.red(lget.valueOf())}, ca:${chalk.red(ca.valueOf())}  action:${thisStepEvent.action}`)
+
   if (lget.valueOf() === 0)
     return gst.add(gl).add(gpd).valueOf();
   if (status === 'paused')
@@ -966,6 +975,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
 
   if (detailedAction === 'cap') {
     // admin action
+    if (action === 'cap_unc') return { red: 0, blu: 0, targetId: deviceId };
     const origin = lastProgress;
     const delta = {
       red: isRed(thisStepEvent) ? 200 : 0,
@@ -993,9 +1003,6 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     // player release button
     const original = lastProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
-    console.log(`lastProgress:${original} delta:${delta} devId:${deviceId}`);
-    console.log(delta);
-    console.log(thisStepEvent);
     const { red, blu } = teamProgressCompute(original, delta);
     const { redIncomplete, bluIncomplete } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
     return {
@@ -1031,7 +1038,6 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // * gameEndTime
   // * pressProgress
   // * devicesProgress
-  console.log(`tl.length:${chalk.green(R.length(tl))}`)
 
   var count = 0;
   const isTimepointerAfter = (acc, evt) => {
@@ -1049,7 +1055,8 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     gameRunningDuration: 0,
     gameEndTime: 0,
     devicesProgress: [],
-    gameLength: gameSettings.gameLength
+    gameLength: gameSettings.gameLength,
+    captureRate: gameSettings.captureRate
   };
 
   // Sequentially turn events into metadata
