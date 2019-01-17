@@ -59,7 +59,7 @@ const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
       }
     }).data;
   } else {
-    tl = findTimelineInStore;
+    tl = R.sortBy(R.prop('createdAt'), findTimelineInStore);
   }
 
   var game;
@@ -854,7 +854,7 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
 
-  console.log(`${chalk.yellow(get.isSameOrBefore(ca))} get:${get.valueOf()} ca:${ca.valueOf()}`)
+  //console.log(`${chalk.yellow(get.isSameOrBefore(ca))} get:${get.valueOf()} ca:${ca.valueOf()}`)
   if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
@@ -1082,6 +1082,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
     acc.devicesProgress = deriveDevicesProgress(acc, evt);
     acc.theAnswer = 42;
+    console.log(chalk.cyan.bold('EVALUATRON'))
     console.log(acc);
     return acc;
   };

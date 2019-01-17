@@ -955,11 +955,14 @@ describe('gameStats', function() {
       const tp = 1546127512637;
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings, tp);
       const hg9 = R.find(R.propEq('targetId', 'hG9RdwPn1HH4bZLk'), metadata.devicesProgress);
-      console.log(metadata);
+      //console.log('metadata is as follows')
+      //console.log(metadata);
       assert.isObject(metadata);
       assert.isObject(hg9);
       assert.property(hg9, 'red');
+      assert.property(hg9, 'blu');
       assert.propertyVal(hg9, 'red', 100);
+      assert.propertyVal(hg9, 'blu', 0);
     });
 
     it('should know that at n, blu/red progress was 100/0, remaining game time was n, and gameStatus was running.', function() {
