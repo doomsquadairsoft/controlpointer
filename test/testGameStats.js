@@ -598,7 +598,6 @@ describe('gameStats', function() {
       const tp = 1546127512637; // time point of a cap_red on controlpoint asdf
       const tidd = 'hG9RdwPn1HH4bZLk'; // asdf controlpoint
       const progress = gameStats.buttonPressProgress(fixtures.stoplessTimeline, fixtures.gameSettings, tp, tidd);
-      console.log(progress);
       assert.isObject(progress);
       assert.equal(progress.red, 100);
       assert.equal(progress.blu, 0);
@@ -955,8 +954,6 @@ describe('gameStats', function() {
       const tp = 1546127512637;
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings, tp);
       const hg9 = R.find(R.propEq('targetId', 'hG9RdwPn1HH4bZLk'), metadata.devicesProgress);
-      //console.log('metadata is as follows')
-      //console.log(metadata);
       assert.isObject(metadata);
       assert.isObject(hg9);
       assert.property(hg9, 'red');
@@ -1081,10 +1078,18 @@ describe('gameStats', function() {
   });
 
   describe('deriveGameElapsedDuration()', function() {
-    it('should return the ms that the game has been running for (paused time included)', function() {
-      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+    it('should return the ms difference between thisStepEvent.createdAt and lastStepMetadata.metadataTimestamp', function() {
+      const stopEvent = fixtures.largeControlpointPressData[182];
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.yoloMetadata, stopEvent);
       assert.isNumber(gameElapsedDuration);
-      assert.equal(gameElapsedDuration, 950613463);
+      assert.equal(gameElapsedDuration, 2417);
+    });
+
+    it('should return 0 if the game is not started', function() {
+      const pauseEvent = fixtures.largeControlpointPressData[1];
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.initialMetadata, pauseEvent);
+      assert.isNumber(gameElapsedDuration);
+      assert.equal(gameElapsedDuration, 0);
     });
 
     it('should throw if not receiving two arguments', function() {

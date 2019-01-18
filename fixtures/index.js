@@ -6,6 +6,7 @@ module.exports = {
   timePointer: require('./timePointer'),
   uncMetadata: require('./uncMetadata'),
   gameSettings: require('./gameSettings'),
+  yoloMetadata: require('./yoloMetadata'),
   simpleTimeline: require('./simpleTimeline'),
   pausedTimeline: require('./pausedTimeline'),
   pausedMetadata: require('./pausedMetadata'),

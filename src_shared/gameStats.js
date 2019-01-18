@@ -854,7 +854,6 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
 
-  //console.log(`${chalk.yellow(get.isSameOrBefore(ca))} get:${get.valueOf()} ca:${ca.valueOf()}`)
   if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
@@ -906,13 +905,18 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
 
 const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameElapsedDuration requires two parameters');
-  // const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
-  // const mt = moment(lastStepMetadata.metadataTimestamp); // ccc
+  const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
+  const mt = moment(lastStepMetadata.metadataTimestamp); // ccc
   const ca = moment(thisStepEvent.createdAt);
-  const gst = moment(lastStepMetadata.gameStartTime);
-  //const delta = moment.duration(mt.diff(ca));
-  const ged = ca.diff(gst).valueOf();
-  return ged;
+  const status = lastStepMetadata.gameStatus.msg;
+  const gst = R.ifElse(
+    R.isNil(),
+    R.always(0),
+    R.identity()
+  )(R.prop('gameStartTime', lastStepMetadata));
+  const delta = moment.duration(ca.diff(mt));
+  if (status === 'running' || status === 'paused') return ged.clone().add(delta).valueOf();
+  return ged.valueOf();
 };
 
 const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
@@ -939,7 +943,6 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(thisStepEvent.createdAt);
   const mt = moment(thisStepEvent.metadataTimestamp);
   const elapsed = moment.duration(mt.diff(ca));
-  //console.log(`get:${chalk.red(lget.valueOf())}, ca:${chalk.red(ca.valueOf())}  action:${thisStepEvent.action}`)
 
   if (lget.valueOf() === 0)
     return gst.add(gl).add(gpd).valueOf();
@@ -1051,7 +1054,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   var count = 0;
   const isTimepointerAfter = (acc, evt) => {
     count ++;
-    console.log(`count:${chalk.yellow(count)} tp:${chalk.cyan(tp)} ca:${chalk.blue(R.prop('createdAt', evt))} (tp>ca:${R.gt(tp, R.prop('createdAt', evt))}) action:${chalk.red(R.prop('action', evt))}`);
+    //console.log(`count:${chalk.yellow(count)} tp:${chalk.cyan(tp)} ca:${chalk.blue(R.prop('createdAt', evt))} (tp>ca:${R.gt(tp, R.prop('createdAt', evt))}) action:${chalk.red(R.prop('action', evt))}`);
     return R.gte(tp, R.prop('createdAt', evt))
   };
 
@@ -1078,12 +1081,12 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     acc.gameStatus = deriveGameStatus(acc, evt);
     acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
     acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
-    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt); // depends on gameStartTime
+    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt); // depends on gameStartTime, gameEndTime, and gameStatus
     acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
     acc.devicesProgress = deriveDevicesProgress(acc, evt);
     acc.theAnswer = 42;
-    console.log(chalk.cyan.bold('EVALUATRON'))
-    console.log(acc);
+    // console.log(chalk.cyan.bold('EVALUATRON'))
+    // console.log(acc);
     return acc;
   };
 
