@@ -1151,28 +1151,28 @@ module.exports = {
   install(Vue, opts) {
     Vue.prototype.$gameStats = {};
     Vue.prototype.$gameStats.gt = gt;
-    Vue.prototype.$gameStats.cleansedTimeline = cleansedTimeline;
-    Vue.prototype.$gameStats.lifecycleTimeline = lifecycleTimeline;
-    Vue.prototype.$gameStats.gamePausedDuration = gamePausedDuration;
-    Vue.prototype.$gameStats.activeTimeline = activeTimeline;
-    Vue.prototype.$gameStats.gameStartTime = gameStartTime;
-    Vue.prototype.$gameStats.gameEndTime = gameEndTime;
-    Vue.prototype.$gameStats.gameEndTimeHumanized = gameEndTimeHumanized;
-    Vue.prototype.$gameStats.gameStatus = gameStatus;
-    Vue.prototype.$gameStats.gameElapsedDuration = gameElapsedDuration;
-    Vue.prototype.$gameStats.gameRunningDuration = gameRunningDuration;
-    Vue.prototype.$gameStats.gameLength = gameLength;
-    Vue.prototype.$gameStats.timePointer = timePointer;
-    Vue.prototype.$gameStats.mostRecentStop = mostRecentStop;
-    Vue.prototype.$gameStats.remainingGameTime = remainingGameTime;
-    Vue.prototype.$gameStats.remainingGameTimeDigital = remainingGameTimeDigital;
-    Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
-    Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
-    Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
-    Vue.prototype.$gameStats.buttonPressProgress = buttonPressProgress;
-    Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
-    Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
-    Vue.prototype.$gameStats.pairify = pairify;
+    // Vue.prototype.$gameStats.cleansedTimeline = cleansedTimeline;
+    // Vue.prototype.$gameStats.lifecycleTimeline = lifecycleTimeline;
+    // Vue.prototype.$gameStats.gamePausedDuration = gamePausedDuration;
+    // Vue.prototype.$gameStats.activeTimeline = activeTimeline;
+    // Vue.prototype.$gameStats.gameStartTime = gameStartTime;
+    // Vue.prototype.$gameStats.gameEndTime = gameEndTime;
+    // Vue.prototype.$gameStats.gameEndTimeHumanized = gameEndTimeHumanized;
+    // Vue.prototype.$gameStats.gameStatus = gameStatus;
+    // Vue.prototype.$gameStats.gameElapsedDuration = gameElapsedDuration;
+    // Vue.prototype.$gameStats.gameRunningDuration = gameRunningDuration;
+    // Vue.prototype.$gameStats.gameLength = gameLength;
+    // Vue.prototype.$gameStats.timePointer = timePointer;
+    // Vue.prototype.$gameStats.mostRecentStop = mostRecentStop;
+    // Vue.prototype.$gameStats.remainingGameTime = remainingGameTime;
+    // Vue.prototype.$gameStats.remainingGameTimeDigital = remainingGameTimeDigital;
+    // Vue.prototype.$gameStats.remainingGameTimeHumanized = remainingGameTimeHumanized;
+    // Vue.prototype.$gameStats.activeTimelineVs = activeTimelineVs;
+    // Vue.prototype.$gameStats.cleansedPressData = cleansedPressData;
+    // Vue.prototype.$gameStats.buttonPressProgress = buttonPressProgress;
+    // Vue.prototype.$gameStats.calculateDevicesProgress = calculateDevicesProgress;
+    // Vue.prototype.$gameStats.buildPressParameters = buildPressParameters;
+    // Vue.prototype.$gameStats.pairify = pairify;
     Vue.prototype.$gameStats.capPercentage = capPercentage;
     Vue.prototype.$gameStats.pad = pad;
     Vue.prototype.$gameStats.teamProgressCompute = teamProgressCompute;
@@ -1192,28 +1192,28 @@ module.exports = {
     Vue.prototype.$gameStats.deriveMetadataTimestamp = deriveMetadataTimestamp;
   },
   gt,
-  cleansedTimeline,
-  lifecycleTimeline,
-  gamePausedDuration,
-  activeTimeline,
-  gameStartTime,
-  gameEndTime,
-  gameEndTimeHumanized,
-  gameStatus,
-  gameElapsedDuration,
-  gameRunningDuration,
-  gameLength,
-  timePointer,
-  mostRecentStop,
-  remainingGameTime,
-  remainingGameTimeDigital,
-  remainingGameTimeHumanized,
-  activeTimelineVs,
-  cleansedPressData,
-  buttonPressProgress,
-  calculateDevicesProgress,
-  buildPressParameters,
-  pairify,
+  // cleansedTimeline,
+  // lifecycleTimeline,
+  // gamePausedDuration,
+  // activeTimeline,
+  // gameStartTime,
+  // gameEndTime,
+  // gameEndTimeHumanized,
+  // gameStatus,
+  // gameElapsedDuration,
+  // gameRunningDuration,
+  // gameLength,
+  // timePointer,
+  // mostRecentStop,
+  // remainingGameTime,
+  // remainingGameTimeDigital,
+  // remainingGameTimeHumanized,
+  // activeTimelineVs,
+  // cleansedPressData,
+  // buttonPressProgress,
+  // calculateDevicesProgress,
+  // buildPressParameters,
+  // pairify,
   pad,
   capPercentage,
   teamProgressCompute,

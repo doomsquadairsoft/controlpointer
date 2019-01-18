@@ -23,23 +23,24 @@ module.exports = class Marshal {
     Promise.all([tl, game, devices])
     .spread((tl, game) => {
 
-      const gameTest = gameStats.gt(tl, game);
-      const gameStatus = gameStats.gameStatus(tl, game);
-      const gameStartTime = gameStats.gameStartTime(tl, game);
-      const gameElapsedDuration = gameStats.gameElapsedDuration(tl, game);
-      const gamePausedDuration = gameStats.gamePausedDuration(tl, game);
-      const gameEndTime = gameStats.gameEndTime(tl, game);
+      const {
+        gameStatus,
+        gameStartTime,
+        gameElapsedDuration,
+        gamePausedDuration,
+        gameEndTime,
+        devicesProgress
+      } = gameStats.calculateMetadata(tl, game);
+
       console.log(`Status: ${gameStatus.msg}, Start: ${gameStartTime}, Dur: ${gameElapsedDuration}, Paused Dur: ${gamePausedDuration}, End: ${gameEndTime}`)
 
       // get info on control point button presses
-      const activeTimeline = gameStats.activeTimeline(tl, game);
-      const progress = gameStats.calculateDevicesProgress(tl, game);
-      console.log(progress);
+      console.log(devicesProgress);
 
       R.forEach((d) => {
         if (typeof d.targetId !== 'undefined')
           this.devicesService.patch(d.targetId, {bluProgress: d.blu, redProgress: d.red}, {});
-      }, progress);
+      }, devicesProgress);
 
 
     });

@@ -81,7 +81,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .invis {
   display: none;
 }

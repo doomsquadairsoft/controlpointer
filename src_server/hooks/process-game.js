@@ -4,12 +4,14 @@
 module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
-        const duration = context.data.duration || 305500; // 5 minute 55 seconds
+        const gameLength = context.data.gameLength || 305500; // 5 minute 55 seconds
+        const captureRate = context.data.captureRate || 5000; // 5 seconds
 
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
-            duration,
-            createdAt: new Date().getTime()
+            gameLength,
+            captureRate,
+            createdAt: new Date().getTime(),
         };
 
         // Best practise, hooks should always return the context

@@ -21,7 +21,7 @@ import NewDevice from '../NewDevice'
 import Lifecycle from '@/components/Lifecycle/Lifecycle'
 import Pammy from './Pammy'
 import Log from './Log.vue'
-import di from '../../assets/futuristic_ammo_box_01.png'
+import di from '@/assets/futuristic_ammo_box_01.png'
 
 export default {
   name: 'Admin',

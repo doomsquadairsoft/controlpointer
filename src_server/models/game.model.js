@@ -9,6 +9,8 @@ module.exports = function (app) {
   });
 
   Model.ensureIndex({ fieldName: 'gameLength', unique: false });
+  Model.ensureIndex({ fieldName: 'captureRate', unique: false });
+  Model.ensureIndex({ fieldName: 'createdAt', unique: false });
 
   return Model;
 };

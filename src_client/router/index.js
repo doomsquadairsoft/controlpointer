@@ -5,6 +5,7 @@ import About from '../components/About'
 import AboutGreenFox from '../components/AboutGreenFox'
 import Admin from '../components/Admin/Admin'
 import MapPage from '../components/Map/MapPage'
+import AdminNue from '../components/AdminNue/Admin'
 import Utilities from '../components/Utilities'
 import Store from '../components/Store'
 import ControlPointList from '../components/ControlPoint/ControlPointList'
@@ -30,9 +31,14 @@ export default new Router({
             component: AboutGreenFox
         },
         {
+            path: '/admin-old',
+            name: 'AdminOld',
+            component: Admin
+        },
+        {
             path: '/admin',
             name: 'Admin',
-            component: Admin
+            component: AdminNue
         },
         {
             path: '/map',

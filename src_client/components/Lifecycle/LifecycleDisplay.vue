@@ -1,7 +1,8 @@
 <template>
 <v-flex>
   <div class="text-xs-center">
-    <p class="digital">{{ remainingGameTimeDigital }}</p>
+    <!-- <p class="digital">{{ remainingGameTime }}</p> -->
+    <p>Lifecycle Display</p>
   </div>
 </v-flex>
 </template>
@@ -25,10 +26,10 @@ export default {
     }
   },
   props: {
-    remainingGameTimeDigital: {
-      type: String,
-      required: true
-    },
+    // remainingGameTime: {
+    //   type: Number,
+    //   required: true
+    // }
   },
   methods: {
 

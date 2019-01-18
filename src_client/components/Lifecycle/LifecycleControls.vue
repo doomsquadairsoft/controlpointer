@@ -1,32 +1,42 @@
 <template>
 <v-flex>
-  <div :class="{ 'invis': isGame }">
     <v-layout row>
-      <v-slider v-model="gameDuration" :max="255" label="Game Time (in minutes)">
-      </v-slider>
-      <v-flex xs3>
-        <v-text-field v-model="gameDuration" class="mt-0" type="number">
+      <v-flex xs6>
+        <v-text-field v-model="gameLengthInput" class="mt-0" label="Game Length (hh:mm:ss)" type="time-with-seconds">
         </v-text-field>
       </v-flex>
+      <v-flex xs3>
+        <v-btn color="grey" @click="doUseDefaultGameLength">
+          <v-icon>timer</v-icon> Use default (15 minutes)
+        </v-btn>
+      </v-flex>
+    </v-layout>
+
+    <v-layout row>
+      <v-flex xs6>
+        <v-text-field v-model="captureRateInput" class="mt-0" label="Capture Rate (hh:mm:ss)" type="time-with-seconds">
+        </v-text-field>
+      </v-flex>
+      <v-flex xs3>
+        <v-btn color="grey" @click="doUseDefaultCaptureRate">
+          <v-icon>timer</v-icon> Use default (5 seconds)
+        </v-btn>
+      </v-flex>
+    </v-layout>
+
+    <v-layout row>
       <v-flex xs3>
         <v-btn color="primary" @click="doCreateGame">
           Create game
         </v-btn>
       </v-flex>
     </v-layout>
-  </div>
-  <div :class="{ 'invis': !isGame }">
-    <v-btn color="success" @click="createStartEvent">
-      <v-icon>play_arrow</v-icon>
-    </v-btn>
-    <v-btn color="warning" @click="createPauseEvent">
-      <v-icon>pause</v-icon>
-    </v-btn>
-    <v-btn color="error" @click="createStopEvent">
-      <v-icon>stop</v-icon>
-    </v-btn>
-  </div>
-</v-flex>
+
+    <gameList
+    :game="game.data"
+    ></gameList>
+
+  </v-flex>
 </template>
 
 <script>
@@ -36,26 +46,54 @@ import {
   mapGetters
 } from 'vuex'
 
-import store from '@/store'
+import store from '@/store';
+import moment from 'moment';
+import 'moment-duration-format';
+import GameList from '@/components/Admin/GameList'
 
 
 export default {
   name: 'LifecycleControls',
+  components: {
+    GameList,
+  },
   data () {
     return {
-      gameDuration: 5
+      gameLengthInput: '00:00:00',
+      captureRateInput: '00:00:00',
+      defaultGameLength: '00:15:00',
+      defaultCaptureRate: '00:00:05',
+      gameId: null
     }
+  },
+  created () {
+    this.findGame();
   },
   props: {
 
   },
   computed: {
-    isGame () {
-      return this.findGameInStore().data.length < 1 ? false : true
-    },
     ...mapGetters('game', {
-      findGameInStore: 'find'
-    })
+      findGame: 'find'
+    }),
+    game() {
+      return this.findGame({
+        query: {
+          $sort: {
+            createdAt: 1
+          }
+        }
+      })
+    },
+    gameLength() {
+      return moment.duration(this.gameLengthInput);
+    },
+    captureRate() {
+      return moment.duration(this.captureRateInput);
+    },
+    captureRateLabel() {
+      return `Capture Rate (${this.captureRate})`;
+    },
   },
   methods: {
     ...mapState('game', 'game'),
@@ -64,16 +102,24 @@ export default {
       removeDevice: 'remove'
     }),
     ...mapActions('game', {
-      findGame: 'find'
-    }),
-    ...mapActions('game', {
+      removeGame: 'remove',
       createGame: 'create'
     }),
     doCreateGame () {
-      console.log(`doing create game with gameDuration=${this.gameDuration}`)
-      this.createGame({
-        duration: 1000*60*this.gameDuration
+      console.log(`doing create game with gameLength=${this.gameLength}`)
+      const test = this.createGame({
+        gameLength: this.gameLength,
+        captureRate: this.captureRate,
       }, {});
+      test.then((response) => {
+        this.gameId = response._id;
+      })
+    },
+    doUseDefaultGameLength () {
+      this.gameLengthInput = this.defaultGameLength;
+    },
+    doUseDefaultCaptureRate () {
+      this.captureRateInput = this.defaultCaptureRate;
     },
     createStartEvent () {
       console.log('Creating game start timeline event ' + this._id)
@@ -102,6 +148,10 @@ export default {
           target: "game"
         }, {});
     },
+    deleteGame () {
+      console.log('deleting game');
+      this.removeGame(gameId, {});
+    }
   }
 }
 </script>

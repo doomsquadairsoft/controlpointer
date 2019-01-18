@@ -1,8 +1,6 @@
 const NeDB = require('nedb');
 const path = require('path');
 
-console.log('|||||||||||| timeline.model.js checking in!')
-
 module.exports = function (app) {
   const dbPath = app.get('nedb');
   const Model = new NeDB({
@@ -13,6 +11,7 @@ module.exports = function (app) {
   Model.ensureIndex({ fieldName: 'type', unique: false });
   Model.ensureIndex({ fieldName: 'action', unique: false });
   Model.ensureIndex({ fieldName: 'createdAt', unique: false });
+  Model.ensureIndex({ fieldName: 'gameId', unique: false });
 
   return Model;
 };
