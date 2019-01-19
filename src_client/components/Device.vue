@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import di from '../assets/futuristic_ammo_box_01.png'
+import di from '@/assets/futuristic_ammo_box_01.png'
 import {
   mapState,
   mapActions

@@ -11,7 +11,7 @@ import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import gameStats from '@/../src_shared/gameStats'
 import Vs from 'd3-vs';
-
+import Vuelidate from 'vuelidate'
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -23,6 +23,7 @@ L.Icon.Default.mergeOptions({
 Vue.use(gameStats);
 Vue.use(Vuetify);
 Vue.use(Vs);
+Vue.use(Vuelidate);
 Vue.config.productionTip = true;
 
 Vue.component('v-map', Vue2Leaflet.Map);

@@ -1,7 +1,10 @@
 <template>
-<v-container class="admin">
-  <create-game></create-game>
+<v-container class="admin pa-2">
+  <create-game
+    :devices="devices"
+  ></create-game>
   <game-list
+  :devices="devices"
   :game="game.data"
   ></game-list>
 </v-container>
@@ -26,10 +29,10 @@ export default {
   },
   computed: {
     ...mapGetters('game', {
-      findGame: 'find'
+      findGameInStore: 'find'
     }),
     game() {
-      return this.findGame({
+      return this.findGameInStore({
         query: {
           $sort: {
             createdAt: 1
@@ -40,10 +43,18 @@ export default {
   },
   methods: {
     ...mapActions('game', {
-      createGame: 'create'
+      createGame: 'create',
+      findGame: 'find'
     })
   },
+  props: {
+    devices: {
+      type: Array,
+      required: true
+    }
+  },
   created() {
+    this.findGame();
   }
 }
 </script>

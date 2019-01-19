@@ -1,10 +1,18 @@
 <template>
 <v-flex xs12 sm12 md8 lg5 xl2>
-  <p>Game _id:{{ this._id }}</p>
+  <span>
+    <v-chip label outline color="green">
+      <v-icon left>gamepad</v-icon>{{ this.game.gameName }}
+    </v-chip>
+  </span>
+
   <game-status
   :removeGame="removeGame"
   :_id="_id"
   :remainingGameTime="remainingGameTime"></game-status>
+
+  <game-log :timeline="timeline"></game-log>
+  <game-devices :iDevs="iDevs"></game-devices>
 </v-flex>
 </template>
 
@@ -12,10 +20,11 @@
 import {
   mapState,
   mapActions
-} from 'vuex'
-import GameLog from './GameLog/GameLog'
-import GameStatus from './GameStatus/GameStatus'
-import GameDevices from './GameDevices/GameDevices'
+} from 'vuex';
+import GameLog from './GameLog/GameLog';
+import GameStatus from './GameStatus/GameStatus';
+import GameDevices from './GameDevices/GameDevices';
+import * as R from 'ramda';
 
 export default {
   name: 'Game',
@@ -33,31 +42,30 @@ export default {
       type: Function,
       required: true
     },
-    findTimeline: {
-      type: Function,
-      required: true
-    },
     game: {
       type: Object,
+      required: true
+    },
+    devices: {
+      type: Array,
+      required: true
+    },
+    includedDevices: {
+      type: Array,
       required: true
     }
   },
   computed: {
-    timeline() {
-        return this.findTimeline({
-            query: {
-                $filter: {
-                    gameId: this._id
-                }
-            }
-        })
+    iDevs() {
+      const isIncludedDevice = R.compose(R.includes(R.__, this.includedDevices), R.prop('_id'));
+      return R.filter(isIncludedDevice, this.devices);
     },
     metadata() {
       return this.$gameStats.calculateMetadata(this.timeline, this.game);
     },
     remainingGameTime() {
       return this.metadata.remainingGameTime;
-    },
+    }
     // gameStatus() {
     //   return this.metadata.gameStatus;
     // },
