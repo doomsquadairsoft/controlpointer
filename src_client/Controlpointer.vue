@@ -1,11 +1,22 @@
 <template>
 <v-app :dark="theme">
 
-  <v-toolbar flat fixed app>
+  <div>
+  <v-toolbar color="rgba(33, 33, 33, 1)" fixed app tabs>
     <v-toolbar-side-icon @click.stop="drawer = !drawer">
     </v-toolbar-side-icon>
-    <v-toolbar-title>DooM Squad Airsoft</v-toolbar-title>
+    <v-toolbar-title>DooM Devices</v-toolbar-title>
+
+    <v-tabs slot="extension" v-model="tab" color="rgba(33, 33, 33, 1)" centered>
+      <v-tabs-slider color="orange"></v-tabs-slider>
+      <v-tab v-for="g in game.data" :key="g._id">
+        {{ g.gameName }}
+      </v-tab>
+    </v-tabs>
   </v-toolbar>
+
+
+
 
   <v-navigation-drawer v-model="drawer" app>
     <v-list class="pa-1">
@@ -50,10 +61,16 @@
   </v-navigation-drawer>
 
 
+
   <v-content>
-    <router-view :devices="devices.data"></router-view>
+    <router-view
+      :devices="devices.data"
+      :timeline="timeline.data"
+      :game="game.data"
+    ></router-view>
   </v-content>
   <!-- <v-footer app></v-footer> -->
+</div>
 </v-app>
 </template>
 
@@ -75,6 +92,21 @@ export default {
     ...mapGetters('devices', {
       findDevicesInStore: 'find'
     }),
+    ...mapGetters('timeline', {
+      findTimelineInStore: 'find'
+    }),
+    ...mapGetters('game', {
+      findGameInStore: 'find'
+    }),
+    game() {
+      return this.findGameInStore({
+        query: {
+          $sort: {
+            createdAt: 1
+          }
+        }
+      })
+    },
     devices() {
       return this.findDevicesInStore({
         query: {
@@ -85,13 +117,16 @@ export default {
       })
     },
     timeline() {
-        return this.findTimelineInStore({
-            query: {
-                $filter: {
-                    gameId: this._id
-                }
-            }
-        })
+      return this.findTimelineInStore({
+        query: {
+          $sort: {
+            createdAt: 1
+          },
+          $filter: {
+            gameId: this._id
+          }
+        }
+      })
     },
   },
   methods: {
@@ -100,13 +135,19 @@ export default {
     }),
     ...mapActions('timeline', {
       findTimeline: 'find'
-    })
+    }),
+    ...mapActions('game', {
+      findGame: 'find'
+    }),
   },
   created() {
     this.findDevices();
     this.findTimeline();
+    this.findGame();
   },
   data: () => ({
+    items: ['tiesto', 'aphex twin', 'kaskade'],
+    tab: null,
     drawer: true,
     menuItems: [{
         icon: 'home',

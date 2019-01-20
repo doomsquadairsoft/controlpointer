@@ -1,6 +1,6 @@
 <template>
   <v-list-tile-action>
-    <v-icon v-for="d in iDevs" color="purple">star</v-icon>
+    <p>gameDevice {{ dev.did }}</p>
   </v-list-tile-action>
 </template>
 
@@ -11,8 +11,8 @@
 
     },
     props: {
-      iDevs: {
-        type: Array,
+      dev: {
+        type: Object,
         required: true
       }
     }

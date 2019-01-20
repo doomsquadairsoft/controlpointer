@@ -1,19 +1,19 @@
 <template>
-<v-flex xs12 sm12 md8 lg5 xl2>
-  <span>
-    <v-chip label outline color="green">
-      <v-icon left>gamepad</v-icon>{{ this.game.gameName }}
-    </v-chip>
-  </span>
+  <v-container>
+    <v-layout>
+      <v-flex xs12 sm12 md8 lg5 xl2 v-if="myGame">
 
-  <game-status
-  :removeGame="removeGame"
-  :_id="_id"
-  :remainingGameTime="remainingGameTime"></game-status>
+        <game-status
+        :myGame="myGame"
+        :timeline="timeline"
+        :remainingGameTime="remainingGameTime"></game-status>
 
-  <game-log :timeline="timeline"></game-log>
-  <game-devices :iDevs="iDevs"></game-devices>
-</v-flex>
+        <game-devices :iDevs="iDevs"></game-devices>
+        <game-log :timeline="timeline"></game-log>
+
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>
@@ -34,38 +34,52 @@ export default {
     GameStatus
   },
   props: {
-    _id: {
-      type: String,
-      required: true
-    },
-    removeGame: {
-      type: Function,
-      required: true
-    },
     game: {
-      type: Object,
+      type: Array,
       required: true
     },
     devices: {
       type: Array,
       required: true
     },
-    includedDevices: {
+    timeline: {
       type: Array,
       required: true
     }
   },
   computed: {
+    gameName() {
+      return this.myGame.gameName;
+    },
     iDevs() {
-      const isIncludedDevice = R.compose(R.includes(R.__, this.includedDevices), R.prop('_id'));
-      return R.filter(isIncludedDevice, this.devices);
+      // const
+      const isIncludedDevice = R.find(R.propEq(this.includedDevices));
+      const includedDevices = this.includedDevices;
+      const devices = this.devices;
+
+      // I want DEVICE OBJECTS derived from {Array} this.includedDevices
+      const getDeviceObject = (deviceId) => {
+        return R.find(R.propEq('_id', deviceId), devices);
+      }
+
+      const result = R.map(getDeviceObject, includedDevices);
+      return result;
     },
     metadata() {
-      return this.$gameStats.calculateMetadata(this.timeline, this.game);
+      if (R.isNil(this.myGame)) return {};
+      return this.$gameStats.calculateMetadata(this.timeline, this.myGame);
     },
     remainingGameTime() {
       return this.metadata.remainingGameTime;
-    }
+    },
+    myGame() {
+      const gameIdViaRoute = this.$route.params.gameId;
+      const mg = R.find(R.propEq('_id', gameIdViaRoute))(this.game);
+      return mg;
+    },
+    includedDevices() {
+      return this.myGame.includedDevices;
+    },
     // gameStatus() {
     //   return this.metadata.gameStatus;
     // },

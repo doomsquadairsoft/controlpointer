@@ -1,6 +1,6 @@
 <template>
   <v-list-tile-action>
-    <v-icon v-for="d in iDevs" color="purple">star</v-icon>
+    <p>idk</p>
   </v-list-tile-action>
 </template>
 

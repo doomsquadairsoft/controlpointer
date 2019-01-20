@@ -4,11 +4,12 @@
   v-for="g in game"
   :devices="devices"
   :game="g"
+  :timeline="timeline"
   :key="g._id"
   :_id="g._id"
   :removeGame="removeGame"
   :includedDevices="g.includedDevices"
-  :findTimeline="findTimeline"></game>
+  ></game>
 </div>
 </template>
 
@@ -36,15 +37,16 @@ export default {
     devices: {
       type: Array,
       required: true
+    },
+    timeline: {
+      type: Array,
+      required: true
     }
   },
   components: {
     Game
   },
   computed: {
-    ...mapGetters('timeline', {
-      findTimeline: 'find'
-    }),
     includedDevices() {
       return this.game.includedDevices;
     },

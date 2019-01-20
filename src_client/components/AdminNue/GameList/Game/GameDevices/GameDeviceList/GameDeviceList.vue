@@ -12,10 +12,6 @@
       </v-list-tile-content>
 
       <v-list-tile-action>
-        <!-- <v-icon>gps_fixed</v-icon>
-          <v-icon color="blue">star</v-icon>
-          <v-icon>signal_cellular_3_bar</v-icon>
-          <v-icon>battery_90</v-icon> -->
         <v-layout row>
           <v-badge right>
             <v-icon large color="blue lighten-1">
@@ -45,25 +41,21 @@
         </v-layout>
       </v-list-tile-action>
 
-
-
-
-
     </v-list-tile>
   </v-list>
 </v-list>
 </template>
 
 <script>
-import GameDevice from './GameDevice/GameDevice';
-import R from 'ramda';
+// import GameDevice from './GameDevice/GameDevice';
+//import R from 'ramda';
 import di from '@/assets/futuristic_ammo_box_01.png'
 
 
 export default {
   name: 'GameDevices',
   components: {
-    GameDevice
+    // GameDevice
   },
   props: {
     iDevs: {

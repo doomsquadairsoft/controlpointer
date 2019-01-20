@@ -5,7 +5,8 @@
   ></create-game>
   <game-list
   :devices="devices"
-  :game="game.data"
+  :game="game"
+  :timeline="timeline"
   ></game-list>
 </v-container>
 </template>
@@ -28,33 +29,27 @@ export default {
     CreateGame
   },
   computed: {
-    ...mapGetters('game', {
-      findGameInStore: 'find'
-    }),
-    game() {
-      return this.findGameInStore({
-        query: {
-          $sort: {
-            createdAt: 1
-          }
-        }
-      })
-    }
   },
   methods: {
     ...mapActions('game', {
       createGame: 'create',
-      findGame: 'find'
     })
   },
   props: {
     devices: {
       type: Array,
       required: true
+    },
+    timeline: {
+      type: Array,
+      required: true
+    },
+    game: {
+      type: Array,
+      required: true
     }
   },
   created() {
-    this.findGame();
   }
 }
 </script>

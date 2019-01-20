@@ -192,7 +192,6 @@ export default {
       removeDevice: 'remove'
     }),
     ...mapActions('game', {
-      removeGame: 'remove',
       createGame: 'create'
     }),
     dirtyCr() {
@@ -248,10 +247,6 @@ export default {
         source: "admin",
         target: "game"
       }, {});
-    },
-    deleteGame() {
-      console.log('deleting game');
-      this.removeGame(gameId, {});
     }
   }
 }

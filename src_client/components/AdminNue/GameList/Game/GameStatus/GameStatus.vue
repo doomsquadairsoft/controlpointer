@@ -1,23 +1,39 @@
 <template>
 <v-card class="mt-3 mx-auto" max-width="500">
   <v-card-title primary-title>
-    <div>
-      <h3 class="headline">Game Status</h3>
-      <p class="text-xs-center digital">{{ remainingGameTime || '00:00:00' }}</p>
-      <v-btn color="success" @click="createStartEvent">
-        <v-icon>play_arrow</v-icon>
-      </v-btn>
-      <v-btn color="warning" @click="createPauseEvent">
-        <v-icon>pause</v-icon>
-      </v-btn>
-      <v-btn color="error" @click="createStopEvent">
-        <v-icon>stop</v-icon>
-      </v-btn>
-      <v-btn color="grey" @click="deleteGame">
-        <v-icon>delete_forever</v-icon>
-      </v-btn>
-    </div>
+    <h3 class="headline">Game Status</h3>
   </v-card-title>
+  <div>
+    <v-container justify-center class="pt-0 pl-3 pr-3">
+      <v-layout row>
+        <v-flex xs12>
+          <clock :duration="remainingGameTime"></clock>
+        </v-flex>
+      </v-layout>
+      <v-layout class="mt-2" align-center justify-space-around row fill-height>
+        <v-flex shrink>
+          <v-btn icon color="success" @click="createStartEvent">
+            <v-icon>play_arrow</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex shrink>
+          <v-btn icon color="warning" @click="createPauseEvent">
+            <v-icon>pause</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex shrink>
+          <v-btn icon color="error" @click="createStopEvent">
+            <v-icon>stop</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex shrink>
+          <v-btn icon color="grey" @click="deleteGame">
+            <v-icon>delete_forever</v-icon>
+          </v-btn>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </div>
 </v-card>
 </template>
 
@@ -25,23 +41,23 @@
 import {
   mapActions
 } from 'vuex'
-
+import Clock from '@/components/Clock/Clock';
 
 export default {
   name: 'GameStatus',
   components: {
-
+    Clock
   },
   props: {
-    removeGame: {
-      type: Function,
-      required: true
-    },
-    _id: {
-      type: String,
+    timeline: {
+      type: Array,
       required: true
     },
     remainingGameTime: {
+      required: true
+    },
+    myGame: {
+      type: Object,
       required: true
     }
   },
@@ -51,6 +67,9 @@ export default {
   methods: {
     ...mapActions('timeline', {
       createTimelineEvent: 'create',
+    }),
+    ...mapActions('game', {
+      removeGame: 'remove'
     }),
     createStartEvent() {
       this.createTimelineEvent({
@@ -79,7 +98,7 @@ export default {
     },
     deleteGame() {
       if (this.deletable) {
-        this.removeGame(this._id)
+        this.removeGame(this.myGame._id)
       }
     }
   },
@@ -92,15 +111,6 @@ export default {
 <style>
 .bigchip {
   font-size: 50px;
-}
-
-.digital {
-  font-size: 8vh;
-  color: cyan;
-  background-color: black;
-  margin: 5vh 0 5vh 0;
-  padding: 0;
-  font-family: 'DSEG7-Modern';
 }
 
 .invis {
