@@ -21,7 +21,6 @@ const mutations = {
       redProgress: 0
     }, undefined])
   },
-
 }
 
 const actions = {

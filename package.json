@@ -47,6 +47,7 @@
     "serve-favicon": "^2.4.5",
     "valid-url": "^1.0.9",
     "vue-d3": "^0.1.0",
+    "vue-scrollto": "^2.13.0",
     "vue2-leaflet": "0.0.60",
     "vuelidate": "^0.7.4",
     "winston": "^2.4.1"

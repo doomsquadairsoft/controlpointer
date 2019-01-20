@@ -1,15 +1,15 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from '@/components/Home'
+import Shop from '@/components/Shop/Shop'
 import About from '@/components/About'
-import Store from '@/components/Store'
-import Admin from '@/components/Admin/Admin'
 import MapPage from '@/components/Map/MapPage'
 import Utilities from '@/components/Utilities'
-import AdminNue from '@/components/AdminNue/Admin'
 import AboutGreenFox from '@/components/AboutGreenFox'
 import ControlPointList from '@/components/ControlPoint/ControlPointList'
-import Game from '@/components/AdminNue/GameList/Game/Game'
+import Game from '@/components/Game/Game'
+import GameList from '@/components/GameList/GameList'
+
 
 Vue.use(Router)
 
@@ -26,6 +26,11 @@ export default new Router({
             component: About
         },
         {
+            path: '/game',
+            name: 'GameList',
+            component: GameList
+        },
+        {
             path: '/game/:gameId',
             name: 'Game',
             component: Game
@@ -34,16 +39,6 @@ export default new Router({
             path: '/green-fox-iii',
             name: 'AboutGreenFox',
             component: AboutGreenFox
-        },
-        {
-            path: '/admin-old',
-            name: 'AdminOld',
-            component: Admin
-        },
-        {
-            path: '/admin',
-            name: 'Admin',
-            component: AdminNue
         },
         {
             path: '/map',
@@ -56,9 +51,9 @@ export default new Router({
             component: Utilities
         },
         {
-            path: '/store',
-            name: 'Store',
-            component: Store
+            path: '/shop',
+            name: 'Shop',
+            component: Shop
         },
         {
           path: '/controlpoint',

@@ -12,6 +12,7 @@ module.exports = function (app) {
   Model.ensureIndex({ fieldName: 'captureRate', unique: false });
   Model.ensureIndex({ fieldName: 'includedDevices', unique: false });
   Model.ensureIndex({ fieldName: 'createdAt', unique: false });
+  Model.ensureIndex({ fieldName: 'gameName', unique: false });
 
   return Model;
 };

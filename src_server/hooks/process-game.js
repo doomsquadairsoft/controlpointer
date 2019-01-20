@@ -20,6 +20,7 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
         const isLessThanOrEqOneWeek = R.lte(R.__, 604800000);
         const isLessThanOrEq24Hours = R.lte(R.__, 86400000);
         const isntEmpty = R.compose(R.not(), R.isEmpty());
+        const isSectorControl = R.equals('sectorControl');
 
         const gameLength = R.ifElse(
           R.allPass([isNumber, isLessThanOrEqOneWeek]), // 1 week max
@@ -46,11 +47,18 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
         )(context.data.includedDevices);
         console.log(`includedDevices:${context.data.includedDevices} typeof:${R.type(context.data.includedDevices)}`)
 
+        const gameMode = R.ifElse(
+            R.allPass([isSectorControl]),
+            R.identity(),
+            R.always('sectorControl')
+        )(context.data.gameMode);
+
         // Override the original data (so that people can't submit additional stuff)
         context.data = {
             gameLength,
             captureRate,
             gameName,
+            gameMode,
             includedDevices,
             createdAt: new Date().getTime(),
         };

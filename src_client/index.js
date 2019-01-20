@@ -7,11 +7,13 @@ import Vue2Leaflet from 'vue2-leaflet';
 import './filters/formatDate'
 import './api/feathers-client'
 //import 'vuetify/src/stylus/app.styl'
-import 'vuetify/dist/vuetify.min.css'
-import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import 'material-design-icons-iconfont/dist/material-design-icons.css' // this needs to be imported BEFORE vuetify css
+import 'vuetify/dist/vuetify.min.css' // this needs to be imported AFTER material design icons
 import gameStats from '@/../src_shared/gameStats'
 import Vs from 'd3-vs';
 import Vuelidate from 'vuelidate'
+import VueScrollTo from 'vue-scrollto';
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -24,6 +26,8 @@ Vue.use(gameStats);
 Vue.use(Vuetify);
 Vue.use(Vs);
 Vue.use(Vuelidate);
+Vue.use(VueScrollTo)
+
 Vue.config.productionTip = true;
 
 Vue.component('v-map', Vue2Leaflet.Map);
