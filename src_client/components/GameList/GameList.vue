@@ -39,16 +39,7 @@
   <v-container class="pa-0">
     <create-game :devices="devices"></create-game>
   </v-container>
-  <!-- <game
-  v-for="g in game"
-  :devices="devices"
-  :game="g"
-  :timeline="timeline"
-  :key="g._id"
-  :_id="g._id"
-  :removeGame="removeGame"
-  :includedDevices="g.includedDevices"
-  ></game> -->
+
 </div>
 </template>
 

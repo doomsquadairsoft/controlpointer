@@ -7,7 +7,8 @@
     <v-container justify-center class="pt-0 pl-3 pr-3">
       <v-layout row>
         <v-flex xs12>
-          <clock :duration="remainingGameTime"></clock>
+          {{ metadata }}
+          <clock :duration="clockDuration"></clock>
         </v-flex>
       </v-layout>
       <v-layout class="mt-2" align-center justify-space-around row fill-height>
@@ -39,7 +40,8 @@
 
 <script>
 import {
-  mapActions
+  mapActions,
+  mapGetters,
 } from 'vuex'
 import Clock from '@/components/Clock/Clock';
 
@@ -49,20 +51,26 @@ export default {
     Clock
   },
   props: {
-    timeline: {
+    myGame: {
+      type: Object,
+      required: true
+    },
+    myTimeline: {
       type: Array,
       required: true
     },
-    remainingGameTime: {
-      required: true
-    },
-    myGame: {
+    metadata: {
       type: Object,
       required: true
     }
   },
   computed: {
-
+    clockDuration() {
+      const rgt = this.metadata.remainingGameTime;
+      const gl = this.metadata.gameLength;
+      if (rgt === null) return gl;
+      return rgt;
+    }
   },
   methods: {
     ...mapActions('timeline', {
@@ -76,24 +84,26 @@ export default {
         type: "timeline",
         action: "start",
         source: "admin",
-        target: "game"
+        target: "game",
+        gameId: this.myGame._id,
       }, {});
     },
     createStopEvent() {
-      console.log('DEPRECATED');
-      // this.createTimelineEvent({
-      //     type: "timeline",
-      //     action: "stop",
-      //     source: "admin",
-      //     target: "game"
-      //   }, {});
+      this.createTimelineEvent({
+        type: "timeline",
+        action: "stop",
+        source: "admin",
+        target: "game",
+        gameId: this.myGame._id,
+      }, {});
     },
     createPauseEvent() {
       this.createTimelineEvent({
         type: "timeline",
         action: "pause",
         source: "admin",
-        target: "game"
+        target: "game",
+        gameId: this.myGame._id,
       }, {});
     },
     deleteGame() {

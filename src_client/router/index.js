@@ -3,7 +3,7 @@ import Router from 'vue-router'
 import Home from '@/components/Home'
 import Shop from '@/components/Shop/Shop'
 import About from '@/components/About'
-import MapPage from '@/components/Map/MapPage'
+import Map from '@/components/Map/Map'
 import Utilities from '@/components/Utilities'
 import AboutGreenFox from '@/components/AboutGreenFox'
 import ControlPointList from '@/components/ControlPoint/ControlPointList'
@@ -41,10 +41,15 @@ export default new Router({
             component: AboutGreenFox
         },
         {
-            path: '/map',
-            name: 'MapPage',
-            component: MapPage
+            path: '/game/:gameId/map/:deviceId',
+            name: 'Map',
+            component: Map
         },
+        // {
+        //     path: '/game/:gameId/map/',
+        //     name: 'Map',
+        //     component: Map
+        // },
         {
             path: '/utilities',
             name: 'Utilities',

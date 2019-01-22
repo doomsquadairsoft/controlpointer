@@ -1,6 +1,6 @@
 <template>
   <v-list-tile-action>
-    <p>idk</p>
+    <p>idk. This isn't in use. @TODO delete</p>
   </v-list-tile-action>
 </template>
 

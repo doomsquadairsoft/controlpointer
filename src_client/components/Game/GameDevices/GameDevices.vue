@@ -8,6 +8,7 @@
   <doom-alert v-if="iDevs.length < 1" level="warning">No D3vices have been associated with this game. For the best experience, create a game with at least one D3vice.</doom-alert>
   <game-device-list
     :iDevs="iDevs"
+    :myGame="myGame"
   ></game-device-list>
 </v-card>
 </template>
@@ -24,6 +25,10 @@
     props: {
       iDevs: {
         type: Array,
+        required: true
+      },
+      myGame: {
+        type: Object,
         required: true
       }
     }

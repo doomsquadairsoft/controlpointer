@@ -17,7 +17,7 @@
     props: {
       level: {
         type: String,
-        required: true
+        default: 'warning'
       }
     },
     computed: {

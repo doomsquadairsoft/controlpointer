@@ -854,27 +854,108 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
 
-  if (get.isSameOrBefore(ca)) return { msg: 'over', code: 2};
+  const running = { msg: 'running', code: 0 };
+  const paused = { msg: 'paused', code: 1 };
+  const over = { msg: 'over', code: 2 };
+  const stopped = { msg: 'stopped', code: 3 };
+
+  if (get.isSameOrBefore(ca)) return over;
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
       R.not(isLifeCycleEvent(thisStepEvent))
   ) return lastGameStatus;
-  if (isStartEvent(thisStepEvent)) return { msg: 'running', code: 0 };
-  if (isPauseEvent(thisStepEvent)) return { msg: 'paused', code: 1 };
-  if (isStopEvent(thisStepEvent)) return { msg: 'stopped', code: 3 };
+
+  // if game is stopped, do not allow a pause
+  if (lastGameStatus.msg === 'stopped' && isPauseEvent(thisStepEvent)) return stopped;
+
+  // if game is over, do not allow a pause
+  if (lastGameStatus.msg === 'over' && isPauseEvent(thisStepEvent)) return over;
+
+  // if the game is over, do not allow a start
+  if (lastGameStatus.msg === 'over' && isStartEvent(thisStepEvent)) return over;
+
+  if (isStartEvent(thisStepEvent)) return running;
+  if (isPauseEvent(thisStepEvent)) return paused;
+  if (isStopEvent(thisStepEvent)) return stopped;
 };
 
 const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
   // rgt = endTime - now
 
-  const rg = R.prop('gameEndTime', lastStepMetadata);
-  if (R.isNil(rg)) return null;
-  const get = moment(rg);
+  // paused -> running => rgt = endTime - now
+  // paused -> paused => rgt = endTime - now
+  // paused -> stopped => rgt = null
+  // paused -> over => rgt = 0
+  // running -> running => rgt = endTime - now
+  // running -> paused => rgt = endTime - now
+  // running -> stopped => rgt = null
+  // running -> over => rgt = 0
+  // stopped -> running => rgt = endTime - now
+  // stopped -> paused => rgt = endTime - now
+  // stopped -> stopped => rgt = null
+  // over -> running => rgt = endTime - now
+  // over -> paused => rgt = endTime - now
+  // over -> stopped => rgt = null
+  // over -> over => rgt = 0
 
-  const ca = moment(R.prop('createdAt', thisStepEvent));
+  const thisStepAction = R.prop('action', thisStepEvent);
+  const lastStepStatus = R.compose(R.prop('msg'), R.prop('gameStatus'))(lastStepMetadata);
+  const ca = R.prop('createdAt', thisStepEvent);
+  const mt = R.prop('metadataTimestamp', lastStepMetadata);
+  const ged = R.prop('gameElapsedDuration', lastStepMetadata);
 
-  return get.diff(ca);
+  const get = R.prop('gameEndTime', lastStepMetadata);
+  const rgt = R.prop('remainingGameTime', lastStepMetadata);
+  const gpd = R.prop('gamePausedDuration', lastStepMetadata);
+  const gl = R.prop('gameLength', lastStepMetadata);
+  const mget = moment(get);
+  const mca = moment(ca);
+  const mmt = moment(mt);
+  const mrgt = moment.duration(rgt);
+  const delta = mca.diff(mmt).valueOf();
+  const mgpd = moment.duration(gpd);
+  const mged = moment.duration(ged);
+  const mgl = moment.duration(gl);
+  const cap = R.ifElse(R.lt(R.__, 0), R.always(0), R.identity());
+  console.log(`${lastStepStatus}, ${thisStepAction}`)
+
+  // paused -> running => rgt
+  // paused -> stopped => null
+  // paused -> paused => rgt
+  // paused -> over => 0
+  // running -> running => rgt = rgt - delta
+  // running -> stopped => null
+  // running -> paused => rgt = rgt - delta
+  // running -> over => 0
+  // stopped -> running => rgt = gst + gameLength
+  // stopped -> stopped => null
+  // stopped -> paused => null
+  // stopped -> over => 0
+  // over -> running => null
+  // over -> stopped => null
+  // over -> paused => null
+  // over -> over => 0
+  if (lastStepStatus === 'paused' && thisStepAction === 'start') return rgt;
+  if (lastStepStatus === 'paused' && thisStepAction === 'stop') return null;
+  if (lastStepStatus === 'paused' && thisStepAction === 'pause') return rgt;
+  if (lastStepStatus === 'paused' && thisStepAction === 'over') return 0;
+
+  if (lastStepStatus === 'running' && thisStepAction === 'start') return rgt-delta;
+  if (lastStepStatus === 'running' && thisStepAction === 'stop') return null;
+  if (lastStepStatus === 'running' && thisStepAction === 'pause') return rgt-delta;
+  if (lastStepStatus === 'running' && thisStepAction === 'over') return 0;
+
+  if (lastStepStatus === 'stopped' && thisStepAction === 'start') return mget.diff(mca);
+  if (lastStepStatus === 'stopped' && thisStepAction === 'stop') return null;
+  if (lastStepStatus === 'stopped' && thisStepAction === 'pause') return rgt;
+  if (lastStepStatus === 'stopped' && thisStepAction === 'over') return 0;
+
+  if (lastStepStatus === 'over' && thisStepAction === 'start') return 0;
+  if (lastStepStatus === 'over' && thisStepAction === 'stop') return null;
+  if (lastStepStatus === 'over' && thisStepAction === 'pause') return 0;
+  if (lastStepStatus === 'over' && thisStepAction === 'over') return 0;
+
 };
 
 
@@ -888,19 +969,39 @@ const deriveGameStartTime = (lastStepMetadata, thisStepEvent) => {
     )
   ) return R.prop('createdAt', thisStepEvent);
   if (R.isNil(lastGameStartTime)) return null;
+  if (R.propEq('action', 'stop', thisStepEvent)) return null;
   return lastGameStartTime;
 };
 
 const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGamePausedDuration requires two parameters');
-  // if the game is paused, incr the pause metadata
   const gpd = moment.duration(lastStepMetadata.gamePausedDuration);
   const ca = moment(thisStepEvent.createdAt);
   const mt = moment(lastStepMetadata.metadataTimestamp);
-  if (lastStepMetadata.gameStatus.msg === 'paused') {
-    return gpd.add(mt.diff(ca)).valueOf();
-  }
-  return gpd.valueOf();
+
+  const thisStepAction = R.prop('action', thisStepEvent);
+  const lastStepStatus = R.compose(R.prop('msg'), R.prop('gameStatus'))(lastStepMetadata);
+
+  // paused -> running => gpd += elapsedTimeSinceLastMetadata
+  // paused -> paused => gpd += elapsedTimeSinceLastMetadata
+  // paused -> stopped => gpd = 0;
+  // running -> running => gpd = lastStepMetadata.gpd
+  // running -> paused => gpd = lastStepMetadata.gpd
+  // running -> stopped => gpd = 0;
+  // stopped -> running => gpd = lastStepMetadata.gpd;
+  // stopped -> paused => gpd = lastStepMetadata.gpd;
+  // stopped -> stopped => gpd = lastStepMetadata.gpd;
+  // over -> running => (not possible)
+  // over -> paused => (not possible)
+  // over -> stopped => gpd = 0;
+
+  if (thisStepAction === 'stop') return 0;
+  if (lastStepStatus === 'stopped' || lastStepStatus === 'running' || lastStepStatus === 'over') return gpd.valueOf();
+
+  const elapsedTimeSinceLastMetadata = ca.diff(mt);
+  if (lastStepStatus === 'paused') return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
+
+  throw new Error(`deriveGamePausedDuration ended up with lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction} which is unsupported`);
 };
 
 const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
@@ -914,6 +1015,9 @@ const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
     R.always(0),
     R.identity()
   )(R.prop('gameStartTime', lastStepMetadata));
+  const thisStepAction = R.prop('action', thisStepEvent);
+  // if the game is stopped, reset the elapsed duration
+  if (thisStepAction === 'stop') return 0;
   const delta = moment.duration(ca.diff(mt));
   if (status === 'running' || status === 'paused') return ged.clone().add(delta).valueOf();
   return ged.valueOf();
@@ -924,19 +1028,34 @@ const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   const grd = moment.duration(lastStepMetadata.gameRunningDuration);
   const mt = moment(lastStepMetadata.metadataTimestamp);
   const ca = moment(thisStepEvent.createdAt);
-  const elapsed = moment.duration(mt.diff(ca));
-  const action = thisStepEvent.action;
+  const elapsed = moment.duration(ca.diff(mt));
+  const thisStepAction = R.prop('action', thisStepEvent);
+  // if the game is stopped, reset the paused duration
+  if (thisStepAction === 'stop') return 0;
   const status = lastStepMetadata.gameStatus.msg;
-  if (status === 'running' && (action !== 'pause' && action !== 'stop'))
+  if (status === 'running' && (thisStepAction !== 'pause' && thisStepAction !== 'stop'))
     return grd.add(elapsed).valueOf();
   return grd.valueOf();
 };
 
+
+/**
+ * deriveGameEndTime
+ *
+ * return the game end time based on the received metadata.
+ *
+ * Absolutely, the game end time can be calculated as follows.
+ *   gameEndTime = gameStartTime + gameLength + gamePausedDuration
+ *
+ * However, a delta calculation is preferred such as--
+ *   gameEndTime = metadata.gameEndTime + [time since last metadata]
+ *
+ */
 const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameEndTime requires two parameters');
   if (R.isNil(R.prop('gameStartTime', lastStepMetadata))) return null;
   const gst = moment(lastStepMetadata.gameStartTime);
-  const lget = moment(lastStepMetadata.gameEndTime);
+  const lget = moment(R.ifElse(R.isNil(), R.always(0), R.identity())(lastStepMetadata.gameEndTime));
   const gl = lastStepMetadata.gameLength;
   const gpd = lastStepMetadata.gamePausedDuration;
   const status = lastStepMetadata.gameStatus.msg;
@@ -944,7 +1063,8 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   const mt = moment(thisStepEvent.metadataTimestamp);
   const elapsed = moment.duration(mt.diff(ca));
 
-  if (lget.valueOf() === 0)
+
+  if (lget.valueOf() === 0 || R.isNil(lget.valueOf()))
     return gst.add(gl).add(gpd).valueOf();
   if (status === 'paused')
     return lget.add(elapsed).valueOf();
@@ -1065,7 +1185,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     gamePausedDuration: 0,
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
-    gameEndTime: 0,
+    gameEndTime: null,
     devicesProgress: [],
     metadataTimestamp: null,
     gameLength: gameSettings.gameLength,
@@ -1075,18 +1195,18 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   // Sequentially turn events into metadata
   // ORDER MATTERS! Put dependencies first.
   const _calculateGameMetadata = (acc, evt) => {
-    acc.metadataTimestamp = deriveMetadataTimestamp(acc, evt);
     acc.gameStartTime = deriveGameStartTime(acc, evt);
     acc.gameEndTime = deriveGameEndTime(acc, evt);
-    acc.gameStatus = deriveGameStatus(acc, evt);
     acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
     acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
     acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt); // depends on gameStartTime, gameEndTime, and gameStatus
     acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
     acc.devicesProgress = deriveDevicesProgress(acc, evt);
+    acc.gameStatus = deriveGameStatus(acc, evt); // needs to be after rgt
+    acc.metadataTimestamp = deriveMetadataTimestamp(acc, evt); // must be last
     acc.theAnswer = 42;
     // console.log(chalk.cyan.bold('EVALUATRON'))
-    // console.log(acc);
+    //console.log(acc);
     return acc;
   };
 
@@ -1106,27 +1226,27 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
  *                               @TODO
  * @return {Array} progresses
  */
-const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
-  const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
-  const uniqTargetIds = R.uniq(
-    R.map(
-      R.prop('targetId'),
-      tl
-    )
-  );
-  const rejectList = R.anyPass([
-    R.equals('undefined'),
-    R.equals('unknown!'),
-    R.isNil(),
-  ]);
-
-  const prunedUniqTargetIds = R.reject(rejectList, uniqTargetIds);
-
-  const win = (targetId, idx) => {
-    return buttonPressProgress(tl, game, tp, targetId);
-  };
-  return R.map(win, prunedUniqTargetIds);
-};
+// const calculateDevicesProgress = (pressData, gameSettings, timePointer) => {
+//   const { tl, game, tp } = buildParameters(pressData, gameSettings, timePointer);
+//   const uniqTargetIds = R.uniq(
+//     R.map(
+//       R.prop('targetId'),
+//       tl
+//     )
+//   );
+//   const rejectList = R.anyPass([
+//     R.equals('undefined'),
+//     R.equals('unknown!'),
+//     R.isNil(),
+//   ]);
+//
+//   const prunedUniqTargetIds = R.reject(rejectList, uniqTargetIds);
+//
+//   const win = (targetId, idx) => {
+//     return buttonPressProgress(tl, game, tp, targetId);
+//   };
+//   return R.map(win, prunedUniqTargetIds);
+// };
 
 const pad = (amt, txt) => {
   if (typeof amt === 'undefined') throw new Error('pad requires >=1 parameter');
@@ -1210,9 +1330,9 @@ module.exports = {
   // remainingGameTimeHumanized,
   // activeTimelineVs,
   // cleansedPressData,
-  // buttonPressProgress,
-  // calculateDevicesProgress,
-  // buildPressParameters,
+  buttonPressProgress,
+  //calculateDevicesProgress,
+  buildPressParameters,
   // pairify,
   pad,
   capPercentage,

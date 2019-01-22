@@ -8,6 +8,7 @@
 <script>
 // greetz https://github.com/eddyerburgh/vue-digital-clock/blob/master/Clock.vue
 import moment from 'moment';
+import 'dseg/css/dseg.css'
 
 
 module.exports = {
@@ -42,6 +43,7 @@ module.exports = {
     display() {
       //return 'PLACEHOLDER'
       const conditionalColon = this.blink ? ':' : ' ';
+      if (this.duration === null) return `00${conditionalColon}00${conditionalColon}00`;
       return `${this.hours}${conditionalColon}${this.minutes}${conditionalColon}${this.seconds}`;
     },
     hours() {
@@ -76,13 +78,13 @@ module.exports = {
     border-radius: 5px;
     padding: 1em 0 1em 0;
     border-style: inset;
-    border-color: rgba(63, 63, 63, 1);
+    border-color: rgba(63, 63, 63, 0.3);
   }
 
   .digital p {
+    font-family: 'DSEG7-Modern';
     font-size: 34px;
     margin: 0 0 0 0;
-    font-family: 'DSEG7-Modern';
     text-align: center;
     text-shadow: 2px 2px rgba(23, 23, 23, 1)
   }

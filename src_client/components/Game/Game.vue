@@ -1,40 +1,50 @@
 <template>
-  <v-container v-if="myGame">
-    <v-layout>
-      <v-flex xs12 sm12 md8 lg5 xl2>
-        <game-status
-        :myGame="myGame"
-        :timeline="timeline"
-        :remainingGameTime="remainingGameTime"></game-status>
+  <div>
+    <doom-alert level="error" v-if="!myGame">
+      No game exists with this ID. Return to the <router-link to="/game">Games List</router-link>
+    </doom-alert>
+    <v-container v-if="myGame">
+      <v-layout>
 
-        <game-devices :iDevs="iDevs"></game-devices>
-        <game-log :timeline="timeline"></game-log>
+        <v-flex xs12 sm12 md8 lg5 xl2>
 
-        <v-btn v-scroll-to="'head'" color="red" small fab fixed bottom right>
-          <v-icon>keyboard_arrow_up</v-icon>
-        </v-btn>
+          <game-status
+          :myGame="myGame"
+          :myTimeline="myTimeline"
+          :metadata="metadata"
+          ></game-status>
 
-      </v-flex>
-    </v-layout>
-  </v-container>
+          <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
+          <game-log :myTimeline="myTimeline"></game-log>
+
+          <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+            <v-icon>keyboard_arrow_up</v-icon>
+          </v-btn>
+
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </div>
 </template>
 
 <script>
 import {
-  mapState,
-  mapActions
+  mapGetters
 } from 'vuex';
 import GameLog from './GameLog/GameLog';
 import GameStatus from './GameStatus/GameStatus';
 import GameDevices from './GameDevices/GameDevices';
-import * as R from 'ramda';
+import DoomAlert from '@/components/DoomAlert/DoomAlert';
+import { find, propEq, map, filter } from 'ramda';
+import { throttle } from 'lodash';
 
 export default {
   name: 'Game',
   components: {
     GameLog,
     GameDevices,
-    GameStatus
+    GameStatus,
+    DoomAlert
   },
   props: {
     game: {
@@ -51,72 +61,59 @@ export default {
     },
   },
   computed: {
+    ...mapGetters([
+      'theme'
+    ]),
     gameName() {
       return this.game.gameName;
     },
     iDevs() {
       // const
-      const isIncludedDevice = R.find(R.propEq(this.includedDevices));
+      const isIncludedDevice = find(propEq(this.includedDevices));
       const includedDevices = this.includedDevices;
       const devices = this.devices;
 
       // I want DEVICE OBJECTS derived from {Array} this.includedDevices
       const getDeviceObject = (deviceId) => {
-        return R.find(R.propEq('_id', deviceId), devices);
+        return find(propEq('_id', deviceId), devices);
       }
 
-      const result = R.map(getDeviceObject, includedDevices);
+      const result = map(getDeviceObject, includedDevices);
       return result;
-    },
-    metadata() {
-      return this.$gameStats.calculateMetadata(this.timeline, this.myGame);
     },
     remainingGameTime() {
       return this.metadata.remainingGameTime;
     },
     myGame() {
       const gameIdViaRoute = this.$route.params.gameId;
-      const mg = R.find(R.propEq('_id', gameIdViaRoute))(this.game);
+      const mg = find(propEq('_id', gameIdViaRoute))(this.game);
       return mg;
+    },
+    myTimeline() {
+      const gameIdViaRoute = this.$route.params.gameId;
+      const mt = filter(propEq('gameId', gameIdViaRoute))(this.timeline);
+      return mt;
     },
     includedDevices() {
       return this.myGame.includedDevices;
     },
-    // gameStatus() {
-    //   return this.metadata.gameStatus;
-    // },
-    // gamePausedDuration() {
-    //   return this.metadata.gamePausedDuration;
-    // },
-    // gameEndTime() {
-    //   return this.metadata.gameEndTime;
-    // },
-    // gameEndTimeHumanized() {
-    //   var gameEndTime = this.gameEndTime
-    //   if (gameEndTime === 'n/a') return gameEndTime
-    //   return moment(gameEndTime).format("dddd, MMMM Do YYYY, h:mm:ss a")
-    // },
-    // gameStartTime() {
-    //   return this.metadata.gameStartTime;
-    // },
-    // gameStartTimeHumanized() {
-    //   var gameStartTime = this.gameStartTime
-    //   if (gameStartTime === 'n/a') return gameStartTime
-    //   return moment(gameStartTime).format("dddd, MMMM Do YYYY, h:mm:ss a");
-    // },
-    // gameLength() {
-    //   return this.metadata.gameLength;
-    // },
-    // gameElapsedDuration() {
-    //   return this.metadata.gameElapsedDuration;
-    // },
-    // remainingGameTime() {
-    //   return this.metadata.remainingGameTime;
-    // }
+    metadata() {
+      return this.$gameStats.calculateMetadata(this.myTimeline, this.myGame);
+    }
   },
   methods: {
-
-  }
+    // updateMetadata() {
+    //   const doUpdateMetadata = () => {
+    //     console.log('updating metadata right meow 🐈')
+    //     const metadata = this.$gameStats.calculateMetadata(this.myTimeline, this.myGame);
+    //     this.setMetadata(metadata); // send to vuex
+    //   };
+    //   throttle(doUpdateMetadata, 1000, {leading: true});
+    // },
+  },
+  // watch: {
+  //   myTimeline: 'updateMetadata',
+  // }
 }
 </script>
 

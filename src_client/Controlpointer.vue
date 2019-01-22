@@ -53,8 +53,6 @@
       <v-divider></v-divider>
     </v-navigation-drawer>
 
-
-
     <v-content>
       <router-view :devices="devices.data" :timeline="timeline.data" :game="game.data" :useDarkTheme="useDarkTheme"></router-view>
     </v-content>
@@ -155,7 +153,7 @@ export default {
       },
       {
         icon: 'games',
-        text: 'Game',
+        text: 'Games',
         path: '/game'
       },
       {

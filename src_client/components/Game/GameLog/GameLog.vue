@@ -5,7 +5,7 @@
       <h3 class="headline">Game Log</h3>
     </div>
   </v-card-title>
-  <game-log-entry-list :timeline="timeline"></game-log-entry-list>
+  <game-log-entry-list :myTimeline="myTimeline"></game-log-entry-list>
 </v-card>
 </template>
 
@@ -17,7 +17,7 @@
       GameLogEntryList
     },
     props: {
-      timeline: {
+      myTimeline: {
         type: Array,
         required: true
       }
