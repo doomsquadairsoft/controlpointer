@@ -157,6 +157,11 @@ export default {
         path: '/game'
       },
       {
+        icon: 'card_travel',
+        text: 'D3VICES',
+        path: '/devices'
+      },
+      {
         icon: 'all_out',
         text: 'Virtual Controlpoint',
         path: '/controlpoint'

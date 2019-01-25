@@ -16,12 +16,15 @@
 </template>
 
 <script>
-    import Devices from './Devices/Devices.vue'
-    import { mapActions } from 'vuex'
+    import Device from '@/components/Device/Device.vue'
+    import { mapActions, mapGetters } from 'vuex'
 
 
     export default {
         name: 'GameList',
+        components: {
+            Device
+        },
         data () {
             return {
                 placeholder: 'PLACEHOLDER',
@@ -29,18 +32,17 @@
             }
         },
         props: {
-            game: {
-                type: Array,
-                required: true
-            }
+
         },
-        components: {
-            Game
+        computed: {
+            ...mapGetters('device', {
+                findDevicesInStore: 'find'
+            }),
         },
         methods: {
-            ...mapActions('game', {
-                removeGame: 'remove'
-            })
+            ...mapActions('device', {
+                removeDevice: 'remove'
+            }),
         }
     }
 </script>

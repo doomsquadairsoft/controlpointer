@@ -24,7 +24,7 @@ module.exports = {
     // minutes: 0,
     // hours: 0,
     // seconds: 0,
-    blink: true
+    blink: true,
   }),
   created() {
     this.ticker = setInterval(this.tick, 1000);
@@ -43,7 +43,7 @@ module.exports = {
     display() {
       //return 'PLACEHOLDER'
       const conditionalColon = this.blink ? ':' : ' ';
-      if (this.duration === null) return `00${conditionalColon}00${conditionalColon}00`;
+      //if (this.duration === null) return `00${conditionalColon}00${conditionalColon}00`;
       return `${this.hours}${conditionalColon}${this.minutes}${conditionalColon}${this.seconds}`;
     },
     hours() {

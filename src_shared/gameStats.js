@@ -390,10 +390,13 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
   // over -> paused => (not possible)
   // over -> stopped => gpd = 0;
 
-  if (thisStepAction === 'stop') return 0;
-  if (lastStepStatus === 'stopped' || lastStepStatus === 'running' || lastStepStatus === 'over') return gpd.valueOf();
-
+  console.log(`thisStepAction:${thisStepAction}, ca:${ca.valueOf()}, mt:${mt.valueOf()}, gpd:${gpd.valueOf()}`)
   const elapsedTimeSinceLastMetadata = ca.diff(mt);
+
+  if (thisStepAction === 'stop') return 0;
+  if (isStartEvent(thisStepEvent) && lastStepStatus === 'running') return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
+  //if (lastStepStatus === 'stopped' || lastStepStatus === 'running' || lastStepStatus === 'over') return gpd.valueOf();
+
   if (lastStepStatus === 'paused') return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
 
   throw new Error(`deriveGamePausedDuration ended up with lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction} which is unsupported`);
@@ -431,12 +434,14 @@ const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   const mt = moment(lastStepMetadata.metadataTimestamp);
   const ca = moment(thisStepEvent.createdAt);
   const elapsed = moment.duration(ca.diff(mt));
-  const thisStepAction = R.prop('action', thisStepEvent);
-  // if the game is stopped, reset the paused duration
-  if (thisStepAction === 'stop') return 0;
+  //const thisStepAction = R.prop('action', thisStepEvent);
+  // if the game is stopped, reset the running duration
+  if (isStopEvent(thisStepEvent)) return 0;
   const status = lastStepMetadata.gameStatus.msg;
-  if (status === 'running' && (thisStepAction !== 'pause' && thisStepAction !== 'stop'))
+  if (status === 'running' && (R.not(isPauseEvent(thisStepEvent)) && R.not(isStopEvent(thisStepEvent)))) {
+    console.log(`it is incrmeenting`)
     return grd.add(elapsed).valueOf();
+  }
   return grd.valueOf();
 };
 
@@ -579,13 +584,14 @@ const _calculateGameMetadata = (lastMetadata, evt) => {
   metadata.gameStartTime = deriveGameStartTime(metadata, evt);
   metadata.gameEndTime = deriveGameEndTime(metadata, evt);
   metadata.remainingGameTime = deriveRemainingGameTime(metadata, evt);
+  metadata.devicesProgress = deriveDevicesProgress(metadata, evt);
+  metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after rgt
   metadata.gamePausedDuration = deriveGamePausedDuration(metadata, evt);
   metadata.gameRunningDuration = deriveGameRunningDuration(metadata, evt);
   metadata.gameElapsedDuration = deriveGameElapsedDuration(metadata, evt); // depends on gameStartTime, gameEndTime, and gameStatus
-  metadata.devicesProgress = deriveDevicesProgress(metadata, evt);
-  metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after rgt
   metadata.metadataTimestamp = deriveMetadataTimestamp(metadata, evt); // must be last
   metadata.theAnswer = 42;
+  console.log(metadata.gamePausedDuration)
   // console.log(chalk.cyan.bold('EVALUATRON'))
   //console.log(acc);
   return metadata;

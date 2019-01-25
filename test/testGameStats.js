@@ -499,7 +499,6 @@ describe('gameStats', function() {
       const gamePausedDuration = gameStats.deriveGamePausedDuration(pausedMetadata, pausedEvent);
       assert.isNumber(gamePausedDuration);
       assert.equal(gamePausedDuration, 5000);
-
     });
 
     it('should be reset by a stop event', function() {

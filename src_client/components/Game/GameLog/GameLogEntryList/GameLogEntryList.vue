@@ -1,6 +1,6 @@
 <template>
 <div>
-  <v-container class="pa-0">
+  <v-container class="pa-0 pb-2">
     <v-layout>
       <v-flex>
         <v-btn color="info" small :disabled="isScrolledToBottom" @click="scrollToBottom">

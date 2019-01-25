@@ -135,7 +135,6 @@ import {
   mapActions
 } from 'vuex'
 
-import store from '@/store'
 
 
 export default {
@@ -217,7 +216,6 @@ export default {
           source: "admin",
           target: this.did
         }, {});
-      //store.dispatch('changeControllingTeamBlue')
       //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
     },
     changeControllingTeamRed: function() {

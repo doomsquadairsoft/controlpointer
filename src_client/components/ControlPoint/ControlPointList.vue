@@ -6,9 +6,9 @@
   </v-layout>
 
   <v-layout column>
-    <v-alert :value="true" type="info" v-if="devices.length < 1">
-      No devices are configured. Please create one on the <router-link class="whitelink" to="admin">Administration</router-link> page.
-    </v-alert>
+    <doom-alert level="info" v-if="devices.length < 1">
+      No D3VICES have been added. Please add some on the <router-link to="/d3vices">D3VICES Page</router-link>
+    </doom-alert>
     <control-point v-for="d in devices" v-bind:key="d._id" v-bind:_id="d._id" v-bind:controllingTeam="d.controllingTeam" v-bind:createdAt="d.createdAt" v-bind:did="d.did" v-bind:redProgress="d.redProgress" v-bind:bluProgress="d.bluProgress"
       v-bind:patchDevice="patchDevice" v-bind:getDevice="getDevice" v-bind:createTimelineEvent="createTimelineEvent"></control-point>
   </v-layout>
@@ -22,9 +22,14 @@ import {
   mapGetters,
   mapActions
 } from 'vuex'
+import DoomAlert from '@/components/DoomAlert/DoomAlert';
 
 export default {
   name: 'ControlPointList',
+  components: {
+    DoomAlert,
+    ControlPoint
+  },
   data() {
     return {
       placeholder: 'PLACEHOLDER',
@@ -32,9 +37,6 @@ export default {
       selection: {},
       isFullscreen: false
     }
-  },
-  components: {
-    ControlPoint
   },
   methods: {
     ...mapActions('devices', {

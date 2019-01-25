@@ -9,9 +9,7 @@
         <v-flex xs12 sm12 md8 lg5 xl2>
 
           <game-status
-          :myGame="myGame"
-          :myTimeline="myTimeline"
-          :metadata="metadata"
+            :gameId="myGame._id"
           ></game-status>
 
           <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
@@ -29,13 +27,14 @@
 
 <script>
 import {
-  mapGetters
+  mapGetters,
+  mapActions
 } from 'vuex';
 import GameLog from './GameLog/GameLog';
 import GameStatus from './GameStatus/GameStatus';
 import GameDevices from './GameDevices/GameDevices';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
-import { find, propEq, map, filter } from 'ramda';
+import { find, propEq, map, filter, last } from 'ramda';
 import { throttle } from 'lodash';
 
 export default {
@@ -64,6 +63,22 @@ export default {
     ...mapGetters([
       'theme'
     ]),
+    ...mapGetters('metadata', {
+      findMetadataInStore: 'find'
+    }),
+    myMetadata() {
+      return this.findMetadataInStore({
+        query: {
+          $sort: {
+            createdAt: 1
+          },
+          gameId: this.myGame._id
+        }
+      }).data
+    },
+    latestMetadata() {
+      return last(this.myMetadata);
+    },
     gameName() {
       return this.game.gameName;
     },
@@ -96,12 +111,12 @@ export default {
     },
     includedDevices() {
       return this.myGame.includedDevices;
-    },
-    metadata() {
-      return this.$gameStats.calculateMetadata(this.myTimeline, this.myGame);
     }
   },
   methods: {
+    ...mapActions('metadata', {
+      findMetadata: 'find'
+    }),
     // updateMetadata() {
     //   const doUpdateMetadata = () => {
     //     console.log('updating metadata right meow 🐈')
@@ -111,6 +126,9 @@ export default {
     //   throttle(doUpdateMetadata, 1000, {leading: true});
     // },
   },
+  created() {
+    this.findMetadata();
+  }
   // watch: {
   //   myTimeline: 'updateMetadata',
   // }

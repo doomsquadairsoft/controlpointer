@@ -58,6 +58,9 @@
       <v-flex>
         <v-list>
           <v-subheader>Choose the D3VICES this game will use</v-subheader>
+          <doom-alert level="warning" v-if="devices.length < 1">
+            No D3VICES have been added. Please add some on the <router-link to="/d3vices">D3VICES Page</router-link>
+          </doom-alert>
           <v-list-tile v-for="d in devices" :key="d._id" avatar @click="">
 
             <v-list-tile-avatar>
@@ -110,12 +113,12 @@ import {
 const timeRegex = helpers.regex('time', /^\d\d:\d\d:\d\d$/);
 import di from '@/assets/futuristic_ammo_box_01.png';
 import baseball from '@/assets/baseball-marker.png';
-
+import DoomAlert from '@/components/DoomAlert/DoomAlert';
 
 export default {
   name: 'CreateGame',
   components: {
-
+    DoomAlert
   },
   data() {
     return {
