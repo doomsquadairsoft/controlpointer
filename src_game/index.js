@@ -45,11 +45,11 @@ evts.create({
 
 
 // Every 1 second, calculate controlpoints
-const tick = () => {
-  const marshal = new Marshal(timeline, game, devices);
-  marshal.tick();
-};
-setInterval(tick, 1000);
+// const tick = () => {
+//   const marshal = new Marshal(timeline, game, devices);
+//   marshal.tick();
+// };
+// setInterval(tick, 1000);
 
 
 // When there is a join event, do something about it

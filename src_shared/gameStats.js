@@ -8,7 +8,11 @@ const isOdd = R.modulo(R.__, 2);
 const isEven = R.complement(isOdd);
 const isRed = R.compose(R.test(/_red$/), R.prop('action'));
 const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
-
+const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
+const isProgressEvent = R.compose(R.test(/^(cap|press|release)_\w{3}$/), R.prop('action'));
+const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
+const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
+const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
 
 /*
  * GameStats
@@ -227,10 +231,6 @@ const deriveDevices = (lastStepMetadata, thisStepEvent) => {
 const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameStatus requires two parameters');
   const lastGameStatus = R.prop('gameStatus', lastStepMetadata);
-  const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
-  const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
-  const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
-  const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
 
@@ -263,8 +263,12 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
 
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
   if (typeof thisStepEvent.action === 'undefined') throw new Error('deriveRemainingGameTime did not receive a valid step. action is undefined!');
-  if (R.isNil(R.prop('gameStartTime', lastStepMetadata))) throw new Error('deriveRemainingGameTime requires gameStartTime to be not nil.');
-  if (R.isNil(R.prop('gameEndTime', lastStepMetadata))) throw new Error('deriveRemainingGameTime requires gameEndTime to be not nil.');
+  const gameStartTime = R.prop('gameStartTime', lastStepMetadata);
+  const gameEndTime = R.prop('gameEndTime', lastStepMetadata);
+  if (typeof gameStartTime === 'undefined' || typeof gameEndTime === 'undefined') throw new Error('gameStartTime or gameEndTime must be defined when passed to deriveRemainingGameTime. One or both were undefined!');
+  if (R.isNil(gameStartTime)) return null;
+  if (R.isNil(gameEndTime)) return null;
+
   // rgt = endTime - now
 
   // paused -> running => rgt = endTime - now
@@ -320,7 +324,8 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   // over -> paused => null
   // over -> over => 0
 
-
+  // console.log(`thisStepAction:${thisStepAction}, isProgressEvent:${isProgressEvent(thisStepEvent)}`)
+  if (isProgressEvent(thisStepEvent)) return cap(rgt-delta);
 
   if (lastStepStatus === 'paused' && thisStepAction === 'start') return rgt;
   if (lastStepStatus === 'paused' && thisStepAction === 'stop') return null;
@@ -623,8 +628,6 @@ const deriveMetadata = (lastMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveMetadata requires 2 parameters. The second parameter was undefined.')
   if (typeof lastMetadata === 'undefined') throw new Error('thisStepEvent requires 2 parameters. The first parameter was undefined.')
 
-  console.log('lastMetadata vvv')
-  console.log(lastMetadata)
   if (typeof lastMetadata.gameStatus === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStatus is undefined');
   if (typeof lastMetadata.remainingGameTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. remainingGameTime is undefined');
   if (typeof lastMetadata.gameStartTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStartTime is undefined');

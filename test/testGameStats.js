@@ -357,10 +357,15 @@ describe('gameStats', function() {
 
   describe('deriveRemainingGameTime()', function() {
     const startEvt = fixtures.largeControlpointPressData[0];
-    it('should throw if gameStartTime and gameEndTime are undefined or null', function() {
+    it('should throw if gameStartTime AND gameEndTime are undefined', function() {
       assert.throws(() => {
-        gameStats.deriveRemainingGameTime(fixtures.initialMetadata, startEvt);
+        gameStats.deriveRemainingGameTime({}, startEvt);
       }, /gameStartTime/);
+    });
+
+    it('should return null if gameStartTime or gameEndTime are null', function() {
+      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.initialMetadata, startEvt);
+      assert.isNull(remainingGameTime);
     });
 
     it('should return the remaining game time as a number', function() {
@@ -570,8 +575,8 @@ describe('gameStats', function() {
   describe('deriveGameEndTime()', function() {
     it('should cope with a default gameEndTime of null', function() {
       const startEvent = fixtures.largeControlpointPressData[0];
-      const endTimestamp = startingMetadata.gameStartTime + startingMetadata.gameLength;
-      const gameEndTime = gameStats.deriveGameEndTime(startingMetadata, startEvent);
+      const endTimestamp = fixtures.startingMetadata.gameStartTime + fixtures.startingMetadata.gameLength;
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.startingMetadata, startEvent);
       assert.isNumber(gameEndTime);
       assert.equal(gameEndTime, endTimestamp);
     });
