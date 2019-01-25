@@ -14,7 +14,6 @@ describe('gameStats', function() {
     Vue.use(gameStats);
   });
 
-
   describe('pad', function() {
     it('should ensure input string outputs as default 8 spaces', function() {
       const output = gameStats.pad('hi');
@@ -151,6 +150,55 @@ describe('gameStats', function() {
   });
 
 
+  describe('buildInitialMetadata()', function() {
+    it('should accept {Object} gameSettings and return initial metadata defaults', function() {
+      const initialMetadata = gameStats.buildInitialMetadata(fixtures.gameSettings);
+      assert.isObject(initialMetadata);
+      assert.deepEqual(initialMetadata, {
+        gameStatus: { msg: 'stopped', code: 3 },
+        remainingGameTime: null,
+        gameStartTime: null,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 0,
+        gameRunningDuration: 0,
+        gameEndTime: null,
+        devicesProgress: [],
+        metadataTimestamp: null,
+        gameLength: 7200000,
+        captureRate: 5000
+      });
+    });
+
+    it('should throw if not receiving gameSettings', function() {
+      assert.throws(() => {
+        gameStats.buildInitialMetadata();
+      }, /parameter/);
+    });
+  });
+
+  describe('deriveMetadata()', function() {
+    it('should accept {Object} prevous metadata and {Object} timeline event as parameters', function() {
+      const metadata = gameStats.deriveMetadata(fixtures.startedMetadata, fixtures.stopEvent);
+      assert.isObject(metadata);
+      assert.isNumber(metadata.gamePausedDuration);
+    });
+
+    it('should throw if receiving less than two parameters', function() {
+      assert.throws(() => {
+        gameStats.deriveMetadata();
+      });
+      assert.throws(() => {
+        gameStats.deriveMetadata({});
+      });
+    });
+
+    it('Should throw when lastMetadata is not complete. ', function() {
+      assert.throws(() => {
+        const metadata = gameStats.deriveMetadata({}, fixtures.stopEvent);
+      }, /valid/);
+    });
+  });
+
 
   describe('calculateMetadata()', function() {
     it('should compute the answer to life, the universe, and everything.', function() {
@@ -255,7 +303,21 @@ describe('gameStats', function() {
     });
 
     it('should return \'paused\' when the thisStepEvent action is pause', function() {
-      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[3]);
+      const metadata = {
+          gameStatus: { msg: 'running', code: 0 },
+          remainingGameTime: null,
+          gameStartTime: 5000,
+          gamePausedDuration: 0,
+          gameElapsedDuration: 0,
+          gameRunningDuration: 0,
+          gameEndTime: null,
+          devicesProgress: [],
+          metadataTimestamp: 5000,
+          gameLength: 7200000,
+          captureRate: 5000,
+      };
+      const event = { action: 'pause', createdAt: 10000 };
+      const gameStatus = gameStats.deriveGameStatus(metadata, event);
       assert.isObject(gameStatus);
       assert.equal(gameStatus.code, 1);
       assert.equal(gameStatus.msg, 'paused');
@@ -294,15 +356,18 @@ describe('gameStats', function() {
   });
 
   describe('deriveRemainingGameTime()', function() {
-    it('should return the remaining game time as a number', function() {
-      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.pausedMetadata, fixtures.largeControlpointPressData[0]);
-      assert.isNumber(remainingGameTime);
-      assert.equal(remainingGameTime, 945145433);
+    const startEvt = fixtures.largeControlpointPressData[0];
+    it('should throw if gameStartTime and gameEndTime are undefined or null', function() {
+      assert.throws(() => {
+        gameStats.deriveRemainingGameTime(fixtures.initialMetadata, startEvt);
+      }, /gameStartTime/);
     });
 
-    it('should defer deriving the remaining game time if there is not enough information', function() {
-      const remainingGameTime = gameStats.deriveRemainingGameTime({}, fixtures.largeControlpointPressData[0]);
-      assert.isNull(remainingGameTime);
+    it('should return the remaining game time as a number', function() {
+      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.startedMetadata, startEvt);
+      assert.isNumber(remainingGameTime);
+      assert.equal(remainingGameTime, 7200000);
+      //1546134474574
     });
 
     it('should throw if not receiving two arguments', function() {
@@ -330,13 +395,13 @@ describe('gameStats', function() {
       assert.equal(remainingGameTime, null);
     });
 
-    it('should not increase if paused', function() {
-      const pauseEvent = {
-        "action": "pause",
-        "createdAt": fixtures.initialMetadata.gameStartTime + 5000
+    it('should not increase if the game was paused at last metadata collection', function() {
+      const startEvent = {
+        "action": "start",
+        "createdAt": fixtures.pausedLongMetadata.gameStartTime + 10000
       };
-      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.initialMetadata, pauseEvent);
-      assert.equal(remainingGameTime, fixtures.initialMetadata.pausedDuration);
+      const remainingGameTime = gameStats.deriveRemainingGameTime(fixtures.pausedLongMetadata, startEvent);
+      assert.equal(remainingGameTime, fixtures.pausedLongMetadata.remainingGameTime);
     });
   });
 
@@ -445,11 +510,27 @@ describe('gameStats', function() {
   });
 
   describe('deriveGameElapsedDuration()', function() {
-    it('should return the ms difference between thisStepEvent.createdAt and lastStepMetadata.metadataTimestamp', function() {
-      const stopEvent = fixtures.largeControlpointPressData[182];
-      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.yoloMetadata, stopEvent);
+    it('should return the accrued gameElapsedDuration plus the ms difference between thisStepEvent.createdAt and lastStepMetadata.metadataTimestamp', function() {
+      const metadata = {
+          gameStatus: { msg: 'running', code: 0 },
+          remainingGameTime: 7200000,
+          gameStartTime: 5000,
+          gamePausedDuration: 0,
+          gameElapsedDuration: 10000,
+          gameRunningDuration: 10000,
+          gameEndTime: 7205000,
+          devicesProgress: [],
+          metadataTimestamp: 5000,
+          gameLength: 7200000,
+          captureRate: 5000,
+      };
+      const pauseEvent = {
+        action: 'pause',
+        createdAt: 10000
+      };
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(metadata, pauseEvent);
       assert.isNumber(gameElapsedDuration);
-      assert.equal(gameElapsedDuration, 2417);
+      assert.equal(gameElapsedDuration, 15000);
     });
 
     it('should return 0 if the game is not started', function() {
@@ -487,11 +568,10 @@ describe('gameStats', function() {
 
 
   describe('deriveGameEndTime()', function() {
-    xit('should cope with a default gameEndTime of null', function() {
-      // @TODO it shouldn't have to cope with null. deriveGameStartTime should not return null!
+    it('should cope with a default gameEndTime of null', function() {
       const startEvent = fixtures.largeControlpointPressData[0];
-      const endTimestamp = startEvent.createdAt + fixtures.initialMetadata.gameLength;
-      const gameEndTime = gameStats.deriveGameEndTime(fixtures.initialMetadata, startEvent);
+      const endTimestamp = startingMetadata.gameStartTime + startingMetadata.gameLength;
+      const gameEndTime = gameStats.deriveGameEndTime(startingMetadata, startEvent);
       assert.isNumber(gameEndTime);
       assert.equal(gameEndTime, endTimestamp);
     });

@@ -260,7 +260,11 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
 };
 
 const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
+
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
+  if (typeof thisStepEvent.action === 'undefined') throw new Error('deriveRemainingGameTime did not receive a valid step. action is undefined!');
+  if (R.isNil(R.prop('gameStartTime', lastStepMetadata))) throw new Error('deriveRemainingGameTime requires gameStartTime to be not nil.');
+  if (R.isNil(R.prop('gameEndTime', lastStepMetadata))) throw new Error('deriveRemainingGameTime requires gameEndTime to be not nil.');
   // rgt = endTime - now
 
   // paused -> running => rgt = endTime - now
@@ -298,7 +302,6 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   const mged = moment.duration(ged);
   const mgl = moment.duration(gl);
   const cap = R.ifElse(R.lt(R.__, 0), R.always(0), R.identity());
-  console.log(`${lastStepStatus}, ${thisStepAction}`)
 
   // paused -> running => rgt
   // paused -> stopped => null
@@ -316,17 +319,20 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   // over -> stopped => null
   // over -> paused => null
   // over -> over => 0
+
+
+
   if (lastStepStatus === 'paused' && thisStepAction === 'start') return rgt;
   if (lastStepStatus === 'paused' && thisStepAction === 'stop') return null;
   if (lastStepStatus === 'paused' && thisStepAction === 'pause') return rgt;
   if (lastStepStatus === 'paused' && thisStepAction === 'over') return 0;
 
-  if (lastStepStatus === 'running' && thisStepAction === 'start') return rgt-delta;
+  if (lastStepStatus === 'running' && thisStepAction === 'start') return cap(rgt-delta);
   if (lastStepStatus === 'running' && thisStepAction === 'stop') return null;
-  if (lastStepStatus === 'running' && thisStepAction === 'pause') return rgt-delta;
+  if (lastStepStatus === 'running' && thisStepAction === 'pause') return cap(rgt-delta);
   if (lastStepStatus === 'running' && thisStepAction === 'over') return 0;
 
-  if (lastStepStatus === 'stopped' && thisStepAction === 'start') return mget.diff(mca);
+  if (lastStepStatus === 'stopped' && thisStepAction === 'start') return mget.diff(mca).valueOf();
   if (lastStepStatus === 'stopped' && thisStepAction === 'stop') return null;
   if (lastStepStatus === 'stopped' && thisStepAction === 'pause') return rgt;
   if (lastStepStatus === 'stopped' && thisStepAction === 'over') return 0;
@@ -335,6 +341,10 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   if (lastStepStatus === 'over' && thisStepAction === 'stop') return null;
   if (lastStepStatus === 'over' && thisStepAction === 'pause') return 0;
   if (lastStepStatus === 'over' && thisStepAction === 'over') return 0;
+
+
+  console.error(`something was wrong here--> lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction}`)
+  throw new Error('no valid conditions in deriveRemainingGameTime were satisfied.')
 
 };
 
@@ -384,6 +394,13 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
   throw new Error(`deriveGamePausedDuration ended up with lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction} which is unsupported`);
 };
 
+
+/**
+ * deriveGameElapsedDuration
+ *
+ * gameElapsedDuration is gameRunningDuration+gamePausedDuration.
+ *
+ */
 const deriveGameElapsedDuration = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameElapsedDuration requires two parameters');
   const ged = moment.duration(lastStepMetadata.gameElapsedDuration);
@@ -442,7 +459,6 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   const ca = moment(thisStepEvent.createdAt);
   const mt = moment(thisStepEvent.metadataTimestamp);
   const elapsed = moment.duration(mt.diff(ca));
-
 
   if (lget.valueOf() === 0 || R.isNil(lget.valueOf()))
     return gst.add(gl).add(gpd).valueOf();
@@ -531,6 +547,44 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
 };
 
 
+const buildInitialMetadata = (gameSettings) => {
+  if (typeof gameSettings === 'undefined') throw new Error('buildInitialMetadata requires 1 {Object} gameSettings parameter. got undefined. ')
+  const initialMetadata = {
+    gameStatus: { msg: 'stopped', code: 3 },
+    remainingGameTime: null,
+    gameStartTime: null,
+    gamePausedDuration: 0,
+    gameElapsedDuration: 0,
+    gameRunningDuration: 0,
+    gameEndTime: null,
+    devicesProgress: [],
+    metadataTimestamp: null,
+    gameLength: gameSettings.gameLength,
+    captureRate: gameSettings.captureRate
+  };
+  return initialMetadata;
+};
+
+
+
+const _calculateGameMetadata = (lastMetadata, evt) => {
+  // Sequentially turn events into metadata
+  // ORDER MATTERS! Put dependencies first.
+  var metadata = R.clone(lastMetadata);
+  metadata.gameStartTime = deriveGameStartTime(metadata, evt);
+  metadata.gameEndTime = deriveGameEndTime(metadata, evt);
+  metadata.remainingGameTime = deriveRemainingGameTime(metadata, evt);
+  metadata.gamePausedDuration = deriveGamePausedDuration(metadata, evt);
+  metadata.gameRunningDuration = deriveGameRunningDuration(metadata, evt);
+  metadata.gameElapsedDuration = deriveGameElapsedDuration(metadata, evt); // depends on gameStartTime, gameEndTime, and gameStatus
+  metadata.devicesProgress = deriveDevicesProgress(metadata, evt);
+  metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after rgt
+  metadata.metadataTimestamp = deriveMetadataTimestamp(metadata, evt); // must be last
+  metadata.theAnswer = 42;
+  // console.log(chalk.cyan.bold('EVALUATRON'))
+  //console.log(acc);
+  return metadata;
+};
 
 /**
  * calculateMetadata
@@ -558,42 +612,33 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
     return R.gte(tp, R.prop('createdAt', evt))
   };
 
-  const initialMetadata = {
-    gameStatus: { msg: 'stopped', code: 3 },
-    remainingGameTime: null,
-    gameStartTime: null,
-    gamePausedDuration: 0,
-    gameElapsedDuration: 0,
-    gameRunningDuration: 0,
-    gameEndTime: null,
-    devicesProgress: [],
-    metadataTimestamp: null,
-    gameLength: gameSettings.gameLength,
-    captureRate: gameSettings.captureRate
-  };
 
-  // Sequentially turn events into metadata
-  // ORDER MATTERS! Put dependencies first.
-  const _calculateGameMetadata = (acc, evt) => {
-    acc.gameStartTime = deriveGameStartTime(acc, evt);
-    acc.gameEndTime = deriveGameEndTime(acc, evt);
-    acc.remainingGameTime = deriveRemainingGameTime(acc, evt);
-    acc.gamePausedDuration = deriveGamePausedDuration(acc, evt);
-    acc.gameElapsedDuration = deriveGameElapsedDuration(acc, evt); // depends on gameStartTime, gameEndTime, and gameStatus
-    acc.gameRunningDuration = deriveGameRunningDuration(acc, evt);
-    acc.devicesProgress = deriveDevicesProgress(acc, evt);
-    acc.gameStatus = deriveGameStatus(acc, evt); // needs to be after rgt
-    acc.metadataTimestamp = deriveMetadataTimestamp(acc, evt); // must be last
-    acc.theAnswer = 42;
-    // console.log(chalk.cyan.bold('EVALUATRON'))
-    //console.log(acc);
-    return acc;
-  };
+  const initialMetadata = buildInitialMetadata(gameSettings);
 
   return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
 }
 
 
+const deriveMetadata = (lastMetadata, thisStepEvent) => {
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveMetadata requires 2 parameters. The second parameter was undefined.')
+  if (typeof lastMetadata === 'undefined') throw new Error('thisStepEvent requires 2 parameters. The first parameter was undefined.')
+
+  console.log('lastMetadata vvv')
+  console.log(lastMetadata)
+  if (typeof lastMetadata.gameStatus === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStatus is undefined');
+  if (typeof lastMetadata.remainingGameTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. remainingGameTime is undefined');
+  if (typeof lastMetadata.gameStartTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStartTime is undefined');
+  if (typeof lastMetadata.gamePausedDuration === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gamePausedDuration is undefined');
+  if (typeof lastMetadata.gameElapsedDuration === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameElapsedDuration is undefined');
+  if (typeof lastMetadata.gameRunningDuration === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameRunningDuration is undefined');
+  if (typeof lastMetadata.gameEndTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameEndTime is undefined');
+  if (typeof lastMetadata.devicesProgress === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. devicesProgress is undefined');
+  if (typeof lastMetadata.metadataTimestamp === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. metadataTimestamp is undefined');
+  if (typeof lastMetadata.gameLength === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameLength is undefined');
+  if (typeof lastMetadata.captureRate === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. captureRate is undefined');
+
+  return _calculateGameMetadata(lastMetadata, thisStepEvent);
+};
 
 
 /**
@@ -626,6 +671,8 @@ const pad = (amt, txt) => {
   return txt;
 };
 
+
+
 module.exports = {
   install(Vue, opts) {
     Vue.prototype.$gameStats = {};
@@ -646,6 +693,8 @@ module.exports = {
     Vue.prototype.$gameStats.buttonReleaseDeltaCompute = buttonReleaseDeltaCompute;
     Vue.prototype.$gameStats.incompleteProgressCompute = incompleteProgressCompute;
     Vue.prototype.$gameStats.deriveMetadataTimestamp = deriveMetadataTimestamp;
+    Vue.prototype.$gameStats.deriveMetadata = deriveMetadata;
+    Vue.prototype.$gameStats.buildInitialMetadata = buildInitialMetadata;
   },
   pad,
   capPercentage,
@@ -664,4 +713,6 @@ module.exports = {
   buttonReleaseDeltaCompute,
   incompleteProgressCompute,
   deriveMetadataTimestamp,
+  deriveMetadata,
+  buildInitialMetadata,
 }

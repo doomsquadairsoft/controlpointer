@@ -6,6 +6,10 @@
         <v-btn color="info" small :disabled="isScrolledToBottom" @click="scrollToBottom">
           <v-icon>arrow_downward</v-icon>Scroll to bottom
         </v-btn>
+        <v-btn color="purple" small :to="postgameRoute">
+          <v-icon>assignment</v-icon>View Postgame Report
+        </v-btn>
+
       </v-flex>
     </v-layout>
   </v-container>
@@ -92,6 +96,8 @@ export default {
         'isScrolledToBottom'
     ]),
     deviceImage: () => di,
+    gameId () { return this.$route.params.gameId },
+    postgameRoute () { return `/postgame/${this.gameId}` },
   },
   methods: {
     timestamp(t) {

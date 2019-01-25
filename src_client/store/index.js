@@ -32,7 +32,10 @@ export default new Vuex.Store({
         }),
         service('timeline', {
             idField: '_id'
-        })
+        }),
+        service('metadata', {
+            idField: '_id'
+        }),
         //auth()
         //logger()
     ],

@@ -9,12 +9,17 @@ import AboutGreenFox from '@/components/AboutGreenFox'
 import ControlPointList from '@/components/ControlPoint/ControlPointList'
 import Game from '@/components/Game/Game'
 import GameList from '@/components/GameList/GameList'
-
+import PostGame from '@/components/PostGame/PostGame'
 
 Vue.use(Router)
 
 export default new Router({
     routes: [
+        {
+                path: '/postgame/:gameId',
+                name: 'PostGame',
+                component: PostGame
+        },
         {
             path: '/',
             name: 'Home',
@@ -41,15 +46,10 @@ export default new Router({
             component: AboutGreenFox
         },
         {
-            path: '/game/:gameId/map/:deviceId',
+            path: '/map/:gameId',
             name: 'Map',
             component: Map
         },
-        // {
-        //     path: '/game/:gameId/map/',
-        //     name: 'Map',
-        //     component: Map
-        // },
         {
             path: '/utilities',
             name: 'Utilities',

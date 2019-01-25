@@ -5,7 +5,7 @@ const events = require('./events/events.service.js');
 const pendingDevices = require('./pendingDevices/pendingDevices.service.js');
 const game = require('./game/game.service.js');
 const timeline = require('./timeline/timeline.service.js');
-//const marshal = require('./marshal');
+const metadata = require('./metadata/metadata.service.js');
 
 module.exports = function (app) {
     app.configure(messages);
@@ -15,5 +15,5 @@ module.exports = function (app) {
     app.configure(events);
     app.configure(game);
     app.configure(timeline);
-    //app.configure(marshal);
+    app.configure(metadata);
 };

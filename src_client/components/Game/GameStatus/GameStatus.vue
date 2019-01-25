@@ -7,7 +7,6 @@
     <v-container justify-center class="pt-0 pl-3 pr-3">
       <v-layout row>
         <v-flex xs12>
-          {{ metadata }}
           <clock :duration="clockDuration"></clock>
         </v-flex>
       </v-layout>
@@ -48,7 +47,7 @@ import Clock from '@/components/Clock/Clock';
 export default {
   name: 'GameStatus',
   components: {
-    Clock
+    Clock,
   },
   props: {
     myGame: {
@@ -65,6 +64,9 @@ export default {
     }
   },
   computed: {
+    ...mapGetters([
+      'devmode'
+    ]),
     clockDuration() {
       const rgt = this.metadata.remainingGameTime;
       const gl = this.metadata.gameLength;

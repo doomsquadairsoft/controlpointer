@@ -12,6 +12,7 @@ import 'vuetify/dist/vuetify.min.css' // this needs to be imported AFTER materia
 import gameStats from '@/../src_shared/gameStats'
 import Vs from 'd3-vs';
 import Vuelidate from 'vuelidate'
+import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,6 +32,7 @@ Vue.config.productionTip = true;
 Vue.component('v-map', Vue2Leaflet.Map);
 Vue.component('v-tilelayer', Vue2Leaflet.TileLayer);
 Vue.component('v-marker', Vue2Leaflet.Marker);
+Vue.component(VueQrcode.name, VueQrcode);
 
 
 new Vue({

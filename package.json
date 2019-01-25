@@ -20,6 +20,7 @@
     "start": "node src_server"
   },
   "dependencies": {
+    "@chenfengyuan/vue-qrcode": "^1.0.0",
     "@feathersjs/authentication": "^2.1.2",
     "@feathersjs/authentication-jwt": "^2.0.0",
     "@feathersjs/authentication-local": "^1.1.0",

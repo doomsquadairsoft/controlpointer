@@ -3,7 +3,8 @@
 
 module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
-        const { data } = context;
+        //const { data } = context;
+        //console.log(context)
 
         const type = context.data.type || 'timeline';
         const action = context.data.action || 'unknown!';
