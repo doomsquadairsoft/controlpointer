@@ -159,7 +159,7 @@ export default {
       {
         icon: 'card_travel',
         text: 'D3VICES',
-        path: '/devices'
+        path: '/device'
       },
       {
         icon: 'all_out',

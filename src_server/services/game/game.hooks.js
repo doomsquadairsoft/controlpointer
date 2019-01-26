@@ -1,7 +1,8 @@
 //const { authenticate } = require('@feathersjs/authentication').hooks;
 const processGame = require('../../hooks/process-game');
 const populateGame = require('../../hooks/populate-game');
-
+const associateDevice = require('../../hooks/associate-device');
+const disassociateDevice = require('../../hooks/disassociate-device');
 
 module.exports = {
   before: {
@@ -20,10 +21,10 @@ module.exports = {
     all: [],
     find: [populateGame()],
     get: [],
-    create: [],
+    create: [associateDevice()],
     update: [],
     patch: [],
-    remove: []
+    remove: [disassociateDevice()]
   },
 
   error: {

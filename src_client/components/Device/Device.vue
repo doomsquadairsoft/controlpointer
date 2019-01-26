@@ -1,188 +1,67 @@
 <template>
-<v-flex xs12 sm12 md8 lg5 xl2>
+  <div>
+    <v-container class="pb-3">
+      <v-card>
+      <doom-alert level="error" v-if="!myDevice">
+        No D3VICE exists with this ID. Return to the <router-link to="/device">D3VICE List</router-link>
+      </doom-alert>
+      <v-container v-if="myDevice">
+        <v-layout>
 
+          <v-flex xs12 sm12 md8 lg5 xl2>
 
-  <v-card>
-    <v-card-media height="200px" :src="image">
-      <v-container fill-height fluid>
-        <v-layout fill-height>
-          <v-flex xs12 align-end flexbox>
-            <span class="headline white--text">D3VICE</span>
+            <device-stats :myDevice="myDevice"></device-stats>
+
+            <doom-alert v-if="!myDevice.associatedGame" level="info">Associate this D3VICE with a game to unlock the game controls</doom-alert>
+            <device-game-controls v-if="myDevice.associatedGame" :myDevice="myDevice"></device-game-controls>
+            <device-lifecycle-controls :myDevice="myDevice"></device-lifecycle-controls>
+
+            <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+              <v-icon>keyboard_arrow_up</v-icon>
+            </v-btn>
+
           </v-flex>
         </v-layout>
       </v-container>
-    </v-card-media>
-
-    <v-card-text v-show="editMode">
-      <v-form :value="editMode">
-        <v-text-field label="Location" v-model="location" :counter="40" required></v-text-field>
-        <v-text-field label="Device ID" v-model="did" :counter="16" required></v-text-field>
-        <v-btn color="info" @click=>
-          Set position on map
-        </v-btn>
-      </v-form>
-    </v-card-text>
-
-
-    <v-card-text v-show="!editMode">
-      <div>
-        <span>Location: </span>
-        <span>{{ location }}</span><br>
-        <span>ID: </span>
-        <span>{{ did }}</span><br>
-        <span>CreatedAt: </span>
-        <span>{{ createdAt | formatDate }}</span><br>
-        <span>Latitude: </span>
-        <span>{{ latLng.lat }}</span><br>
-        <span>Longitude: </span>
-        <span>{{ latLng.lng }}</span>
-      </div>
-    </v-card-text>
-
-    <v-card-text>
-      <v-container fluid class="my-0 py-0">
-        <div class="text-xs-center">
-          <v-layout row>
-            <v-flex xs12>
-              <v-progress-circular :size="100" :width="15" :rotate="0" :value="bluProgress" color="blue">
-                {{ bluProgress }}
-              </v-progress-circular>
-              <v-progress-circular :size="100" :width="15" :rotate="0" :value="redProgress" color="red">
-                {{ redProgress }}
-              </v-progress-circular>
-              <v-layout row>
-                <v-flex xs12>
-                  <v-chip v-bind:color="controllingColor" text-color="white">
-                    <v-avatar>
-                      <v-icon>group</v-icon>
-                    </v-avatar>
-                    {{ controlledByTeam }}
-                  </v-chip>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-          </v-layout>
-        </div>
-      </v-container>
-    </v-card-text>
-
-
-
-    <v-card-actions class="my-buttons">
-      <v-spacer></v-spacer>
-        <v-btn color="blue" @click="changeControllingTeamBlue">
-          BLU
-        </v-btn>
-        <v-btn color="red" @click="changeControllingTeamRed">
-          RED
-        </v-btn>
-        <v-btn color="grey" @click="changeControllingTeamUnc">
-          UNC
-        </v-btn>
-
-
-
-      <v-menu offset-x v-bind:close-on-content-click="false" v-bind:nudge-width="200" v-model="menu">
-        <v-btn icon slot="activator">
-          <v-icon>more_vert</v-icon>
-        </v-btn>
-
-
-        <v-card>
-          <v-list>
-            <v-list-tile>
-              <v-list-tile-content>
-                <v-list-tile-title>{{ did }}</v-list-tile-title>
-                <v-list-tile-sub-title>{{ location }}</v-list-tile-sub-title>
-              </v-list-tile-content>
-            </v-list-tile>
-          </v-list>
-          <v-divider></v-divider>
-          <v-list>
-            <v-list-tile @click="showEditor">
-              <v-list-tile-title>Edit</v-list-tile-title>
-            </v-list-tile>
-            <v-list-tile>
-              <v-list-tile-action>
-                <v-switch v-model="deletable" color="red"></v-switch>
-              </v-list-tile-action>
-              <v-list-tile-title>Enable deletion</v-list-tile-title>
-            </v-list-tile>
-            <v-list-tile color="red" :disabled="!deletable" @click="deleteDevice">
-              <v-list-tile-title>Delete D3VICE</v-list-tile-title>
-            </v-list-tile>
-          </v-list>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn flat @click="menu = false">Cancel</v-btn>
-          </v-card-actions>
-
-        </v-card>
-      </v-menu>
-
-
-    </v-card-actions>
-
-
-  </v-card>
-</v-flex>
+    </v-card>
+    </v-container>
+  </div>
 </template>
 
 <script>
-import di from '@/assets/futuristic_ammo_box_01.png'
+import di from '@/assets/futuristic_ammo_box_01.png';
 import {
-  mapState,
-  mapActions
-} from 'vuex'
-
+  mapActions,
+  mapGetters
+} from 'vuex';
+import { propEq, find } from 'ramda';
+import DeviceStats from './DeviceStats/DeviceStats';
+import DeviceGameControls from '@/components/Device/DeviceControls/DeviceGameControls';
+import DeviceLifecycleControls from '@/components/Device/DeviceControls/DeviceLifecycleControls';
+import DoomAlert from '@/components/DoomAlert/DoomAlert';
 
 
 export default {
   name: 'device',
-  props: {
-    did: String,
-    controllingTeam: {
-      type: Number,
-      default: 0,
-      required: true
-    },
-    redProgress: {
-      type: Number,
-      default: 10,
-      required: true
-    },
-    bluProgress: {
-      type: Number,
-      default: 10,
-      required: true
-    },
-    location: {
-      type: String,
-      default: "Safe Zone"
-    },
-    image: {
-      type: String,
-      default: di
-    },
-    latLng: {
-      type: Object
-    },
-    _id: String,
-    createdAt: Number,
-    patchDevice: {
-      type: Function,
-      required: true
-    },
-    removeDevice: {
-      type: Function,
-      required: true
-    },
-    createTimelineEvent: {
-      type: Function,
-      required: true
-    }
+  components: {
+    DoomAlert,
+    DeviceStats,
+    DeviceGameControls,
+    DeviceLifecycleControls,
   },
+  props: {},
+  data: () => ({
+    editMode: false,
+    menu: 0,
+    deletable: 0,
+    lastCap: '',
+    takeDown: true
+  }),
   computed: {
+    ...mapGetters('devices', {
+      findDevicesInStore: 'find'
+    }),
+    deviceImage: () => di,
     controllingColor() {
       if (this.bluProgress < 100 && this.redProgress < 100) {
         return 'grey';
@@ -200,9 +79,28 @@ export default {
       } else if (this.bluProgress >= 100 && this.redProgress === 0) {
         return 'Controlled by Blu Team';
       }
-    }
+    },
+    myDevice() {
+      const deviceIdViaRoute = this.$route.params.deviceId;
+      return this.findDevicesInStore({
+        query: {
+          $sort: {
+            createdAt: 1
+          },
+          _id: deviceIdViaRoute
+        }
+      }).data[0];
+    },
   },
   methods: {
+    ...mapActions('devices', {
+      findDevices: 'find',
+      removeDevice: 'remove',
+      patchDevice: 'patch',
+    }),
+    ...mapActions('timeline', {
+      createTimelineEvent: 'create',
+    }),
     changeControllingTeamBlue: function() {
       this.patchDevice([
         this._id, {
@@ -214,7 +112,7 @@ export default {
           type: "timeline",
           action: "cap_blu",
           source: "admin",
-          target: this.did
+          target: this.myDevice.did
         }, {});
       //this.patchDevice([this._id, {bluProgress: 100, redProgress: 0}, undefined])
     },
@@ -229,7 +127,7 @@ export default {
           type: "timeline",
           action: "cap_red",
           source: "admin",
-          target: this.did
+          target: this.myDevice.did
         }, {});
       //this.patchDevice([this._id, {redProgress: 100, bluProgress: 0}, undefined])
     },
@@ -244,7 +142,7 @@ export default {
           type: "timeline",
           action: "cap_unc",
           source: "admin",
-          target: this.did
+          target: this.myDevice.did
         }, {});
       //this.patchDevice([this._id, {redProgress: 0, bluProgress: 0}, undefined])
     },
@@ -261,13 +159,9 @@ export default {
       dispatch('setPositionOnMap')
     }
   },
-  data: () => ({
-    editMode: false,
-    menu: 0,
-    deletable: 0,
-    lastCap: '',
-    takeDown: true
-  })
+  created() {
+    this.findDevices();
+  }
 }
 </script>
 

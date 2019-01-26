@@ -7,7 +7,7 @@
 
   <v-layout column>
     <doom-alert level="info" v-if="devices.length < 1">
-      No D3VICES have been added. Please add some on the <router-link to="/d3vices">D3VICES Page</router-link>
+      No D3VICES have been added. Please add some on the <router-link to="/device">D3VICE Page</router-link>
     </doom-alert>
     <control-point v-for="d in devices" v-bind:key="d._id" v-bind:_id="d._id" v-bind:controllingTeam="d.controllingTeam" v-bind:createdAt="d.createdAt" v-bind:did="d.did" v-bind:redProgress="d.redProgress" v-bind:bluProgress="d.bluProgress"
       v-bind:patchDevice="patchDevice" v-bind:getDevice="getDevice" v-bind:createTimelineEvent="createTimelineEvent"></control-point>
@@ -61,9 +61,6 @@ export default {
       console.log(`isDeviceSelected=${is}`)
       return is
     },
-    ...mapState('devices',
-      'devices'
-    ),
     ...mapGetters('devices', {
       findDevicesInStore: 'find'
     }),

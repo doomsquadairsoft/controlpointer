@@ -5,8 +5,6 @@ module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
     return async context => {
         const { data } = context;
 
-        console.log(` ++ ima event hook!\n    type=${data.type} device=${data.device} captureProgress=${data.captureProgress}`)
-
         // set defaults if the submitted data was empty
         var device = context.data.device || '';
         var type = context.data.type || '';

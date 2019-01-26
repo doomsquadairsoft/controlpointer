@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pb-0">
+  <v-container class="pb-1">
     <v-alert
     :outline="theme === 'dark' ? true : false"
     :value="true"

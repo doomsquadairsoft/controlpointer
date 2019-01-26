@@ -1,29 +1,54 @@
 <template>
-    <v-container grid-list-lg>
-        <v-layout row wrap>
-            <p>DeviceList</p>
-            <game
-                v-for="d in devices"
-                v-bind:key="d._id"
-                v-bind:_id="d._id"
-                v-bind:captureRate="d.captureRate"
-                v-bind:createdAt="d.createdAt"
-                v-bind:gameLength="d.gameLength"
-                v-bind:removeGame="removeGame"
-            ></game>
-        </v-layout>
+    <v-container grid-list-lg class="ma-0 pa-0">
+        <v-container class="pa-0">
+        <v-card>
+          <v-card-title>
+            <h3 class="headline mb-0">Existing D3VICES</h3>
+          </v-card-title>
+          <doom-alert v-if="devices.length < 1" level="warning">
+            There are no games. Please ceate a game below.
+          </doom-alert>
+          <v-list>
+            <v-list-tile v-for="d in devices.data" :key="d._id" avatar>
+
+              <v-list-tile-avatar>
+                  <img :src="deviceImage">
+              </v-list-tile-avatar>
+
+              <v-list-tile-content>
+                <v-list-tile-title>{{ d.name }}</v-list-tile-title>
+                <v-list-tile-sub-title>Device ID {{ d.did }}</v-list-tile-sub-title>
+              </v-list-tile-content>
+
+              <v-list-tile-action>
+                <v-layout row>
+                  <v-btn color="info" :to="linkToDevice(d)">
+                    <v-icon>send</v-icon>Select
+                  </v-btn>
+                </v-layout>
+              </v-list-tile-action>
+
+            </v-list-tile>
+          </v-list>
+        </v-card>
+      </v-container>
+      <v-container class="pa-0">
+        <create-device :devices="devices"></create-device>
+      </v-container>
     </v-container>
 </template>
 
 <script>
-    import Device from '@/components/Device/Device.vue'
-    import { mapActions, mapGetters } from 'vuex'
-
+    import Device from '@/components/Device/Device.vue';
+    import CreateDevice from '@/components/CreateDevice/CreateDevice';
+    import { mapActions, mapGetters } from 'vuex';
+    import di from '@/assets/futuristic_ammo_box_01.png';
 
     export default {
         name: 'GameList',
         components: {
-            Device
+            Device,
+            CreateDevice,
         },
         data () {
             return {
@@ -35,14 +60,39 @@
 
         },
         computed: {
-            ...mapGetters('device', {
+            ...mapGetters('devices', {
                 findDevicesInStore: 'find'
             }),
+            devices() {
+              return this.findDevicesInStore({
+                query: {
+                  $sort: {
+                    createdAt: 1
+                  }
+                }
+              })
+            },
+            deviceImage: () => di,
         },
         methods: {
-            ...mapActions('device', {
-                removeDevice: 'remove'
+            ...mapActions('devices', {
+                removeDevice: 'remove',
+                findDevices: 'find'
             }),
+            // gameModeDisplay: function (game) {
+            //   return R.cond([
+            //     [R.equals('sectorControl'), R.always('Sector Control')],
+            //     [R.equals('domination'), R.always('Domination')],
+            //     [R.equals('cs'), R.always('Counter-Strike')],
+            //     [R.either(R.isEmpty(), R.isNil()), R.always('Sector Control')],
+            //   ])(game.gameMode);
+            // },
+            linkToDevice: function (d) {
+              return `/device/${d._id}`
+            },
+        },
+        created() {
+          this.findDevices();
         }
     }
 </script>

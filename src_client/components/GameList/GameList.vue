@@ -87,7 +87,6 @@ export default {
       removeGame: 'remove'
     }),
     gameModeDisplay: function (game) {
-      console.log(game.gameMode)
       return R.cond([
         [R.equals('sectorControl'), R.always('Sector Control')],
         [R.equals('domination'), R.always('Domination')],

@@ -1,57 +1,64 @@
-// Use this hook to manipulate incoming or outgoing data.
-// For more information on hooks see: http://docs.feathersjs.com/api/hooks.html
+// the hook that fires when a new device is created. Validates user input.
 
-module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
-    return async context => {
-        const { data } = context;
+const R = require('ramda');
+const h = require('./helpers');
+const defaults = require('../../src_shared/defaults');
 
-        console.log('ima hook!')
+module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
+  return async context => {
+    const {
+      data
+    } = context;
 
-        // Throw an error if we didn't get a text
-        if(!data.did) {
-            throw new Error('A device must have an id');
-        }
+    const did = R.ifElse(
+      R.allPass([h.isString, h.isSmall]),
+      R.identity(),
+      R.always(h.randomName())
+    )(context.data.did);
 
-        if (!data.redProgress) {
-            data.redProgress = 0;
-        }
+    const name = R.ifElse(
+      R.allPass([h.isString, h.isSmall]),
+      R.identity(),
+      R.always(h.randomName())
+    )(context.data.name);
 
-        if (!data.bluProgress) {
-            data.bluProgress = 0;
-        }
+    const latLng = R.ifElse(
+      R.allPass([h.isObject]),
+      R.identity(),
+      R.always(defaults.latLng)
+    )(context.data.latLng);
 
-        if (!data.controllingTeam) {
-            data.controllingTeam = 0;
-        }
+    const redProgress = R.ifElse(
+      R.allPass([h.isNumber, h.isLte100, h.isGte0]),
+      R.identity(),
+      R.always(0)
+    )(context.data.redProgress);
 
-        // The authenticated user
-        //const user = context.params.user;
-        // The actual message text
-        const did = context.data.did
-        // ids can't be longer than 400 characters
-            .substring(0, 400);
+    const bluProgress = R.ifElse(
+      R.allPass([h.isNumber, h.isLte100, h.isGte0]),
+      R.identity(),
+      R.always(0)
+    )(context.data.bluProgress);
 
-        const redProgress = context.data.redProgress
-        const bluProgress = context.data.bluProgress
-        const controllingTeam = context.data.controllingTeam
+    const associatedGame = R.ifElse(
+      R.allPass([h.isString, h.isSmall]),
+      R.identity(),
+      R.always()
+    )(context.data.associatedGame);
 
-        // ensure a latLng is created
-        const latLng = context.data.latLng || { lat: 47.62463825220757, lng: -117.17959284771496};
 
-        // Override the original data (so that people can't submit additional stuff)
-        context.data = {
-            latLng,
-            did,
-            redProgress,
-            bluProgress,
-            controllingTeam,
-            // Set the user id
-            //userId: user._id,
-            // Add the current date
-            createdAt: new Date().getTime()
-        };
-
-        // Best practise, hooks should always return the context
-        return context;
+    // Override the original data (so that people can't submit additional stuff)
+    context.data = {
+      name,
+      did,
+      latLng,
+      redProgress,
+      bluProgress,
+      associatedGame,
+      createdAt: new Date().getTime()
     };
+
+    // Best practise, hooks should always return the context
+    return context;
+  };
 };

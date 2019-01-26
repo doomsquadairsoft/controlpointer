@@ -6,7 +6,8 @@
         <v-layout column>
           <v-flex>ID: {{ d._id }}</v-flex>
           <v-flex>Lat: {{ d.latLng.lat }}</v-flex>
-          <v-flex>Lon: {{ d.latLng.lng }}</v-flex>
+          <v-flex>Lng: {{ d.latLng.lng }}</v-flex>
+          <v-flex>Associated Game: {{ d.associatedGame }}</v-flex>
         </v-layout>
       </v-container>
       <v-list-tile slot="activator">
@@ -49,20 +50,7 @@
         <v-list-tile-content>
           <v-container>
             <v-layout row justify-center fill-height>
-
-              <v-btn icon color="blue" @click="changeControllingTeam(d, 'blu')">
-                <v-icon>star</v-icon>
-              </v-btn>
-              <v-btn icon color="red" @click="changeControllingTeam(d, 'red')">
-                <v-icon>star</v-icon>
-              </v-btn>
-              <v-btn icon color="grey" @click="changeControllingTeam(d, 'unc')">
-                <v-icon>star</v-icon>
-              </v-btn>
-              <v-btn icon color="green" @click="showDeviceLocation(d._id)">
-                <v-icon>gps_fixed</v-icon>
-              </v-btn>
-
+              <device-game-controls :myDevice="d"></device-game-controls>
             </v-layout>
           </v-container>
         </v-list-tile-content>
@@ -81,11 +69,12 @@
 import di from '@/assets/futuristic_ammo_box_01.png'
 import { cond, always, equals } from 'ramda';
 import { mapActions } from 'vuex';
+import DeviceGameControls from '@/components/Device/DeviceControls/DeviceGameControls';
 
 export default {
   name: 'GameDevices',
   components: {
-    // GameDevice
+    DeviceGameControls
   },
   data() {
     return {
@@ -103,37 +92,8 @@ export default {
   },
   computed: {
     deviceImage: () => di,
-    controllingTeam() {
-
-    }
   },
   methods: {
-    ...mapActions('timeline', {
-        createTimelineEvent: 'create'
-    }),
-    changeControllingTeam: function(device, color) {
-      if (typeof device === 'undefined') throw new Error('first param sent to changeControllingTeam must be the device object. Got undefined.');
-      if (typeof color === 'undefined') throw new Error('second param sent to changeControllingTeam must be (red|blu|unc). Got undefined.');
-      const c = cond([
-        [equals('blu'), always('cap_blu')],
-        [equals('red'), always('cap_red')],
-        [equals('unc'), always('cap_unc')],
-      ])(color);
-
-      this.createTimelineEvent({
-        type: "timeline",
-        action: c,
-        source: "admin",
-        target: device.did,
-        targetId: device._id,
-        gameId: this.myGame._id
-      }, {});
-    },
-    showDeviceLocation: function(deviceId) {
-      const address = `/game/${this.myGame._id}/map/${deviceId}`;
-      console.log(address);
-      this.$router.push(address);
-    },
   }
 }
 </script>
