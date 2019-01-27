@@ -24,7 +24,7 @@ export default new Vuex.Store({
     plugins: [
         service('devices', {
             idField: '_id',
-            replaceItems: true, 
+            replaceItems: true, // @TODO remove (https://github.com/doomsquadairsoft/controlpointer/issues/16)
         }),
         service('messages'),
         service('pdevices'),
