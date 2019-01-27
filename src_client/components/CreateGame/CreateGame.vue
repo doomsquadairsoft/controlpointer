@@ -4,11 +4,7 @@
   <v-card-title primary-title>
       <v-layout row>
         <v-flex xs12>
-          <span class="headline">Create Game
-            <v-btn icon @click="show = !show">
-              <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
-            </v-btn>
-          </span>
+          <span class="headline">Create Game</span>
         </v-flex>
         <v-flex xs3>
           <v-btn icon>
@@ -17,7 +13,7 @@
       </v-layout>
   </v-card-title>
 
-  <div v-show="show">
+  <div>
     <v-form ref="form">
       <v-container>
         <v-layout row wrap>
@@ -72,8 +68,8 @@
             </v-list-tile-action>
 
             <v-list-tile-content>
-              <v-list-tile-title>{{ d.did }}</v-list-tile-title>
-              <v-list-tile-sub-title>D3VICE {{d._id}}</v-list-tile-sub-title>
+              <v-list-tile-title>{{ d.name }}</v-list-tile-title>
+              <v-list-tile-sub-title>D3VICE {{d.did}}</v-list-tile-sub-title>
             </v-list-tile-content>
 
           </v-list-tile>
@@ -129,7 +125,6 @@ export default {
       defaultCaptureRate: '00:00:05',
       gameId: null,
       isValidationError: false,
-      show: true,
       includedDevices: [],
     }
   },
@@ -208,7 +203,7 @@ export default {
       if (this.$v.$invalid) {
         this.isValidationError = true;
       } else {
-        this.show = false;
+        this.$vuetify.goTo('head');
         this.isValidationError = false;
         this.createGame({
           gameLength: this.gameLength,

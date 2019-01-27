@@ -10,7 +10,8 @@
           <li>createdAt: {{ createdAt | formatDate }}</li>
           <li>Latitude: {{ lat }}</li>
           <li>Longitude: {{ lng }}</li>
-          <li>Associated Game: <router-link :to="gameLink">{{ associatedGame }}</router-link></li>
+          <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link> ({{ myDevice.associatedGames.length }}) ({{ associatedGames.length }}), </template>({{ myDevice.associatedGames.length }}) ({{ associatedGames.length }})</li>
+          <li>{{ associatedGames }}</li>
           <li>_id: {{ _id }}</li>
         </ul>
       </v-flex>
@@ -27,28 +28,47 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'DeviceStats',
   components: {
   },
   props: {
-    myDevice: {
-      type: Object,
+    deviceId: {
+      type: String,
       required: true,
     }
   },
   computed: {
+    ...mapGetters('devices', {
+      findDevicesInStore: 'find'
+    }),
+    myDevice() {
+      return this.findDevicesInStore({
+        query: {
+          _id: this.deviceId
+        }
+      }).data[0]
+    },
     did() { return this.myDevice.did },
     createdAt() { return this.myDevice.createdAt },
     lat() { return this.myDevice.latLng.lat },
     lng() { return this.myDevice.latLng.lng },
     _id() { return this.myDevice._id },
     name() { return this.myDevice.name },
-    associatedGame() { return this.myDevice.associatedGame },
-    gameLink() {
-        return `/game/${this.associatedGame}`;
+    associatedGames() { return this.myDevice.associatedGames }
+  },
+  methods: {
+    ...mapActions('devices', {
+      findDevices: 'find'
+    }),
+    gameLink(gameId) {
+        return `/game/${gameId}`;
     },
+  },
+  created() {
+    this.findDevices();
   }
 }
 </script>

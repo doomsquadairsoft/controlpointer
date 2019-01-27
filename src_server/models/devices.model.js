@@ -13,7 +13,7 @@ module.exports = function (app) {
   Model.ensureIndex({ fieldName: 'latLng', unique: false });
   Model.ensureIndex({ fieldName: 'redProgress', unique: false });
   Model.ensureIndex({ fieldName: 'bluProgress', unique: false });
-  Model.ensureIndex({ fieldName: 'associatedGame', unique: false });
+  Model.ensureIndex({ fieldName: 'associatedGames', unique: false });
 
   return Model;
 };

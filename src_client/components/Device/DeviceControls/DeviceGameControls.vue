@@ -12,6 +12,9 @@
     <v-btn icon color="green" @click="showDeviceLocation(_id)">
       <v-icon>gps_fixed</v-icon>
     </v-btn>
+    <v-btn icon color="purple" @click="showDeviceEditor(_id)">
+      <v-icon>edit</v-icon>
+    </v-btn>
   </div>
 </template>
 
@@ -90,6 +93,16 @@ export default {
       const address = `/map/${this.associatedGame}`;
       const q = {
         deviceId: deviceId
+      };
+      this.$router.push({
+        path: address,
+        query: q
+      });
+    },
+    showDeviceEditor: function(deviceId) {
+      const address = `/device/${deviceId}`;
+      const q = {
+        edit: 1
       };
       this.$router.push({
         path: address,

@@ -7,7 +7,7 @@
           <v-flex>ID: {{ d._id }}</v-flex>
           <v-flex>Lat: {{ d.latLng.lat }}</v-flex>
           <v-flex>Lng: {{ d.latLng.lng }}</v-flex>
-          <v-flex>Associated Game: {{ d.associatedGame }}</v-flex>
+          <v-flex>Associated Games: {{ d.associatedGames }}</v-flex>
         </v-layout>
       </v-container>
       <v-list-tile slot="activator">

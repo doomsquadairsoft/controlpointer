@@ -4,8 +4,8 @@ const chalk = require('chalk');
 const columns = require('cli-columns');
 
 
-const isOdd = R.modulo(R.__, 2);
-const isEven = R.complement(isOdd);
+const isEven = R.compose(R.equals(0), R.modulo(R.__, 2));
+const isOdd = R.complement(isEven);
 const isRed = R.compose(R.test(/_red$/), R.prop('action'));
 const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
 const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
@@ -13,6 +13,10 @@ const isProgressEvent = R.compose(R.test(/^(cap|press|release)_\w{3}$/), R.prop(
 const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
 const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
 const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
+const isPausedMetadata = R.compose(R.equals('paused'), R.prop('msg'), R.prop('gameStatus'));
+const isRunningMetadata = R.compose(R.equals('running'), R.prop('msg'), R.prop('gameStatus'));
+const isOverMetadata = R.compose(R.equals('over'), R.prop('msg'), R.prop('gameStatus'));
+const isStoppedMetadata = R.compose(R.equals('stopped'), R.prop('msg'), R.prop('gameStatus'));
 
 /*
  * GameStats
@@ -324,7 +328,6 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   // over -> paused => null
   // over -> over => 0
 
-  // console.log(`thisStepAction:${thisStepAction}, isProgressEvent:${isProgressEvent(thisStepEvent)}`)
   if (isProgressEvent(thisStepEvent)) return cap(rgt-delta);
 
   if (lastStepStatus === 'paused' && thisStepAction === 'start') return rgt;
@@ -390,14 +393,16 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
   // over -> paused => (not possible)
   // over -> stopped => gpd = 0;
 
-  console.log(`thisStepAction:${thisStepAction}, ca:${ca.valueOf()}, mt:${mt.valueOf()}, gpd:${gpd.valueOf()}`)
   const elapsedTimeSinceLastMetadata = ca.diff(mt);
 
-  if (thisStepAction === 'stop') return 0;
-  if (isStartEvent(thisStepEvent) && lastStepStatus === 'running') return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
-  //if (lastStepStatus === 'stopped' || lastStepStatus === 'running' || lastStepStatus === 'over') return gpd.valueOf();
+  if (isStoppedMetadata(lastStepMetadata)) return 0;
+  if (isRunningMetadata(lastStepMetadata) && isStartEvent(thisStepEvent))
+    return gpd.valueOf();
 
-  if (lastStepStatus === 'paused') return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
+  if (isPausedMetadata(lastStepMetadata)) return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
+  if (isProgressEvent(thisStepEvent) && isRunningMetadata(lastStepMetadata)) return gpd.valueOf();
+  if (isOverMetadata(lastStepMetadata)) return gpd.valueOf();
+  if (isRunningMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return 0;
 
   throw new Error(`deriveGamePausedDuration ended up with lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction} which is unsupported`);
 };
@@ -437,9 +442,13 @@ const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   //const thisStepAction = R.prop('action', thisStepEvent);
   // if the game is stopped, reset the running duration
   if (isStopEvent(thisStepEvent)) return 0;
-  const status = lastStepMetadata.gameStatus.msg;
-  if (status === 'running' && (R.not(isPauseEvent(thisStepEvent)) && R.not(isStopEvent(thisStepEvent)))) {
-    console.log(`it is incrmeenting`)
+
+  if (isRunningMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) {
+    console.log(`running, pause. elapsed:${elapsed.valueOf()}`)
+    return grd.add(elapsed).valueOf();
+  }
+
+  if (isRunningMetadata(lastStepMetadata) && (R.not(isPauseEvent(thisStepEvent)) && R.not(isStopEvent(thisStepEvent)))) {
     return grd.add(elapsed).valueOf();
   }
   return grd.valueOf();
@@ -591,9 +600,6 @@ const _calculateGameMetadata = (lastMetadata, evt) => {
   metadata.gameElapsedDuration = deriveGameElapsedDuration(metadata, evt); // depends on gameStartTime, gameEndTime, and gameStatus
   metadata.metadataTimestamp = deriveMetadataTimestamp(metadata, evt); // must be last
   metadata.theAnswer = 42;
-  console.log(metadata.gamePausedDuration)
-  // console.log(chalk.cyan.bold('EVALUATRON'))
-  //console.log(acc);
   return metadata;
 };
 
@@ -704,6 +710,19 @@ module.exports = {
     Vue.prototype.$gameStats.deriveMetadataTimestamp = deriveMetadataTimestamp;
     Vue.prototype.$gameStats.deriveMetadata = deriveMetadata;
     Vue.prototype.$gameStats.buildInitialMetadata = buildInitialMetadata;
+    Vue.prototype.$gameStats.isOdd = isOdd;
+    Vue.prototype.$gameStats.isEven = isEven;
+    Vue.prototype.$gameStats.isRed = isRed;
+    Vue.prototype.$gameStats.isBlu = isBlu;
+    Vue.prototype.$gameStats.isLifeCycleEvent = isLifeCycleEvent;
+    Vue.prototype.$gameStats.isProgressEvent = isProgressEvent;
+    Vue.prototype.$gameStats.isStopEvent = isStopEvent;
+    Vue.prototype.$gameStats.isStartEvent = isStartEvent;
+    Vue.prototype.$gameStats.isPauseEvent = isPauseEvent;
+    Vue.prototype.$gameStats.isPausedMetadata = isPausedMetadata;
+    Vue.prototype.$gameStats.isRunningMetadata = isRunningMetadata;
+    Vue.prototype.$gameStats.isOverMetadata = isOverMetadata;
+    Vue.prototype.$gameStats.isStoppedMetadata = isStoppedMetadata;
   },
   pad,
   capPercentage,
@@ -724,4 +743,17 @@ module.exports = {
   deriveMetadataTimestamp,
   deriveMetadata,
   buildInitialMetadata,
+  isOdd,
+  isEven,
+  isRed,
+  isBlu,
+  isLifeCycleEvent,
+  isProgressEvent,
+  isStopEvent,
+  isStartEvent,
+  isPauseEvent,
+  isPausedMetadata,
+  isRunningMetadata,
+  isOverMetadata,
+  isStoppedMetadata,
 }

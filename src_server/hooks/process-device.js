@@ -17,9 +17,9 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     )(context.data.did);
 
     const name = R.ifElse(
-      R.allPass([h.isString, h.isSmall]),
+      R.allPass([h.isSmall, h.isString, h.isntEmpty]),
       R.identity(),
-      R.always(h.randomName())
+      R.always(h.randomColorName())
     )(context.data.name);
 
     const latLng = R.ifElse(
@@ -40,11 +40,11 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       R.always(0)
     )(context.data.bluProgress);
 
-    const associatedGame = R.ifElse(
-      R.allPass([h.isString, h.isSmall]),
+    const associatedGames = R.ifElse(
+      R.allPass([h.isArray, h.isSmall]),
       R.identity(),
-      R.always()
-    )(context.data.associatedGame);
+      R.always([])
+    )(context.data.associatedGames);
 
 
     // Override the original data (so that people can't submit additional stuff)
@@ -54,7 +54,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       latLng,
       redProgress,
       bluProgress,
-      associatedGame,
+      associatedGames,
       createdAt: new Date().getTime()
     };
 

@@ -24,6 +24,7 @@ export default new Vuex.Store({
     plugins: [
         service('devices', {
             idField: '_id',
+            replaceItems: true, 
         }),
         service('messages'),
         service('pdevices'),

@@ -59,7 +59,7 @@ module.exports = {
         overlay: true,
         contentBase: path.join(__dirname, "dist"),
         hot: false,
-        open: true,
+        open: false,
         watchContentBase: true,
         port: config.get('port')+1,
         proxy: {

@@ -10,10 +10,10 @@
 
           <v-flex xs12 sm12 md8 lg5 xl2>
 
-            <device-stats :myDevice="myDevice"></device-stats>
+            <device-stats :deviceId="this.$route.params.deviceId"></device-stats>
 
-            <doom-alert v-if="!myDevice.associatedGame" level="info">Associate this D3VICE with a game to unlock the game controls</doom-alert>
-            <device-game-controls v-if="myDevice.associatedGame" :myDevice="myDevice"></device-game-controls>
+            <doom-alert v-if="myDevice.associatedGames.length < 1" level="info">Associate this D3VICE with a <router-link to="/game">game</router-link> to unlock the game controls</doom-alert>
+            <device-game-controls v-if="myDevice.associatedGames.length > 0" :myDevice="myDevice"></device-game-controls>
             <device-lifecycle-controls :myDevice="myDevice"></device-lifecycle-controls>
 
             <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">

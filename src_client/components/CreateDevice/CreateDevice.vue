@@ -4,16 +4,12 @@
   <v-card-title primary-title>
       <v-layout row>
         <v-flex xs12>
-          <span class="headline">Create D3VICE
-            <v-btn icon @click="show = !show">
-              <v-icon>{{ show ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</v-icon>
-            </v-btn>
-          </span>
+          <span class="headline">Create D3VICE</span>
         </v-flex>
       </v-layout>
   </v-card-title>
 
-  <div v-show="show">
+  <div>
     <v-form ref="form">
       <v-container>
         <v-layout row wrap>
@@ -106,7 +102,6 @@ export default {
       nameInput: '',
       gameId: null,
       isValidationError: false,
-      show: true,
       defaultLat: 47.658779,
       defaultLng: -117.426048,
     }
@@ -172,7 +167,7 @@ export default {
       if (this.$v.$invalid) {
         this.isValidationError = true;
       } else {
-        this.show = false;
+        this.$vuetify.goTo('head');
         this.isValidationError = false;
         this.createDevice({
           name: this.nameInput,

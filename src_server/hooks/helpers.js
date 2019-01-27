@@ -8,9 +8,13 @@ const randomIntFromInterval = (min, max) => {
     return Math.floor(Math.random()*(max-min+1)+min);
 };
 
-const nameStr = `${faker.random.word()}-${randomIntFromInterval(1,50)}`;
-const randomName = () => R.toLower(nameStr);
+const nameStr = () => `${faker.random.word()}-${randomIntFromInterval(1,50)}`;
+const colorStr = () => `${faker.commerce.color()}-${randomIntFromInterval(1,50)}`;
+const normalize = R.compose(R.toLower(), R.replace(/\s/g, '-'));
+const randomName = () => normalize(nameStr());
+const randomColorName = () => normalize(colorStr());
 const isString = R.is(String);
+const isArray = R.is(Array);
 const isNumber = R.is(Number);
 const isObject = R.is(Object);
 const isSmall = R.compose(R.lte(R.__, 255), R.length());
@@ -25,8 +29,11 @@ const isLte100 = R.lte(R.__, 100);
 module.exports = {
   randomIntFromInterval,
   nameStr,
+  colorStr,
   randomName,
+  randomColorName,
   isObject,
+  isArray,
   isString,
   isNumber,
   isSmall,
