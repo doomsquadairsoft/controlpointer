@@ -17,6 +17,30 @@ const isPausedMetadata = R.compose(R.equals('paused'), R.prop('msg'), R.prop('ga
 const isRunningMetadata = R.compose(R.equals('running'), R.prop('msg'), R.prop('gameStatus'));
 const isOverMetadata = R.compose(R.equals('over'), R.prop('msg'), R.prop('gameStatus'));
 const isStoppedMetadata = R.compose(R.equals('stopped'), R.prop('msg'), R.prop('gameStatus'));
+const parseMetadata = (metadata) => {
+  const rgt = R.prop('remainingGameTime', metadata);
+  const gst = R.prop('gameStartTime', metadata);
+  const get = R.prop('gameEndTime', metadata);
+  const gpd = R.prop('gamePausedDuration', metadata);
+  const ged = R.prop('gameElapsedDuration', metadata);
+  const grd = R.prop('gameRunningDuration', metadata);
+  const mt = R.prop('metadataTimestamp', metadata);
+  const gl = R.prop('gameLength', metadata);
+  const cr = R.prop('captureRate', metadata);
+
+  const mrgt = moment.duration(rgt);
+  const mgst = moment(gst);
+  const mget = moment(get);
+  const mgpd = moment.duration(get);
+  const mged = moment.duration(ged);
+  const mgrd = moment.duration(grd);
+  const mmt = moment(mt)
+  const mgl = moment.duration(gl);
+  const mcr = moment.duration(cr);
+
+  return { rgt, gst, get, gpd, ged, grd, mt, gl, cr, mrgt, mgst, mget, mgpd, mged, mgrd, mmt, mgl, mcr };
+};
+
 
 /*
  * GameStats
@@ -237,71 +261,52 @@ const deriveGameStatus = (lastStepMetadata, thisStepEvent) => {
   const lastGameStatus = R.prop('gameStatus', lastStepMetadata);
   const ca = moment(R.prop('createdAt', thisStepEvent));
   const get = moment(R.prop('gameEndTime', lastStepMetadata));
+  const rgt = R.prop('remainingGameTime', lastStepMetadata);
 
   const running = { msg: 'running', code: 0 };
   const paused = { msg: 'paused', code: 1 };
   const over = { msg: 'over', code: 2 };
   const stopped = { msg: 'stopped', code: 3 };
 
-  if (get.isSameOrBefore(ca)) return over;
+  if (isPausedMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return paused;
+  if (isPausedMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return running;
+
+  if (R.is(Number, rgt) && rgt < 1) return over;
   // if last evt action was stop and this event action is not a lifecycle action, return stopped
   if (
       R.not(isLifeCycleEvent(thisStepEvent))
   ) return lastGameStatus;
 
   // if game is stopped, do not allow a pause
-  if (lastGameStatus.msg === 'stopped' && isPauseEvent(thisStepEvent)) return stopped;
+  if (isStoppedMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return stopped;
 
   // if game is over, do not allow a pause
-  if (lastGameStatus.msg === 'over' && isPauseEvent(thisStepEvent)) return over;
+  if (isOverMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return over;
 
   // if the game is over, do not allow a start
-  if (lastGameStatus.msg === 'over' && isStartEvent(thisStepEvent)) return over;
+  if (isOverMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return over;
 
   if (isStartEvent(thisStepEvent)) return running;
-  if (isPauseEvent(thisStepEvent)) return paused;
   if (isStopEvent(thisStepEvent)) return stopped;
+  if (isPauseEvent(thisStepEvent)) return paused;
 };
 
 const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
 
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveRemainingGameTime requires two parameters');
   if (typeof thisStepEvent.action === 'undefined') throw new Error('deriveRemainingGameTime did not receive a valid step. action is undefined!');
-  const gameStartTime = R.prop('gameStartTime', lastStepMetadata);
-  const gameEndTime = R.prop('gameEndTime', lastStepMetadata);
-  if (typeof gameStartTime === 'undefined' || typeof gameEndTime === 'undefined') throw new Error('gameStartTime or gameEndTime must be defined when passed to deriveRemainingGameTime. One or both were undefined!');
-  if (R.isNil(gameStartTime)) return null;
-  if (R.isNil(gameEndTime)) return null;
 
-  // rgt = endTime - now
-
-  // paused -> running => rgt = endTime - now
-  // paused -> paused => rgt = endTime - now
-  // paused -> stopped => rgt = null
-  // paused -> over => rgt = 0
-  // running -> running => rgt = endTime - now
-  // running -> paused => rgt = endTime - now
-  // running -> stopped => rgt = null
-  // running -> over => rgt = 0
-  // stopped -> running => rgt = endTime - now
-  // stopped -> paused => rgt = endTime - now
-  // stopped -> stopped => rgt = null
-  // over -> running => rgt = endTime - now
-  // over -> paused => rgt = endTime - now
-  // over -> stopped => rgt = null
-  // over -> over => rgt = 0
-
-  const thisStepAction = R.prop('action', thisStepEvent);
-  const lastStepStatus = R.compose(R.prop('msg'), R.prop('gameStatus'))(lastStepMetadata);
   const ca = R.prop('createdAt', thisStepEvent);
   const mt = R.prop('metadataTimestamp', lastStepMetadata);
   const ged = R.prop('gameElapsedDuration', lastStepMetadata);
-
+  const gst = R.prop('gameStartTime', lastStepMetadata);
   const get = R.prop('gameEndTime', lastStepMetadata);
   const rgt = R.prop('remainingGameTime', lastStepMetadata);
   const gpd = R.prop('gamePausedDuration', lastStepMetadata);
   const gl = R.prop('gameLength', lastStepMetadata);
-  const mget = moment(get);
+  if (typeof gst === 'undefined' && typeof get === 'undefined') throw new Error('gameStartTime or gameEndTime must be defined when passed to deriveRemainingGameTime. One or both were undefined!');
+  if (R.isNil(get)) return null;
+  if (R.isNil(gst)) return null;
   const mca = moment(ca);
   const mmt = moment(mt);
   const mrgt = moment.duration(rgt);
@@ -309,6 +314,7 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   const mgpd = moment.duration(gpd);
   const mged = moment.duration(ged);
   const mgl = moment.duration(gl);
+  const mget = moment(get);
   const cap = R.ifElse(R.lt(R.__, 0), R.always(0), R.identity());
 
   // paused -> running => rgt
@@ -328,32 +334,33 @@ const deriveRemainingGameTime = (lastStepMetadata, thisStepEvent) => {
   // over -> paused => null
   // over -> over => 0
 
-  if (isProgressEvent(thisStepEvent)) return cap(rgt-delta);
+  //return cap(get-gst+gpd)
 
-  if (lastStepStatus === 'paused' && thisStepAction === 'start') return rgt;
-  if (lastStepStatus === 'paused' && thisStepAction === 'stop') return null;
-  if (lastStepStatus === 'paused' && thisStepAction === 'pause') return rgt;
-  if (lastStepStatus === 'paused' && thisStepAction === 'over') return 0;
+  if (isProgressEvent(thisStepEvent) && !isPausedMetadata(lastStepMetadata)) return cap(rgt-delta);
+  if (isProgressEvent(thisStepEvent) && isPausedMetadata(lastStepMetadata)) return rgt;
 
-  if (lastStepStatus === 'running' && thisStepAction === 'start') return cap(rgt-delta);
-  if (lastStepStatus === 'running' && thisStepAction === 'stop') return null;
-  if (lastStepStatus === 'running' && thisStepAction === 'pause') return cap(rgt-delta);
-  if (lastStepStatus === 'running' && thisStepAction === 'over') return 0;
+  if (isPausedMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return rgt;
+  if (isPausedMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return null;
+  if (isPausedMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return rgt;
+  if (isPausedMetadata(lastStepMetadata) && isOverEvent(thisStepEvent)) return 0;
 
-  if (lastStepStatus === 'stopped' && thisStepAction === 'start') return mget.diff(mca).valueOf();
-  if (lastStepStatus === 'stopped' && thisStepAction === 'stop') return null;
-  if (lastStepStatus === 'stopped' && thisStepAction === 'pause') return rgt;
-  if (lastStepStatus === 'stopped' && thisStepAction === 'over') return 0;
+  if (isRunningMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return cap(rgt-delta);
+  if (isRunningMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return null;
+  if (isRunningMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return cap(rgt-delta);
+  if (isRunningMetadata(lastStepMetadata) && isOverEvent(thisStepEvent)) return 0;
 
-  if (lastStepStatus === 'over' && thisStepAction === 'start') return 0;
-  if (lastStepStatus === 'over' && thisStepAction === 'stop') return null;
-  if (lastStepStatus === 'over' && thisStepAction === 'pause') return 0;
-  if (lastStepStatus === 'over' && thisStepAction === 'over') return 0;
+  if (isStoppedMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return mget.diff(mca).valueOf();
+  if (isStoppedMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return null;
+  if (isStoppedMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return rgt;
+  if (isStoppedMetadata(lastStepMetadata) && isOverEvent(thisStepEvent)) return 0;
 
+  if (isOverMetadata(lastStepMetadata) && isStartEvent(thisStepEvent)) return 0;
+  if (isOverMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return null;
+  if (isOverMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return 0;
+  if (isOverMetadata(lastStepMetadata) && isOverEvent(thisStepEvent)) return 0;
 
-  console.error(`something was wrong here--> lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction}`)
+  console.error(`something was wrong here--> lastStepStatus:${lastStepMetadata.gameStatus.msg}, thisStepAction:${thisStepEvent.action}`)
   throw new Error('no valid conditions in deriveRemainingGameTime were satisfied.')
-
 };
 
 
@@ -395,14 +402,14 @@ const deriveGamePausedDuration = (lastStepMetadata, thisStepEvent) => {
 
   const elapsedTimeSinceLastMetadata = ca.diff(mt);
 
-  if (isStoppedMetadata(lastStepMetadata)) return 0;
+  if (isStoppedMetadata(lastStepMetadata) || isStopEvent(thisStepEvent)) return 0;
   if (isRunningMetadata(lastStepMetadata) && isStartEvent(thisStepEvent))
     return gpd.valueOf();
-
   if (isPausedMetadata(lastStepMetadata)) return gpd.add(elapsedTimeSinceLastMetadata).valueOf();
   if (isProgressEvent(thisStepEvent) && isRunningMetadata(lastStepMetadata)) return gpd.valueOf();
+  if (isStopEvent(thisStepEvent)) return 0;
   if (isOverMetadata(lastStepMetadata)) return gpd.valueOf();
-  if (isRunningMetadata(lastStepMetadata) && isStopEvent(thisStepEvent)) return 0;
+  if (isRunningMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) return gpd.valueOf();
 
   throw new Error(`deriveGamePausedDuration ended up with lastStepStatus:${lastStepStatus}, thisStepAction:${thisStepAction} which is unsupported`);
 };
@@ -439,18 +446,18 @@ const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
   const mt = moment(lastStepMetadata.metadataTimestamp);
   const ca = moment(thisStepEvent.createdAt);
   const elapsed = moment.duration(ca.diff(mt));
-  //const thisStepAction = R.prop('action', thisStepEvent);
   // if the game is stopped, reset the running duration
   if (isStopEvent(thisStepEvent)) return 0;
 
-  if (isRunningMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent)) {
-    console.log(`running, pause. elapsed:${elapsed.valueOf()}`)
-    return grd.add(elapsed).valueOf();
-  }
+  // if the game is being paused, return the elapsed time until now
+  if (isRunningMetadata(lastStepMetadata) && isPauseEvent(thisStepEvent))
+    return grd.clone().add(elapsed).valueOf();
 
-  if (isRunningMetadata(lastStepMetadata) && (R.not(isPauseEvent(thisStepEvent)) && R.not(isStopEvent(thisStepEvent)))) {
-    return grd.add(elapsed).valueOf();
-  }
+  // if the game is running, increment
+  if (isRunningMetadata(lastStepMetadata))
+    return grd.clone().add(elapsed).valueOf();
+
+  // all other cases, return the last value
   return grd.valueOf();
 };
 
@@ -470,20 +477,18 @@ const deriveGameRunningDuration = (lastStepMetadata, thisStepEvent) => {
 const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   if (typeof thisStepEvent === 'undefined') throw new Error('deriveGameEndTime requires two parameters');
   if (R.isNil(R.prop('gameStartTime', lastStepMetadata))) return null;
-  const gst = moment(lastStepMetadata.gameStartTime);
-  const lget = moment(R.ifElse(R.isNil(), R.always(0), R.identity())(lastStepMetadata.gameEndTime));
-  const gl = lastStepMetadata.gameLength;
-  const gpd = lastStepMetadata.gamePausedDuration;
-  const status = lastStepMetadata.gameStatus.msg;
-  const ca = moment(thisStepEvent.createdAt);
-  const mt = moment(thisStepEvent.metadataTimestamp);
-  const elapsed = moment.duration(mt.diff(ca));
+  const mca = moment(thisStepEvent.createdAt);
 
-  if (lget.valueOf() === 0 || R.isNil(lget.valueOf()))
-    return gst.add(gl).add(gpd).valueOf();
-  if (status === 'paused')
-    return lget.add(elapsed).valueOf();
-  return lget.valueOf();
+  const { mgst, mget, mgl, mgpd, mmt, get } = parseMetadata(lastStepMetadata);
+  const elapsed = moment.duration(mmt.diff(mca));
+
+  // /console.log(`mgst:${mgst.valueOf()}, mget:${mget.valueOf()}, mgl:${mgl.valueOf()}, mgpd:${mgpd.valueOf()}, mmt:${mmt.valueOf()}`)
+
+  if (mget.valueOf() === 0 || R.isNil(get))
+    return mgst.add(mgl).add(mgpd).valueOf();
+  if (isPausedMetadata(lastStepMetadata))
+    return mget.add(elapsed).valueOf();
+  return mget.valueOf();
 };
 
 
@@ -590,16 +595,16 @@ const _calculateGameMetadata = (lastMetadata, evt) => {
   // Sequentially turn events into metadata
   // ORDER MATTERS! Put dependencies first.
   var metadata = R.clone(lastMetadata);
+  metadata.theAnswer = 42;
   metadata.gameStartTime = deriveGameStartTime(metadata, evt);
   metadata.gameEndTime = deriveGameEndTime(metadata, evt);
   metadata.remainingGameTime = deriveRemainingGameTime(metadata, evt);
   metadata.devicesProgress = deriveDevicesProgress(metadata, evt);
-  metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after rgt
-  metadata.gamePausedDuration = deriveGamePausedDuration(metadata, evt);
-  metadata.gameRunningDuration = deriveGameRunningDuration(metadata, evt);
+  metadata.gamePausedDuration = deriveGamePausedDuration(metadata, evt); // depends on gameStatus, mt, ca, gpd
+  metadata.gameRunningDuration = deriveGameRunningDuration(metadata, evt); // depends on gameStatus, mt, ca, grd
   metadata.gameElapsedDuration = deriveGameElapsedDuration(metadata, evt); // depends on gameStartTime, gameEndTime, and gameStatus
+  metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after deriveGame*Duration and deriveRemainingGameTime functions
   metadata.metadataTimestamp = deriveMetadataTimestamp(metadata, evt); // must be last
-  metadata.theAnswer = 42;
   return metadata;
 };
 
@@ -637,9 +642,8 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
 
 
 const deriveMetadata = (lastMetadata, thisStepEvent) => {
-  if (typeof thisStepEvent === 'undefined') throw new Error('deriveMetadata requires 2 parameters. The second parameter was undefined.')
-  if (typeof lastMetadata === 'undefined') throw new Error('thisStepEvent requires 2 parameters. The first parameter was undefined.')
-
+  if (typeof thisStepEvent === 'undefined') throw new Error('deriveMetadata requires 2 parameters. The second parameter was undefined.');
+  if (typeof lastMetadata === 'undefined') throw new Error('thisStepEvent requires 2 parameters. The first parameter was undefined.');
   if (typeof lastMetadata.gameStatus === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStatus is undefined');
   if (typeof lastMetadata.remainingGameTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. remainingGameTime is undefined');
   if (typeof lastMetadata.gameStartTime === 'undefined') throw new Error('deriveMetadata did not receive valid metadata. gameStartTime is undefined');
@@ -723,6 +727,7 @@ module.exports = {
     Vue.prototype.$gameStats.isRunningMetadata = isRunningMetadata;
     Vue.prototype.$gameStats.isOverMetadata = isOverMetadata;
     Vue.prototype.$gameStats.isStoppedMetadata = isStoppedMetadata;
+    Vue.prototype.$gameStats.parseMetadata = parseMetadata;
   },
   pad,
   capPercentage,
@@ -756,4 +761,5 @@ module.exports = {
   isRunningMetadata,
   isOverMetadata,
   isStoppedMetadata,
+  parseMetadata,
 }

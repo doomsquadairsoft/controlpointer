@@ -27,29 +27,31 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     // console.log(timeline)
     const metadataLookup = context.app.service('metadata').find({
       query: {
-        gameId: gameId
-      },
-      $sort: {
-        createdAt: 1
+        gameId: gameId,
+        $sort: {
+          createdAt: -1
+        },
+        $limit: 1
       }
     });
 
     const gameSettingsLookup = context.app.service('game').find({
       query: {
-        _id: gameId
+        _id: gameId,
+        $sort: {
+          createdAt: 1
+        },
+        $limit: 1
       },
-      $sort: {
-        createdAt: 1
-      },
-      $limit: 1
     });
 
 
     const waitForMetadataComputation = Promise.all([metadataLookup, gameSettingsLookup]).then((res) => {
       const lastMetadata = res[0][0]; // => { metadata: { remainingGameTime: n, ...}, gameId: xyz }
       const gameSettings = res[1][0];
+      // console.log(`\n\nlastMetadata: ${JSON.stringify(res[0][0])} (${res[0].length})\n\n`)
       const initialMetadata = { metadata: gameStats.buildInitialMetadata(gameSettings) };
-      const lmd = R.ifElse(R.isNil(), R.always(initialMetadata),R.identity())(lastMetadata);
+      const lmd = R.ifElse(R.isNil(), R.always(initialMetadata), R.identity())(lastMetadata);
       const metadata = gameStats.deriveMetadata(lmd.metadata, result);
       return metadata;
     });

@@ -2,7 +2,7 @@ this.latestMetadata<template>
 <v-card class="mt-3 mx-auto" max-width="500">
   <v-card-title primary-title>
     <h3 class="headline">Game Status</h3>
-    {{ latestMetadata }}
+    <div v-if="latestMetadata.theAnswer === 42">{{ latestMetadata }}</div>
   </v-card-title>
   <div>
     <v-container justify-center class="pt-0 pl-3 pr-3">

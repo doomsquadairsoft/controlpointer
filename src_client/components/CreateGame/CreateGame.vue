@@ -35,7 +35,7 @@
           </v-flex>
         </v-layout>
 
-        <v-layout row wrap class="mt-5">
+        <v-layout row wrap class="mt-3">
           <v-flex>
             <v-text-field required @focusout="dirtyCr" :error-messages="crErrors" v-model.trim="captureRateInput" label="Capture Rate (hh:mm:ss)" type="time-with-seconds">
             </v-text-field>
@@ -46,45 +46,58 @@
             </v-btn>
           </v-flex>
         </v-layout>
+
+
+
+        <v-layout row>
+          <v-flex>
+            <v-subheader>Game Mode</v-subheader>
+            <v-radio-group v-model="modeSelection" :mandatory="true">
+              <v-radio default label="Sector Control" value="sectorControl"></v-radio>
+              <v-radio disabled label="Domination (coming soon)" value="domination"></v-radio>
+              <v-radio disabled label="Bomb Diffusal (coming soon)" value="bombDiffusal"></v-radio>
+            </v-radio-group>
+          </v-flex>
+        </v-layout>
+
+
+        <v-layout row>
+          <v-flex>
+            <v-list>
+              <v-subheader>Choose the D3VICES this game will use</v-subheader>
+              <doom-alert level="warning" v-if="devices.length < 1">
+                No D3VICES have been added. Please add some on the <router-link to="/device">D3VICES Page</router-link>
+              </doom-alert>
+              <v-list-tile v-for="d in devices" :key="d._id" avatar @click="">
+
+                <v-list-tile-avatar>
+                  <img :src="deviceImage"></img>
+                </v-list-tile-avatar>
+
+                <v-list-tile-action>
+                  <v-checkbox v-model="includedDevices" :value="d._id"></v-checkbox>
+                </v-list-tile-action>
+
+                <v-list-tile-content>
+                  <v-list-tile-title>{{ d.name }}</v-list-tile-title>
+                  <v-list-tile-sub-title>D3VICE {{d.did}}</v-list-tile-sub-title>
+                </v-list-tile-content>
+
+              </v-list-tile>
+            </v-list>
+          </v-flex>
+        </v-layout>
+
+        <v-layout row>
+          <v-flex>
+            <v-btn color="primary" @click="doCreateGame">
+              Create game
+            </v-btn>
+            <v-alert :value="isValidationError" type="error">Invalid Input. Fix errors above then try again.</v-alert>
+          </v-flex>
+        </v-layout>
       </v-container>
     </v-form>
-
-
-    <v-layout row>
-      <v-flex>
-        <v-list>
-          <v-subheader>Choose the D3VICES this game will use</v-subheader>
-          <doom-alert level="warning" v-if="devices.length < 1">
-            No D3VICES have been added. Please add some on the <router-link to="/d3vices">D3VICES Page</router-link>
-          </doom-alert>
-          <v-list-tile v-for="d in devices" :key="d._id" avatar @click="">
-
-            <v-list-tile-avatar>
-              <img :src="deviceImage"></img>
-            </v-list-tile-avatar>
-
-            <v-list-tile-action>
-              <v-checkbox v-model="includedDevices" :value="d._id"></v-checkbox>
-            </v-list-tile-action>
-
-            <v-list-tile-content>
-              <v-list-tile-title>{{ d.name }}</v-list-tile-title>
-              <v-list-tile-sub-title>D3VICE {{d.did}}</v-list-tile-sub-title>
-            </v-list-tile-content>
-
-          </v-list-tile>
-        </v-list>
-      </v-flex>
-    </v-layout>
-
-    <v-layout row>
-      <v-flex>
-        <v-btn color="primary" @click="doCreateGame">
-          Create game
-        </v-btn>
-        <v-alert :value="isValidationError" type="error">Invalid Input. Fix errors above then try again.</v-alert>
-      </v-flex>
-    </v-layout>
   </div>
 
 
@@ -118,6 +131,7 @@ export default {
   },
   data() {
     return {
+      modeSelection: 'sectorControl',
       gameLengthInput: '',
       captureRateInput: '',
       gameNameInput: '',

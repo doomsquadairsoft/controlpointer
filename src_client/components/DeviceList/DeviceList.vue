@@ -6,10 +6,10 @@
             <h3 class="headline mb-0">Existing D3VICES</h3>
           </v-card-title>
           <doom-alert v-if="devices.length < 1" level="warning">
-            There are no games. Please ceate a game below.
+            There are no D3VICES. Please ceate a D3VICE below.
           </doom-alert>
           <v-list>
-            <v-list-tile v-for="d in devices.data" :key="d._id" avatar>
+            <v-list-tile v-for="d in devices" :key="d._id" avatar>
 
               <v-list-tile-avatar>
                   <img :src="deviceImage">
@@ -22,7 +22,7 @@
 
               <v-list-tile-action>
                 <v-layout row>
-                  <v-btn color="info" :to="linkToDevice(d)">
+                  <v-btn color="orange" :to="linkToDevice(d)">
                     <v-icon>send</v-icon>Select
                   </v-btn>
                 </v-layout>
@@ -41,6 +41,7 @@
 <script>
     import Device from '@/components/Device/Device.vue';
     import CreateDevice from '@/components/CreateDevice/CreateDevice';
+    import DoomAlert from '@/components/DoomAlert/DoomAlert';
     import { mapActions, mapGetters } from 'vuex';
     import di from '@/assets/futuristic_ammo_box_01.png';
 
@@ -49,6 +50,7 @@
         components: {
             Device,
             CreateDevice,
+            DoomAlert,
         },
         data () {
             return {
@@ -70,7 +72,7 @@
                     createdAt: 1
                   }
                 }
-              })
+            }).data
             },
             deviceImage: () => di,
         },

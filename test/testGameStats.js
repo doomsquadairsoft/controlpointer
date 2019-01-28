@@ -4,6 +4,7 @@ const fixtures = require('../fixtures');
 const Promise = require('bluebird');
 const R = require('ramda');
 const Vue = require('vue');
+const moment = require('moment');
 
 
 describe('gameStats', function() {
@@ -15,6 +16,32 @@ describe('gameStats', function() {
   });
 
   describe('helpers', function() {
+    describe('parseMetadata', function() {
+      it('should return raw values and moments in a tuple', function() {
+        const { rgt, gst, get, gpd, ged, grd, mt, gl, cr, mrgt, mgst, mget, mgpd, mged, mgrd, mmt, mgl, mcr } = gameStats.parseMetadata(fixtures.initialMetadata);
+        assert.isNull(rgt);
+        assert.isNull(gst);
+        assert.equal(gpd, 0);
+        assert.equal(ged, 0);
+        assert.equal(grd, 0);
+        assert.isNull(get);
+        assert.equal(mt, 1547072420007);
+        assert.equal(gl, 7200000);
+        assert.equal(cr, 5000);
+
+        assert.isTrue(moment.isDuration(mrgt));
+        assert.isTrue(moment.isMoment(mgst));
+        assert.isTrue(moment.isDuration(mgpd));
+        assert.isTrue(moment.isDuration(mged));
+        assert.isTrue(moment.isDuration(mgrd));
+        assert.isTrue(moment.isMoment(mget));
+        assert.isTrue(moment.isMoment(mmt));
+        assert.isTrue(moment.isDuration(mgl));
+        assert.isTrue(moment.isDuration(mcr));
+
+      });
+    });
+
     describe('isOdd', function() {
       it('should return true for a odd number', function() {
         const oddResult = gameStats.isOdd(5);
@@ -649,6 +676,18 @@ describe('gameStats', function() {
 
   describe('deriveGameStatus()', function() {
     // running, paused, over, stopped -- 0, 1, 2, 3
+    it('should show running while remainingGameTime is above 0', function() {
+      const metadata = { "gameStatus": { "msg": "running", "code": 0 }, "remainingGameTime": 4540, "gameStartTime": 1548706437997, "gamePausedDuration": 19085, "gameElapsedDuration": 19545, "gameRunningDuration": 460, "gameEndTime": 1548706443068, "devicesProgress": [], "metadataTimestamp": 1548706457542, "gameLength": 5000, "captureRate": 1000, "theAnswer": 42 };
+      const startEvent = {
+        "action": "start",
+        "createdAt": 1548706457927
+      };
+      const gameStatus = gameStats.deriveGameStatus(metadata, startEvent);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 0);
+      assert.equal(gameStatus.msg, 'running');
+    });
+
     it('should accept lastStepMetadata and thisStepEvent as arguments', function() {
       const gameStatus = gameStats.deriveGameStatus(fixtures.initialMetadata, fixtures.largeControlpointPressData[0]);
       assert.isObject(gameStatus);
@@ -703,13 +742,6 @@ describe('gameStats', function() {
       assert.equal(gameStatus.msg, 'paused');
     });
 
-    it('should return \'over\' when the thisStepEvent timestamp is greater than (after) gameEndTime', function() {
-      const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, fixtures.timelineShortSweet[5]);
-      assert.isObject(gameStatus);
-      assert.equal(gameStatus.code, 2);
-      assert.equal(gameStatus.msg, 'over');
-    });
-
     it('should not allow pausing the game when the game is stopped', function() {
       const pauseEvent = fixtures.timelineShortSweet[3];
       const gameStatus = gameStats.deriveGameStatus(fixtures.stoppedMetadata, pauseEvent);
@@ -733,6 +765,47 @@ describe('gameStats', function() {
       assert.equal(gameStatus.code, 2);
       assert.equal(gameStatus.msg, 'over');
     });
+
+    it('should return \'running\' when resuming from a pause which was longer than the gameLength', function() {
+      const metadata = {
+        "gameStatus": {
+          "msg": "paused",
+          "code": 1
+        },
+        "remainingGameTime": 893408,
+        "gameStartTime": 1548700792486,
+        "gamePausedDuration": 23103,
+        "gameElapsedDuration": 29695,
+        "gameRunningDuration": 6592,
+        "gameEndTime": 1548701692507,
+        "devicesProgress": [],
+        "metadataTimestamp": 1548700822181,
+        "gameLength": 900000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
+      const startEvent = {
+        action: 'start',
+        createdAt: 1548701741379
+      };
+      const gameStatus = gameStats.deriveGameStatus(metadata, startEvent);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 0);
+      assert.equal(gameStatus.msg, 'running');
+    });
+
+    it('should return \'paused\' when the game is paused, even if the gameEndTime has passed', function() {
+      const metadata = { "gameStatus": { "msg": "paused", "code": 1 }, "remainingGameTime": 3701, "gameStartTime": 1548703652522, "gamePausedDuration": 3144, "gameElapsedDuration": 4443, "gameRunningDuration": 1299, "gameEndTime": 1548703657526, "devicesProgress": [], "metadataTimestamp": 1548703656965, "gameLength": 5000, "captureRate": 1000, "theAnswer": 42 };
+      const pauseEvent = {
+        action: 'pause',
+        createdAt: 1548703658104
+      };
+      const gameStatus = gameStats.deriveGameStatus(metadata, pauseEvent);
+      assert.isObject(gameStatus);
+      assert.equal(gameStatus.code, 1);
+      assert.equal(gameStatus.msg, 'paused');
+    });
+
   });
 
   describe('deriveRemainingGameTime()', function() {
@@ -836,34 +909,35 @@ describe('gameStats', function() {
 
 
   describe('deriveGamePausedDuration()', function() {
-      it('should not increment when lastMetadata is running, and thisStepAction is start',
-        function() {
-          const runningMetadata = {
 
-            "gameStatus": {
-              "msg": "running",
-              "code": 0
-            },
-            "remainingGameTime": 900000,
-            "gameStartTime": 5000,
-            "gamePausedDuration": 0,
-            "gameElapsedDuration": 5000,
-            "gameRunningDuration": 5000,
-            "gameEndTime": 905000,
-            "devicesProgress": [],
-            "metadataTimestamp": 5000,
-            "gameLength": 900000,
-            "captureRate": 250,
-            "theAnswer": 42
-          };
-          const startEvent = {
-            "action": "start",
-            "createdAt": 10000
-          };
-          const gamePausedDuration = gameStats.deriveGamePausedDuration(runningMetadata, startEvent);
-          assert.isNumber(gamePausedDuration);
-          assert.equal(gamePausedDuration, 0);
-        });
+    it('should not increment when lastMetadata is running, and thisStepAction is start',
+      function() {
+        const runningMetadata = {
+
+          "gameStatus": {
+            "msg": "running",
+            "code": 0
+          },
+          "remainingGameTime": 900000,
+          "gameStartTime": 5000,
+          "gamePausedDuration": 0,
+          "gameElapsedDuration": 5000,
+          "gameRunningDuration": 5000,
+          "gameEndTime": 905000,
+          "devicesProgress": [],
+          "metadataTimestamp": 5000,
+          "gameLength": 900000,
+          "captureRate": 250,
+          "theAnswer": 42
+        };
+        const startEvent = {
+          "action": "start",
+          "createdAt": 10000
+        };
+        const gamePausedDuration = gameStats.deriveGamePausedDuration(runningMetadata, startEvent);
+        assert.isNumber(gamePausedDuration);
+        assert.equal(gamePausedDuration, 0);
+      });
 
     it('should return the ms that the game has been paused for (running time excluded)', function() {
       const pausedMetadata = fixtures.pausedMetadata;
@@ -912,6 +986,16 @@ describe('gameStats', function() {
 
     it('should be reset by a stop event', function() {
       const gamePausedDuration = gameStats.deriveGamePausedDuration(fixtures.preStopMetadata, fixtures.stopEvent);
+      assert.equal(gamePausedDuration, 0);
+    });
+
+    it('should be reset by a stop event when metadata is over', function() {
+      const metadata = { "gameStatus": { "msg": "over", "code": 2 }, "remainingGameTime": 0, "gameStartTime": 1548703816208, "gamePausedDuration": 12175, "gameElapsedDuration": 14065, "gameRunningDuration": 1890, "gameEndTime": 1548703821225, "devicesProgress": [], "metadataTimestamp": 1548703833021, "gameLength": 5000, "captureRate": 5000, "theAnswer": 42 };
+      const stopEvent = {
+        "action": "stop",
+        "createdAt": 1548703834553
+      };
+      const gamePausedDuration = gameStats.deriveGamePausedDuration(metadata, fixtures.stopEvent);
       assert.equal(gamePausedDuration, 0);
     });
 
@@ -974,403 +1058,455 @@ describe('gameStats', function() {
     });
   });
 
-describe('deriveGameElapsedDuration()', function() {
-  it('should return the accrued gameElapsedDuration plus the ms difference between thisStepEvent.createdAt and lastStepMetadata.metadataTimestamp', function() {
-    const metadata = {
-      gameStatus: {
-        msg: 'running',
-        code: 0
-      },
-      remainingGameTime: 7200000,
-      gameStartTime: 5000,
-      gamePausedDuration: 0,
-      gameElapsedDuration: 10000,
-      gameRunningDuration: 10000,
-      gameEndTime: 7205000,
-      devicesProgress: [],
-      metadataTimestamp: 5000,
-      gameLength: 7200000,
-      captureRate: 5000,
-    };
-    const pauseEvent = {
-      action: 'pause',
-      createdAt: 10000
-    };
-    const gameElapsedDuration = gameStats.deriveGameElapsedDuration(metadata, pauseEvent);
-    assert.isNumber(gameElapsedDuration);
-    assert.equal(gameElapsedDuration, 15000);
-  });
-
-  it('should return 0 if the game is not started', function() {
-    const pauseEvent = fixtures.largeControlpointPressData[1];
-    const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.initialMetadata, pauseEvent);
-    assert.isNumber(gameElapsedDuration);
-    assert.equal(gameElapsedDuration, 0);
-  });
-
-  it('should be reset by a stop event', function() {
-    const elapsedGameDuration = gameStats.deriveGameElapsedDuration(fixtures.preStopMetadata, fixtures.stopEvent);
-    assert.equal(elapsedGameDuration, 0);
-  });
-
-  it('should throw if not receiving two arguments', function() {
-    assert.throws(() => {
-      gameStats.gameElapsedDuration();
+  describe('deriveGameElapsedDuration()', function() {
+    it('should return the accrued gameElapsedDuration plus the ms difference between thisStepEvent.createdAt and lastStepMetadata.metadataTimestamp', function() {
+      const metadata = {
+        gameStatus: {
+          msg: 'running',
+          code: 0
+        },
+        remainingGameTime: 7200000,
+        gameStartTime: 5000,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 10000,
+        gameRunningDuration: 10000,
+        gameEndTime: 7205000,
+        devicesProgress: [],
+        metadataTimestamp: 5000,
+        gameLength: 7200000,
+        captureRate: 5000,
+      };
+      const pauseEvent = {
+        action: 'pause',
+        createdAt: 10000
+      };
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(metadata, pauseEvent);
+      assert.isNumber(gameElapsedDuration);
+      assert.equal(gameElapsedDuration, 15000);
     });
-  });
-});
 
-describe('deriveGameRunningDuration()', function() {
-  it('should return the ms that the game has been running for (paused time excluded)', function() {
-    const gameRunningDuration = gameStats.deriveGameRunningDuration(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
-    assert.isNumber(gameRunningDuration);
-    assert.equal(gameRunningDuration, 0);
-  });
-
-  it('should increment the gameRunningDuration when processing lastMetadata:running & thisStepAction:pause', function() {
-    const metadata = {
-      gameStatus: {
-        msg: 'running',
-        code: 0
-      },
-      remainingGameTime: 15000,
-      gameStartTime: 5000,
-      gamePausedDuration: 0,
-      gameElapsedDuration: 10000,
-      gameRunningDuration: 10000,
-      gameEndTime: 25000,
-      devicesProgress: [],
-      metadataTimestamp: 10000,
-      gameLength: 20000,
-      captureRate: 250,
-    };
-    const pauseEvent = {
-      action: 'pause',
-      createdAt: 15000
-    };
-    const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, pauseEvent);
-    assert.isNumber(gameRunningDuration);
-    assert.equal(gameRunningDuration, 15000);
-  });
-
-  it('should return the same number (not increment) when paused', function() {
-    const metadata = {
-      gameStatus: {
-        msg: 'paused',
-        code: 1
-      },
-      remainingGameTime: 15000,
-      gameStartTime: 5000,
-      gamePausedDuration: 10000,
-      gameElapsedDuration: 10000,
-      gameRunningDuration: 0,
-      gameEndTime: 25000,
-      devicesProgress: [],
-      metadataTimestamp: 10000,
-      gameLength: 20000,
-      captureRate: 250,
-    };
-    const pauseEvent = {
-      action: 'pause',
-      createdAt: 15000
-    };
-    const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, pauseEvent);
-    assert.isNumber(gameRunningDuration);
-    assert.equal(gameRunningDuration, 0);
-  });
-
-  it('should throw if not receiving two arguments', function() {
-    assert.throws(() => {
-      gameStats.gameRunningDuration();
+    it('should return 0 if the game is not started', function() {
+      const pauseEvent = fixtures.largeControlpointPressData[1];
+      const gameElapsedDuration = gameStats.deriveGameElapsedDuration(fixtures.initialMetadata, pauseEvent);
+      assert.isNumber(gameElapsedDuration);
+      assert.equal(gameElapsedDuration, 0);
     });
-  });
-});
 
+    it('should be reset by a stop event', function() {
+      const elapsedGameDuration = gameStats.deriveGameElapsedDuration(fixtures.preStopMetadata, fixtures.stopEvent);
+      assert.equal(elapsedGameDuration, 0);
+    });
 
-describe('deriveGameEndTime()', function() {
-  it('should cope with a default gameEndTime of null', function() {
-    const startEvent = fixtures.largeControlpointPressData[0];
-    const endTimestamp = fixtures.startingMetadata.gameStartTime + fixtures.startingMetadata.gameLength;
-    const gameEndTime = gameStats.deriveGameEndTime(fixtures.startingMetadata, startEvent);
-    assert.isNumber(gameEndTime);
-    assert.equal(gameEndTime, endTimestamp);
-  });
-  it('should return the timestamp of the time at which the game will end', function() {
-    const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[1]);
-    assert.isNumber(gameEndTime);
-    assert.equal(gameEndTime, 1547079620007);
-  });
-
-  it('should return the timestamp of the time at which the game will end', function() {
-    const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[0]);
-    assert.isNumber(gameEndTime);
-    assert.equal(gameEndTime, 1547079620007);
-  });
-
-  it('should return null if the gameStartTime is null', function() {
-    const nullStartMetadata = {
-      gameStatus: {
-        msg: 'stopped',
-        code: 3
-      },
-      remainingGameTime: null,
-      gameStartTime: null,
-      gamePausedDuration: 0,
-      gameElapsedDuration: 0,
-      gameRunningDuration: 0,
-      gameEndTime: null,
-      devicesProgress: [],
-      metadataTimestamp: 1547072420007,
-      gameLength: 7200000,
-      captureRate: 5000
-    };
-    const gameEndTime = gameStats.deriveGameEndTime(nullStartMetadata, fixtures.largeControlpointPressData[0]);
-    assert.isNull(gameEndTime);
-  });
-
-  it('should throw if not receiving two arguments', function() {
-    assert.throws(() => {
-      gameStats.deriveGameEndTime();
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.gameElapsedDuration();
+      });
     });
   });
 
-  it('should recalculate after a stop then start event', function() {
-    //const gameEndTime = gameStats.deriveGameEndTime(fixtures.overMetadata, startEvent);
-    //assert.
-  });
-});
+  describe('deriveGameRunningDuration()', function() {
+    it('should return 0 when encountering a stop event', function() {
+      const metadata = {
+        gameStatus: {
+          msg: 'running',
+          code: 0
+        },
+        remainingGameTime: 15000,
+        gameStartTime: 5000,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 10000,
+        gameRunningDuration: 10000,
+        gameEndTime: 25000,
+        devicesProgress: [],
+        metadataTimestamp: 10000,
+        gameLength: 20000,
+        captureRate: 250,
+      };
+      const stopEvent = {
+        action: 'stop',
+        createdAt: 15000
+      };
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, stopEvent);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 0);
+    });
 
+    it('should return the ms that the game has been running for (paused time excluded)', function() {
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 0);
+    });
 
-describe('deriveDevicesProgress()', function() {
-  it('should return an array of device progress objects', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 0);
-  });
-  it('should show the appropriate values after a release_blu action', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.largeControlpointPressData[15])
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 1);
-    assert.isNull(devicesProgress[0].bluIncomplete);
-    assert.equal(devicesProgress[0].redIncomplete, 1546277128992);
-    assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
-  });
-  it('should show the appropriate values after a press_red action', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.timelinePressRelease[0])
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 1);
-    const correctAnswer = [{
-      targetId: 'hG9RdwPn1HH4bZLk',
-      redIncomplete: 1546277128992,
-      bluIncomplete: 0,
-      red: 0,
-      blu: 0
-    }, ];
-    assert.deepEqual(devicesProgress, correctAnswer);
-    assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
-  });
+    it('should increment the gameRunningDuration when processing lastMetadata:running & thisStepAction:pause', function() {
+      const metadata = {
+        gameStatus: {
+          msg: 'running',
+          code: 0
+        },
+        remainingGameTime: 15000,
+        gameStartTime: 5000,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 10000,
+        gameRunningDuration: 10000,
+        gameEndTime: 25000,
+        devicesProgress: [],
+        metadataTimestamp: 10000,
+        gameLength: 20000,
+        captureRate: 250,
+      };
+      const pauseEvent = {
+        action: 'pause',
+        createdAt: 15000
+      };
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, pauseEvent);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 15000);
+    });
 
-  it('should show the appropriate values after a release_red action', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.timelinePressRelease[1])
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 1);
-    assert.isNull(devicesProgress[0].redIncomplete);
-    assert.isNull(devicesProgress[0].bluIncomplete);
-    assert.equal(devicesProgress[0].red, 100);
-    assert.equal(devicesProgress[0].blu, 0);
-    assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
-  });
+    it('should return the same number (not increment) when paused', function() {
+      const metadata = {
+        gameStatus: {
+          msg: 'paused',
+          code: 1
+        },
+        remainingGameTime: 15000,
+        gameStartTime: 5000,
+        gamePausedDuration: 10000,
+        gameElapsedDuration: 10000,
+        gameRunningDuration: 0,
+        gameEndTime: 25000,
+        devicesProgress: [],
+        metadataTimestamp: 10000,
+        gameLength: 20000,
+        captureRate: 250,
+      };
+      const pauseEvent = {
+        action: 'pause',
+        createdAt: 15000
+      };
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, pauseEvent);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 0);
+    });
 
-  it('should return an array containing device progress objects when evaluating an admin cap_red action', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 1);
-    assert.property(devicesProgress[0], 'targetId');
-    assert.property(devicesProgress[0], 'red');
-    assert.property(devicesProgress[0], 'blu');
-    assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
-    assert.propertyVal(devicesProgress[0], 'blu', 0);
-    assert.propertyVal(devicesProgress[0], 'red', 100);
-  });
+    it('should increment when the game is running', function() {
+      const metadata = {
+        gameStatus: {
+          msg: 'running',
+          code: 0
+        },
+        remainingGameTime: 20000,
+        gameStartTime: 5000,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 0,
+        gameRunningDuration: 0,
+        gameEndTime: 25000,
+        devicesProgress: [],
+        metadataTimestamp: 5000,
+        gameLength: 20000,
+        captureRate: 250,
+      };
+      const startEvent = {
+        action: 'start',
+        createdAt: 15000
+      };
+      const gameRunningDuration = gameStats.deriveGameRunningDuration(metadata, startEvent);
+      assert.isNumber(gameRunningDuration);
+      assert.equal(gameRunningDuration, 10000);
+    });
 
-  it('should return an array containing device progress objects when evaluating an admin cap_blu action', function() {
-    const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[97]);
-    assert.isArray(devicesProgress);
-    assert.lengthOf(devicesProgress, 1);
-    assert.property(devicesProgress[0], 'targetId');
-    assert.property(devicesProgress[0], 'red');
-    assert.property(devicesProgress[0], 'blu');
-    assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
-    assert.propertyVal(devicesProgress[0], 'blu', 100);
-    assert.propertyVal(devicesProgress[0], 'red', 0);
-  });
-
-  it('should throw if not receiving two arguments', function() {
-    assert.throws(() => {
-      gameStats.deriveDevicesProgress();
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.gameRunningDuration();
+      });
     });
   });
-});
 
-describe('deriveMetadataTimestamp', function() {
-  const startEvt = fixtures.stoplessTimeline[0]; // ca 1546133947779
-  it('should return 1546120347408', function() {
-    const ts = gameStats.deriveMetadataTimestamp(fixtures.releasedMetadata, startEvt);
-    assert.isNumber(ts);
-    assert.equal(ts, 1546120347408);
+
+  describe('deriveGameEndTime()', function() {
+    it('should cope with a default gameEndTime of null', function() {
+      const startEvent = fixtures.largeControlpointPressData[0];
+      const endTimestamp = fixtures.startingMetadata.gameStartTime + fixtures.startingMetadata.gameLength;
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.startingMetadata, startEvent);
+      assert.isNumber(gameEndTime);
+      assert.equal(gameEndTime, endTimestamp);
+    });
+    it('should return the timestamp of the time at which the game will end', function() {
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isNumber(gameEndTime);
+      assert.equal(gameEndTime, 1547079620007);
+    });
+
+    it('should return the timestamp of the time at which the game will end', function() {
+      const gameEndTime = gameStats.deriveGameEndTime(fixtures.pressedMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNumber(gameEndTime);
+      assert.equal(gameEndTime, 1547079620007);
+    });
+
+    it('should return null if the gameStartTime is null', function() {
+      const nullStartMetadata = {
+        gameStatus: {
+          msg: 'stopped',
+          code: 3
+        },
+        remainingGameTime: null,
+        gameStartTime: null,
+        gamePausedDuration: 0,
+        gameElapsedDuration: 0,
+        gameRunningDuration: 0,
+        gameEndTime: null,
+        devicesProgress: [],
+        metadataTimestamp: 1547072420007,
+        gameLength: 7200000,
+        captureRate: 5000
+      };
+      const gameEndTime = gameStats.deriveGameEndTime(nullStartMetadata, fixtures.largeControlpointPressData[0]);
+      assert.isNull(gameEndTime);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveGameEndTime();
+      });
+    });
+
+    it('should recalculate after a stop then start event', function() {
+      //const gameEndTime = gameStats.deriveGameEndTime(fixtures.overMetadata, startEvent);
+      //assert.
+    });
   });
-});
 
-describe('deriveDevProgress()', function() {
-  const capRedEvt = fixtures.largeControlpointPressData[13];
-  const capUncEvt = fixtures.largeControlpointPressData[27];
-  const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
 
-  it('should accept metadata object, timeline event, and deviceId, returning an progress object', function() {
-    const tid = '3J3qKsCboWqbpe2G';
-    const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13], tid);
-    assert.propertyVal(devProgress, 'targetId', tid)
+  describe('deriveDevicesProgress()', function() {
+    it('should return an array of device progress objects', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[1]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 0);
+    });
+    it('should show the appropriate values after a release_blu action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.largeControlpointPressData[15])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.isNull(devicesProgress[0].bluIncomplete);
+      assert.equal(devicesProgress[0].redIncomplete, 1546277128992);
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+    });
+    it('should show the appropriate values after a press_red action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.timelinePressRelease[0])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      const correctAnswer = [{
+        targetId: 'hG9RdwPn1HH4bZLk',
+        redIncomplete: 1546277128992,
+        bluIncomplete: 0,
+        red: 0,
+        blu: 0
+      }, ];
+      assert.deepEqual(devicesProgress, correctAnswer);
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+    });
+
+    it('should show the appropriate values after a release_red action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.timelinePressRelease[1])
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.isNull(devicesProgress[0].redIncomplete);
+      assert.isNull(devicesProgress[0].bluIncomplete);
+      assert.equal(devicesProgress[0].red, 100);
+      assert.equal(devicesProgress[0].blu, 0);
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+    });
+
+    it('should return an array containing device progress objects when evaluating an admin cap_red action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.property(devicesProgress[0], 'targetId');
+      assert.property(devicesProgress[0], 'red');
+      assert.property(devicesProgress[0], 'blu');
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+      assert.propertyVal(devicesProgress[0], 'blu', 0);
+      assert.propertyVal(devicesProgress[0], 'red', 100);
+    });
+
+    it('should return an array containing device progress objects when evaluating an admin cap_blu action', function() {
+      const devicesProgress = gameStats.deriveDevicesProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[97]);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.property(devicesProgress[0], 'targetId');
+      assert.property(devicesProgress[0], 'red');
+      assert.property(devicesProgress[0], 'blu');
+      assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+      assert.propertyVal(devicesProgress[0], 'blu', 100);
+      assert.propertyVal(devicesProgress[0], 'red', 0);
+    });
+
+    it('should throw if not receiving two arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveDevicesProgress();
+      });
+    });
   });
 
-  it('should show red: 0, blu: 0 when processing a cap_unc event', function() {
+  describe('deriveMetadataTimestamp', function() {
+    const startEvt = fixtures.stoplessTimeline[0]; // ca 1546133947779
+    it('should return 1546120347408', function() {
+      const ts = gameStats.deriveMetadataTimestamp(fixtures.releasedMetadata, startEvt);
+      assert.isNumber(ts);
+      assert.equal(ts, 1546120347408);
+    });
+  });
+
+  describe('deriveDevProgress()', function() {
+    const capRedEvt = fixtures.largeControlpointPressData[13];
+    const capUncEvt = fixtures.largeControlpointPressData[27];
+    const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
+
+    it('should accept metadata object, timeline event, and deviceId, returning an progress object', function() {
+      const tid = '3J3qKsCboWqbpe2G';
+      const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13], tid);
+      assert.propertyVal(devProgress, 'targetId', tid)
+    });
+
+    it('should show red: 0, blu: 0 when processing a cap_unc event', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, capUncEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        targetId: tid,
+        red: 0,
+        blu: 0
+      });
+    });
+
+    it('should handle a cap_red followed by a cap_unc', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.redMetadata, capUncEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        targetId: tid,
+        red: 0,
+        blu: 0
+      });
+    });
+
+    it('should ignore release_(red|blu) events without pre-existing (red|blu)Incomplete data', function() {
+      const tid = 'hG9RdwPn1HH4bZLk';
+      const devProgress = gameStats.deriveDevProgress(fixtures.releasedMetadata, releaseBluEvt, tid);
+      assert.propertyVal(devProgress, 'targetId', tid);
+      assert.deepEqual(devProgress, {
+        redIncomplete: null,
+        bluIncomplete: null,
+        targetId: tid,
+        red: 43,
+        blu: 0
+      });
+    });
+
+    it('should throw if not receiving three arguments', function() {
+      assert.throws(() => {
+        gameStats.deriveDevProgress();
+      });
+      assert.throws(() => {
+        gameStats.deriveDevProgress(fixtures.initialMetadata);
+      });
+      assert.throws(() => {
+        gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
+      });
+    });
+  });
+
+  describe('deriveDevices()', function() {
+    it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
+      const devices = gameStats.deriveDevices(fixtures.initialMetadata, fixtures.timelinePressRelease[0]);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 1);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
+    });
+
+    it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
+      const devices = gameStats.deriveDevices(fixtures.pressedMetadata, fixtures.dupControlpointPressData[0]);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 2);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk', '5AEVScKzvclsCpeR']);
+    });
+
+    it('should ignore id \'unknown!\'', function() {
+      const unknownTargetIdEvt = fixtures.largeControlpointPressData[164];
+      const devices = gameStats.deriveDevices(fixtures.pressedMetadata, unknownTargetIdEvt);
+      assert.isArray(devices);
+      assert.lengthOf(devices, 1);
+      assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
+    });
+  });
+
+  describe('buttonReleaseDeltaCompute()', function() {
     const tid = 'hG9RdwPn1HH4bZLk';
-    const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, capUncEvt, tid);
-    assert.propertyVal(devProgress, 'targetId', tid);
-    assert.deepEqual(devProgress, {
-      targetId: tid,
-      red: 0,
-      blu: 0
+    const releaseEvent = fixtures.timelinePressRelease[1];
+    const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
+
+    it('should return an object containing the changed progress data', function() {
+      const delta = gameStats.buttonReleaseDeltaCompute(fixtures.pressedMetadata, releaseEvent, tid);
+      assert.isObject(delta);
+      assert.deepEqual(delta, {
+        red: 200,
+        blu: 0,
+        targetId: tid
+      });
+    });
+    it('should return red:0, blu:0 when no (red|blu)Incomplete data exists', function() {
+      const releaseEvent = fixtures.largeControlpointPressData[158]; // ca 1546277131169
+      const delta = gameStats.buttonReleaseDeltaCompute(fixtures.releasedMetadata, releaseEvent, tid);
+      assert.isObject(delta);
+      assert.deepEqual(delta, {
+        red: 0,
+        blu: 0,
+        targetId: tid
+      });
+    });
+    it('should throw if captureRate is undefined', function() {
+      assert.throws(() => {
+        gameStats.buttonReleaseDeltaCompute(fixtures.noCaptureRateMetadata, releaseBluEvt, tid);
+      }, /captureRate/);
+    });
+    it('should throw if not receiving 3 params', function() {
+      assert.throws(() => {
+        gameStats.buttonReleaseDeltaCompute();
+      });
+      assert.throws(() => {
+        gameStats.buttonReleaseDeltaCompute(fixtures.initialMetadata);
+      });
+      assert.throws(() => {
+        gameStats.buttonReleaseDeltaCompute(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
+      });
     });
   });
 
-  it('should handle a cap_red followed by a cap_unc', function() {
-    const tid = 'hG9RdwPn1HH4bZLk';
-    const devProgress = gameStats.deriveDevProgress(fixtures.redMetadata, capUncEvt, tid);
-    assert.propertyVal(devProgress, 'targetId', tid);
-    assert.deepEqual(devProgress, {
-      targetId: tid,
-      red: 0,
-      blu: 0
+  describe('incompleteProgressCompute()', function() {
+    it('should return an object containing the new incomplete progress data', function() {
+      const {
+        redIncomplete,
+        bluIncomplete
+      } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], 'hG9RdwPn1HH4bZLk');
+      assert.isNull(redIncomplete);
+      assert.isNull(bluIncomplete);
     });
-  });
+    it('should throw if not receiving 3 params', function() {
+      assert.throws(() => {
+        gameStats.incompleteProgressCompute();
+      });
+      assert.throws(() => {
+        gameStats.ute(fixtures.initialMetadata, fixtures.timelinePressRelease);
+      })
+    });
+    it('should gracefully handle an empty redIncomplete or bluIncomplete', function() {
+      const {
+        redIncomplete,
+        bluIncomplete
+      } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], '');
 
-  it('should ignore release_(red|blu) events without pre-existing (red|blu)Incomplete data', function() {
-    const tid = 'hG9RdwPn1HH4bZLk';
-    const devProgress = gameStats.deriveDevProgress(fixtures.releasedMetadata, releaseBluEvt, tid);
-    assert.propertyVal(devProgress, 'targetId', tid);
-    assert.deepEqual(devProgress, {
-      redIncomplete: null,
-      bluIncomplete: null,
-      targetId: tid,
-      red: 43,
-      blu: 0
     });
   });
-
-  it('should throw if not receiving three arguments', function() {
-    assert.throws(() => {
-      gameStats.deriveDevProgress();
-    });
-    assert.throws(() => {
-      gameStats.deriveDevProgress(fixtures.initialMetadata);
-    });
-    assert.throws(() => {
-      gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
-    });
-  });
-});
-
-describe('deriveDevices()', function() {
-  it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
-    const devices = gameStats.deriveDevices(fixtures.initialMetadata, fixtures.timelinePressRelease[0]);
-    assert.isArray(devices);
-    assert.lengthOf(devices, 1);
-    assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
-  });
-
-  it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
-    const devices = gameStats.deriveDevices(fixtures.pressedMetadata, fixtures.dupControlpointPressData[0]);
-    assert.isArray(devices);
-    assert.lengthOf(devices, 2);
-    assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk', '5AEVScKzvclsCpeR']);
-  });
-
-  it('should ignore id \'unknown!\'', function() {
-    const unknownTargetIdEvt = fixtures.largeControlpointPressData[164];
-    const devices = gameStats.deriveDevices(fixtures.pressedMetadata, unknownTargetIdEvt);
-    assert.isArray(devices);
-    assert.lengthOf(devices, 1);
-    assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
-  });
-});
-
-describe('buttonReleaseDeltaCompute()', function() {
-  const tid = 'hG9RdwPn1HH4bZLk';
-  const releaseEvent = fixtures.timelinePressRelease[1];
-  const releaseBluEvt = fixtures.largeControlpointPressData[15]; // ca 1546133947779
-
-  it('should return an object containing the changed progress data', function() {
-    const delta = gameStats.buttonReleaseDeltaCompute(fixtures.pressedMetadata, releaseEvent, tid);
-    assert.isObject(delta);
-    assert.deepEqual(delta, {
-      red: 200,
-      blu: 0,
-      targetId: tid
-    });
-  });
-  it('should return red:0, blu:0 when no (red|blu)Incomplete data exists', function() {
-    const releaseEvent = fixtures.largeControlpointPressData[158]; // ca 1546277131169
-    const delta = gameStats.buttonReleaseDeltaCompute(fixtures.releasedMetadata, releaseEvent, tid);
-    assert.isObject(delta);
-    assert.deepEqual(delta, {
-      red: 0,
-      blu: 0,
-      targetId: tid
-    });
-  });
-  it('should throw if captureRate is undefined', function() {
-    assert.throws(() => {
-      gameStats.buttonReleaseDeltaCompute(fixtures.noCaptureRateMetadata, releaseBluEvt, tid);
-    }, /captureRate/);
-  });
-  it('should throw if not receiving 3 params', function() {
-    assert.throws(() => {
-      gameStats.buttonReleaseDeltaCompute();
-    });
-    assert.throws(() => {
-      gameStats.buttonReleaseDeltaCompute(fixtures.initialMetadata);
-    });
-    assert.throws(() => {
-      gameStats.buttonReleaseDeltaCompute(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
-    });
-  });
-});
-
-describe('incompleteProgressCompute()', function() {
-  it('should return an object containing the new incomplete progress data', function() {
-    const {
-      redIncomplete,
-      bluIncomplete
-    } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], 'hG9RdwPn1HH4bZLk');
-    assert.isNull(redIncomplete);
-    assert.isNull(bluIncomplete);
-  });
-  it('should throw if not receiving 3 params', function() {
-    assert.throws(() => {
-      gameStats.incompleteProgressCompute();
-    });
-    assert.throws(() => {
-      gameStats.ute(fixtures.initialMetadata, fixtures.timelinePressRelease);
-    })
-  });
-  it('should gracefully handle an empty redIncomplete or bluIncomplete', function() {
-    const {
-      redIncomplete,
-      bluIncomplete
-    } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], '');
-
-  });
-});
 
 
 });
