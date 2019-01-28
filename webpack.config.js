@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const config = require('config');
+const controlpointerVersion = require('./package.json').version;
 
 
 module.exports = {
@@ -74,6 +75,9 @@ module.exports = {
     },
     devtool: '#eval-source-map',
     plugins: [
+        new webpack.DefinePlugin({
+           __CONTROLPOINTER_VERSION__: JSON.stringify(controlpointerVersion)
+        }),
         new CleanWebpackPlugin(['dist/**.js'], {
             beforeEmit: true
         }),

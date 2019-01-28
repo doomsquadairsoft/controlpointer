@@ -54,6 +54,15 @@
         </v-layout>
       </v-container>
     </v-card-text>
+
+    <v-container>
+      <v-layout>
+        <v-flex>
+          Controlpointer Version {{ version }}
+        </v-flex>
+      </v-layout>
+    </v-container>
+
   </v-card>
 </template>
 
@@ -76,6 +85,11 @@ export default {
       type: String,
       default: gearImage
     },
+  },
+  computed: {
+    version() {
+      return __CONTROLPOINTER_VERSION__;
+    }
   }
 }
 
