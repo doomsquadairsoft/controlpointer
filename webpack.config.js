@@ -78,9 +78,9 @@ module.exports = {
         new webpack.DefinePlugin({
            __CONTROLPOINTER_VERSION__: JSON.stringify(controlpointerVersion)
         }),
-        new CleanWebpackPlugin(['dist/**.js'], {
-            beforeEmit: true
-        }),
+        // new CleanWebpackPlugin(['dist/**.js'], {
+        //     beforeEmit: true
+        // }),
         new VueLoaderPlugin()
         // new webpack.DefinePlugin({
         //     'SOCKETIO_URI': JSON.stringify(`//${config.get('host')}:${config.get('port')}`)
