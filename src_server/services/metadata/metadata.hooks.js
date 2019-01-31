@@ -1,6 +1,7 @@
 //const { authenticate } = require('@feathersjs/authentication').hooks;
 const processMetadata = require('../../hooks/process-metadata');
 const populateMetadata = require('../../hooks/populate-metadata');
+const updateDeviceProgress = require('../../hooks/update-device-progress');
 
 module.exports = {
   before: {
@@ -19,7 +20,7 @@ module.exports = {
     all: [],
     find: [populateMetadata()],
     get: [],
-    create: [],
+    create: [updateDeviceProgress()],
     update: [],
     patch: [],
     remove: []

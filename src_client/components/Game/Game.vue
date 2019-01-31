@@ -8,6 +8,7 @@
 
         <v-flex xs12 sm12 md8 lg5 xl2>
 
+          {{ myGame }}
           <game-status
             :gameId="myGame._id"
           ></game-status>

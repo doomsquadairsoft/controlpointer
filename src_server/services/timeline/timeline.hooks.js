@@ -1,7 +1,7 @@
 //const { authenticate } = require('@feathersjs/authentication').hooks;
 const processTimeline = require('../../hooks/process-timeline');
 const populateTimeline = require('../../hooks/populate-timeline');
-const calculateMetadata = require('../../hooks/calculate-metadata')
+const calculateMetadata = require('../../hooks/calculate-metadata');
 
 module.exports = {
   before: {

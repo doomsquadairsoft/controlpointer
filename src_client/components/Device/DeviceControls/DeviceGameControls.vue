@@ -31,6 +31,10 @@ export default {
     myDevice: {
       type: Object,
       required: true,
+    },
+    gameId: {
+      type: String,
+      required: false,
     }
   },
   computed: {
@@ -52,8 +56,8 @@ export default {
     _id() {
       return this.myDevice._id
     },
-    associatedGame() {
-      return this.myDevice.associatedGame
+    associatedGames() {
+      return this.myDevice.associatedGames
     },
     // myGame() {
     //   const deviceIdViaRoute = this.$route.params.deviceId;
@@ -86,11 +90,11 @@ export default {
         source: "admin",
         target: this.did,
         targetId: this._id,
-        gameId: this.associatedGame
+        gameId: this.gameId,
       }, {});
     },
     showDeviceLocation: function(deviceId) {
-      const address = `/map/${this.associatedGame}`;
+      const address = `/map/${this.gameId}`;
       const q = {
         deviceId: deviceId
       };

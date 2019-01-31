@@ -44,7 +44,7 @@ evts.create({
 });
 
 
-// Every 1 second, calculate controlpoints
+// Every 1 second, calculate controlpoint prigress
 // const tick = () => {
 //   const marshal = new Marshal(timeline, game, devices);
 //   marshal.tick();

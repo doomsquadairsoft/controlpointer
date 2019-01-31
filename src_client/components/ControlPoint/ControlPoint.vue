@@ -7,42 +7,53 @@ sauce: https://stackoverflow.com/a/46337736/1004931
 
 
 <template>
-<v-flex xs12>
-  <v-flex xs12 class="selectableControlPoint">
-    <v-card>
-      <v-layout row align-center justify-center>
-        <v-flex xs7>
-          <v-card-title primary-title>
-            <div>
-              <div class="headline">Controlpoint {{ did }}</div>
+  <div class="ControlPoint">
+
+    <v-container v-if="myDevice" class="ma-0 pa-0">
+      <v-layout row>
+        <div @touchstart="catchDoubleTaps" :class="{ 'fullscreen-container': isFullscreen }">
+          <div class="fullscreen-header">
+            <div class="stackhere">
+              <v-progress-linear class="samespace" v-model="bluProgress" height="25" color="blue" background-opacity="0"></v-progress-linear>
+              <v-progress-linear class="samespace flipped" v-model="redProgress" height="25" color="red" background-opacity="0"></v-progress-linear>
             </div>
-          </v-card-title>
-        </v-flex>
-        <v-flex xs5>
-          <v-btn color="primary" @click="toggleFullscreen">Select {{ did }}</v-btn>
-        </v-flex>
+            <v-progress-linear :class="{'hidden': !isBtnHeld }" :indeterminate="true" color="purple"></v-progress-linear>
+          </div>
+
+          <v-container class="pa-0 ">
+            <v-layout justify-space-around align-center fill-height row>
+              <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
+
+                <v-flex>
+                  <v-layout column align-center>
+                    <v-flex v-if="devmode">
+                      {{ bluProgress }}
+                    </v-flex>
+                    <v-flex>
+                      <v-btn large color="blue" @touchstart="mousedownBlu" @mousedown="mousedownBlu" @touchend="mouseupBlu" @mouseup="mouseupBlu">BLU</v-btn>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+                <v-flex class="spacer">
+                </v-flex>
+                <v-flex>
+                  <v-layout column align-center>
+                    <v-flex v-if="devmode">
+                      {{ redProgress }}
+                    </v-flex>
+                    <v-flex>
+                      <v-btn large color="red" @mousedown="mousedownRed" @mouseup="mouseupRed" @touchstart="mousedownRed" @touchend="mouseupRed">RED</v-btn>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+
+              </div>
+            </v-layout>
+          </v-container>
+        </div>
       </v-layout>
-    </v-card>
-  </v-flex> <!-- /.selectableControlPoint  -->
-  <div @touchstart="catchDoubleTaps" class="invis" :class="{ 'fullscreen-container': isFullscreen }">
-    <div class="fullscreen-header">
-      <div class="stackhere">
-        <v-progress-linear class="samespace" v-model="bluProgress" height="25" color="blue" background-opacity="0"></v-progress-linear>
-        <v-progress-linear class="samespace flipped" v-model="redProgress" height="25" color="red" background-opacity="0"></v-progress-linear>
-      </div>
-      <v-progress-linear :class="{'hidden': !isBtnHeld }" :indeterminate="true" color="purple"></v-progress-linear>
-    </div>
-    <div :class="{'fullscreen-body': isFullscreen }" align-end justify-center fill-height row>
-      <v-btn class="hugebutton" color="blue" @touchstart="mousedownBlu" @touchend="mouseupBlu">BLU</v-btn>
-
-        <v-btn class="tinybutton" color="DarkGray" @click="toggleFullscreen">
-          <v-icon>close</v-icon>
-        </v-btn>
-
-      <v-btn class="hugebutton" color="red" @touchstart="mousedownRed" @touchend="mouseupRed">RED</v-btn>
-    </div>
+    </v-container>
   </div>
-</v-flex>
 </template>
 
 <script>
@@ -69,93 +80,99 @@ export default {
     isRedHeld: false,
     isBluHeld: false,
     test: 60,
-    isFullscreen: false,
+    isFullscreen: true,
     isDeviceSelected: false,
   }),
-  props: {
-    did: String,
-    controllingTeam: {
-      type: Number,
-      default: 0,
-      required: true
-    },
-    redProgress: {
-      type: Number,
-      default: 10,
-      required: true
-    },
-    bluProgress: {
-      type: Number,
-      default: 10,
-      required: true
-    },
-    location: {
-      type: String,
-      default: "Safe Zone"
-    },
-    image: {
-      type: String,
-      default: di
-    },
-    latLng: {
-      type: Object
-    },
-    _id: {
-      type: String,
-      required: true
-    },
-    createdAt: Number,
-    patchDevice: {
-      type: Function,
-      required: true
-    },
-    getDevice: {
-      type: Function,
-      required: true
-    },
-    createTimelineEvent: {
-      type: Function,
-      required: true
-    },
-  },
+  props: {},
   computed: {
+    ...mapGetters('devices', {
+      findDevicesInStore: 'find'
+    }),
+    ...mapGetters([
+      'devmode'
+    ]),
     isBtnHeld() {
       return (this.isBluHeld || this.isRedHeld) ? true : false
-    }
+    },
+    deviceId() {
+      return this.$route.params.deviceId;
+    },
+    bluProgress() {
+      return this.myDevice.bluProgress;
+    },
+    redProgress() {
+      return this.myDevice.redProgress;
+    },
+    myDevice() {
+      return this.findDevicesInStore({
+        query: {
+          _id: this.deviceId,
+        }
+      }).data[0];
+    },
   },
   methods: {
     ...mapGetters('devices', {
-      getCopy: 'getCopy'
+      getCopy: 'getCopy',
     }),
-    toggleFullscreen() {
-      if (!this.isFullscreen) document.body.classList.add('noscroll')
-      else document.body.classList.remove('noscroll')
-      this.isFullscreen = !this.isFullscreen;
-    },
+    ...mapActions('devices', {
+      findDevices: 'find'
+    }),
+    ...mapActions('timeline', {
+      createTimelineEvent: 'create'
+    }),
     catchDoubleTaps(evt) {
       if (evt.touches.length < 2) {
         // preventing double tap zoom
         evt.preventDefault();
       }
     },
+    bluTick() {
+      // get the value
+      // const bluProgress = this.myDevice.bluProgress;
+      // const redProgress = this.myDevice.redProgress;
+      //
+      // // do a computation
+      // const fuck = this.$gameStats.deriveDevProgress()
+      //
+      // // submit new value
+      // this.
+      //
+      //
+      // this.createTimelineEvent({
+      //   type: "timeline",
+      //   action: "press_blu",
+      //   source: "player",
+      //   target: this.myDevice.did,
+      //   targetId: this.myDevice._id,
+      //   gameId: this.myDevice.associatedGames[0]
+      // }, {});
+    },
+    redTick() {
+
+    },
     mousedownBlu() {
       this.isBluHeld = true;
+      // this.$options.bluInterval = setInterval(this.bluTick, 500);
       this.createTimelineEvent({
         type: "timeline",
         action: "press_blu",
         source: "player",
-        target: this.did,
-        targetId: this._id
+        target: this.myDevice.did,
+        targetId: this.myDevice._id,
+        gameId: this.myDevice.associatedGames[0]
       }, {});
     },
     mouseupBlu() {
       this.isBluHeld = false;
+      // clearInterval(this.$options.bluInterval);
       this.createTimelineEvent({
         type: "timeline",
         action: "release_blu",
         source: "player",
-        target: this.did,
-        targetId: this._id
+        target: this.myDevice.did,
+        targetId: this.myDevice._id,
+        gameId: this.myDevice.associatedGames[0]
       }, {});
     },
     mousedownRed() {
@@ -164,8 +181,9 @@ export default {
         type: "timeline",
         action: "press_red",
         source: "player",
-        target: this.did,
-        targetId: this._id
+        target: this.myDevice.did,
+        targetId: this.myDevice._id,
+        gameId: this.myDevice.associatedGames[0]
       }, {});
     },
     mouseupRed() {
@@ -174,13 +192,14 @@ export default {
         type: "timeline",
         action: "release_red",
         source: "player",
-        target: this.did,
-        targetId: this._id
+        target: this.myDevice.did,
+        targetId: this.myDevice._id,
+        gameId: this.myDevice.associatedGames[0]
       }, {});
     },
     deleteDevice: function() {
       if (this.deletable) {
-        this.removeDevice(this._id)
+        this.removeDevice(this.myDevice._id)
       }
     },
     showEditor: function() {
@@ -192,30 +211,33 @@ export default {
     }
   },
   created() {
-    // disable context menu in firefox
+    // disable context menu in browsers
     // when pressing and holding in responsive design mode
     window.oncontextmenu = function() {
       return false;
     }
-    console.log(`id=${this._id}`)
-    // const { Device } = Vue;
-    // const dev = new Device({
-    //   title: 'ROOKIE'
-    // })
 
+    this.findDevices();
+    this.isFullscreen = true;
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.spacer {
+  width: 25vw;
+}
+
 .stackhere {
   position: relative;
   height: 50px;
 }
+
 .samespace {
   position: absolute;
 }
+
 .flipped {
   -webkit-transform: rotate(180deg);
   -moz-transform: rotate(180deg);
@@ -223,6 +245,7 @@ export default {
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
+
 .icon {
   height: 1em;
 }
@@ -248,12 +271,15 @@ a {
 .vis {
   display: inherit;
 }
-.invis {
+
+.invist {
   display: none;
 }
+
 .hidden {
   visibility: hidden;
 }
+
 .fullscreen-container {
   position: fixed;
   z-index: 500;
@@ -275,13 +301,9 @@ a {
   align-items: flex-end;
 }
 
-.fullscreen-body .hugebutton {
-  width: 46vw;
-  height: 70vh;
-}
 
-.fullscreen-body .tinybutton {
-  width: 1vw;
-  height: 3em;
+div.btn__content {
+  border: 3px solid yellow;
+  padding: 0 0 0 0;
 }
 </style>

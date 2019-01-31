@@ -135,13 +135,13 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
 
   const emptyDelta = { blu: 0, red: 0, targetId: deviceId };
   if (
-    (isRed(thisStepEvent) && old.redIncomplete === null) ||
-    (isBlu(thisStepEvent) && old.bluIncomplete === null)
+    (isRed(thisStepEvent) && old.redPressTime === null) ||
+    (isBlu(thisStepEvent) && old.bluPressTime === null)
   ) return emptyDelta;
 
 
-  const lastRedPressTime = moment(R.prop('redIncomplete', old));
-  const lastBluPressTime = moment(R.prop('bluIncomplete', old));
+  const lastRedPressTime = moment(R.prop('redPressTime', old));
+  const lastBluPressTime = moment(R.prop('bluPressTime', old));
 
   const _redHeldDuration = moment.duration(ca.diff(lastRedPressTime)).valueOf();
   const _bluHeldDuration = moment.duration(ca.diff(lastBluPressTime)).valueOf();
@@ -167,8 +167,8 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
 
   return pre;
   // reset the *_incomplete number for the chosen team
-  //if (isRed(thisStepEvent)) return R.assoc('redIncomplete', 0, pre);
-  //if (isBlu(thisStepEvent)) return R.assoc('bluIncomplete', 0, pre);
+  //if (isRed(thisStepEvent)) return R.assoc('redPressTime', 0, pre);
+  //if (isBlu(thisStepEvent)) return R.assoc('bluPressTime', 0, pre);
 
 }
 
@@ -228,11 +228,11 @@ const teamProgressCompute = (origin, delta) => {
 const incompleteProgressCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof deviceId === 'undefined') throw new Error('incompleteProgressCompute requires 3 parameters!');
   const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
-  const old = R.defaultTo({ redIncomplete: null, bluIncomplete: null }, R.find(R.propEq('targetId', deviceId), devicesProgress));
-  const isRedIncomplete = R.propIs(Number, 'redIncomplete', old);
-  const isBluIncomplete = R.propIs(Number, 'bluIncomplete', old);
-  if (isBlu(thisStepEvent)) return { bluIncomplete: null, redIncomplete: R.prop('redIncomplete', old) || null };
-  if (isRed(thisStepEvent)) return { bluIncomplete: R.prop('bluIncomplete', old) || null, redIncomplete: null };
+  const old = R.defaultTo({ redPressTime: null, bluPressTime: null }, R.find(R.propEq('targetId', deviceId), devicesProgress));
+  const isredPressTime = R.propIs(Number, 'redPressTime', old);
+  const isbluPressTime = R.propIs(Number, 'bluPressTime', old);
+  if (isBlu(thisStepEvent)) return { bluPressTime: null, redPressTime: R.prop('redPressTime', old) || null };
+  if (isRed(thisStepEvent)) return { bluPressTime: R.prop('bluPressTime', old) || null, redPressTime: null };
 };
 
 const capPercentage = (number) => {
@@ -520,15 +520,23 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   const action = thisStepEvent.action;
   const pointRegex = /(press|release|cap)_(\w{3})/;
   const detailedAction = R.match(pointRegex, action)[1];
-  const devicesProgress = lastStepMetadata.devicesProgress;
+  const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
   const ca = moment(thisStepEvent.createdAt);
   const captureRate = lastStepMetadata.captureRate;
+  const defaultProgress = { red: 0, blu: 0, bluPressTime: null, redPressTime: null, targetId: deviceId };
   const lastProgress = R.find(R.propEq('targetId', deviceId), devicesProgress);
+  const thisProgress = R.ifElse(
+    R.isNil(),
+    R.always(defaultProgress),
+    R.identity()
+  )(lastProgress);
+  // console.log(`ourDevice:${deviceId}, lastProgress:${JSON.stringify(lastProgress)} fuck:${JSON.stringify(R.prop('devicesProgress', lastStepMetadata))}, thisProgress:${JSON.stringify(thisProgress)}`)
+
 
   if (detailedAction === 'cap') {
     // admin action
     if (action === 'cap_unc') return { red: 0, blu: 0, targetId: deviceId };
-    const origin = lastProgress;
+    const origin = thisProgress;
     const delta = {
       red: isRed(thisStepEvent) ? 200 : 0,
       blu: isBlu(thisStepEvent) ? 200 : 0
@@ -539,35 +547,38 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
 
   if (detailedAction === 'press') {
     // player press button
-    const old = lastProgress;
+    const old = thisProgress;
+    // console.log(`lastoProgressu:${JSON.stringify(thisProgress)}`)
+    // console.log(`old:${JSON.stringify(old)} old.red:${old.red}`);
     const neu = {
-      redIncomplete: isRed(thisStepEvent) ? ca.valueOf() : 0,
-      bluIncomplete: isBlu(thisStepEvent) ? ca.valueOf() : 0,
-      red: 0,
-      blu: 0,
+      redPressTime: isRed(thisStepEvent) ? ca.valueOf() : null,
+      bluPressTime: isBlu(thisStepEvent) ? ca.valueOf() : null,
+      red: old.red,
+      blu: old.blu,
       targetId: deviceId
     };
-    const answer = R.mergeRight(old, neu);
-    return answer;
+    return neu;
   }
 
   if (detailedAction === 'release') {
     // player release button
-    const original = lastProgress;
+    const original = thisProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
     const { red, blu } = teamProgressCompute(original, delta);
-    const { redIncomplete, bluIncomplete } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
+    const { redPressTime, bluPressTime } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
     return {
       red: red,
       blu: blu,
-      redIncomplete: redIncomplete,
-      bluIncomplete: bluIncomplete,
+      redPressTime: redPressTime,
+      bluPressTime: bluPressTime,
       targetId: deviceId
     }
   }
 
+  console.log('problum')
+
   // unknown action or a non-device related action
-  return lastProgress;
+  return thisProgress;
 };
 
 

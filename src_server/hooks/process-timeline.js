@@ -1,30 +1,63 @@
 // Use this hook to manipulate incoming or outgoing data.
 // For more information on hooks see: http://docs.feathersjs.com/api/hooks.html
 
-module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
-    return async context => {
-        //const { data } = context;
-        //console.log(context)
+const R = require('ramda');
+const h = require('./helpers');
+const defaults = require('../../src_shared/defaults');
 
-        const type = context.data.type || 'timeline';
-        const action = context.data.action || 'unknown!';
-        const source = context.data.source || 'unknown!';
-        const target = context.data.target || 'unknown!';
-        const targetId = context.data.targetId || 'unknown!';
-        const gameId = context.data.gameId || 'unknown!';
+module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
+  return async context => {
 
-        // Override the original data (so that people can't submit additional stuff)
-        context.data = {
-            type,
-            action,
-            source,
-            target,
-            targetId,
-            gameId,
-            createdAt: new Date().getTime()
-        };
+    const type = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.gameMode)
+    )(context.data.type);
 
-        // Best practise, hooks should always return the context
-        return context;
+    const action = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.unknown)
+    )(context.data.action);
+
+    const source = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.unknown)
+    )(context.data.source);
+
+    const target = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.unknown)
+    )(context.data.target);
+
+    const targetId = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.unknown)
+    )(context.data.targetId);
+
+    const gameId = R.ifElse(
+      R.allPass([h.isntEmpty, h.isString, h.isSmall]),
+      R.identity(),
+      R.always(defaults.unknown)
+    )(context.data.gameId);
+
+
+
+    // Override the original data (so that people can't submit additional stuff)
+    context.data = {
+      type,
+      action,
+      source,
+      target,
+      targetId,
+      gameId,
+      createdAt: new Date().getTime()
     };
+
+    // Best practise, hooks should always return the context
+    return context;
+  };
 };

@@ -12,8 +12,8 @@ module.exports = {
   devicesProgress: [{
     red: 43,
     blu: 0,
-    redIncomplete: null,
-    bluIncomplete: null,
+    redPressTime: null,
+    bluPressTime: null,
     targetId: 'hG9RdwPn1HH4bZLk'
   }],
   gameLength: 7200000,

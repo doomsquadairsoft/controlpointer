@@ -162,11 +162,6 @@ export default {
         path: '/device'
       },
       {
-        icon: 'all_out',
-        text: 'Virtual Controlpoint',
-        path: '/controlpoint'
-      },
-      {
         icon: 'build',
         text: 'Utilities',
         path: '/utilities'

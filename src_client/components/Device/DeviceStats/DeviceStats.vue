@@ -10,7 +10,7 @@
           <li>createdAt: {{ createdAt | formatDate }}</li>
           <li>Latitude: {{ lat }}</li>
           <li>Longitude: {{ lng }}</li>
-          <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link> ({{ myDevice.associatedGames.length }}) ({{ associatedGames.length }}), </template>({{ myDevice.associatedGames.length }}) ({{ associatedGames.length }})</li>
+          <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link>, </template></li>
           <li>{{ associatedGames }}</li>
           <li>_id: {{ _id }}</li>
         </ul>

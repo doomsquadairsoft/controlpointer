@@ -50,7 +50,7 @@
         <v-list-tile-content>
           <v-container>
             <v-layout row justify-center fill-height>
-              <device-game-controls :myDevice="d"></device-game-controls>
+              <device-game-controls :myDevice="d" :gameId="myGame._id"></device-game-controls>
             </v-layout>
           </v-container>
         </v-list-tile-content>

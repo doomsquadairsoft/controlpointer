@@ -1287,8 +1287,8 @@ describe('gameStats', function() {
       const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.largeControlpointPressData[15])
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 1);
-      assert.isNull(devicesProgress[0].bluIncomplete);
-      assert.equal(devicesProgress[0].redIncomplete, 1546277128992);
+      assert.isNull(devicesProgress[0].bluPressTime);
+      assert.equal(devicesProgress[0].redPressTime, 1546277128992);
       assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
     });
     it('should show the appropriate values after a press_red action', function() {
@@ -1297,8 +1297,8 @@ describe('gameStats', function() {
       assert.lengthOf(devicesProgress, 1);
       const correctAnswer = [{
         targetId: 'hG9RdwPn1HH4bZLk',
-        redIncomplete: 1546277128992,
-        bluIncomplete: 0,
+        redPressTime: 1546277128992,
+        bluPressTime: null,
         red: 0,
         blu: 0
       }, ];
@@ -1310,8 +1310,8 @@ describe('gameStats', function() {
       const devicesProgress = gameStats.deriveDevicesProgress(fixtures.pressedMetadata, fixtures.timelinePressRelease[1])
       assert.isArray(devicesProgress);
       assert.lengthOf(devicesProgress, 1);
-      assert.isNull(devicesProgress[0].redIncomplete);
-      assert.isNull(devicesProgress[0].bluIncomplete);
+      assert.isNull(devicesProgress[0].redPressTime);
+      assert.isNull(devicesProgress[0].bluPressTime);
       assert.equal(devicesProgress[0].red, 100);
       assert.equal(devicesProgress[0].blu, 0);
       assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
@@ -1345,6 +1345,76 @@ describe('gameStats', function() {
       assert.throws(() => {
         gameStats.deriveDevicesProgress();
       });
+    });
+
+    it('should show red progress at 100', function() {
+      const metadata = {
+        "gameStatus": {
+          "msg": "running",
+          "code": 0
+        },
+        "remainingGameTime": 19000,
+        "gameStartTime": 5000,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 1000,
+        "gameRunningDuration": 1000,
+        "gameEndTime": 25000,
+        "devicesProgress": [{
+          "red": 0,
+          "blu": 0,
+          "bluPressTime": null,
+          "redPressTime": null,
+          "targetId": "7eKvFstnIIvx4dJg",
+        }],
+        "metadataTimestamp": 6000,
+        "gameLength": 20000,
+        "captureRate": 1000,
+        "theAnswer": 42
+      };
+      const pressEvent = {
+          "action": "press_red",
+          "createdAt": 6000
+        };
+      const devicesProgress = gameStats.deriveDevicesProgress(metadata, pressEvent);
+      assert.isArray(devicesProgress);
+      assert.deepEqual(devicesProgress, [
+        { "red": 0, "blu": 0, "bluPressTime": null, "redPressTime": 6000, "targetId": "7eKvFstnIIvx4dJg" }
+      ]);
+
+      const metadata2 = {
+        "gameStatus": {
+          "msg": "running",
+          "code": 0
+        },
+        "remainingGameTime": 17000,
+        "gameStartTime": 5000,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 3000,
+        "gameRunningDuration": 3000,
+        "gameEndTime": 25000,
+        "devicesProgress": [{
+          "red": 0,
+          "blu": 0,
+          "bluPressTime": null,
+          "redPressTime": 6000,
+          "targetId": "7eKvFstnIIvx4dJg",
+        }],
+        "metadataTimestamp": 6000,
+        "gameLength": 20000,
+        "captureRate": 1000,
+        "theAnswer": 42
+      };
+      const releaseEvent = {
+          "action": "release_red",
+          "createdAt": 8000
+        };
+      const devicesProgress2 = gameStats.deriveDevicesProgress(metadata2, releaseEvent);
+      assert.isArray(devicesProgress2);
+      assert.deepEqual(devicesProgress2, [
+        { "red": 100, "blu": 0, "bluPressTime": null, "redPressTime": null, "targetId": "7eKvFstnIIvx4dJg" }
+      ]);
+
+
     });
   });
 
@@ -1395,8 +1465,8 @@ describe('gameStats', function() {
       const devProgress = gameStats.deriveDevProgress(fixtures.releasedMetadata, releaseBluEvt, tid);
       assert.propertyVal(devProgress, 'targetId', tid);
       assert.deepEqual(devProgress, {
-        redIncomplete: null,
-        bluIncomplete: null,
+        redPressTime: null,
+        bluPressTime: null,
         targetId: tid,
         red: 43,
         blu: 0
@@ -1414,6 +1484,8 @@ describe('gameStats', function() {
         gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
       });
     });
+
+    it('should ')
   });
 
   describe('deriveDevices()', function() {
@@ -1485,11 +1557,11 @@ describe('gameStats', function() {
   describe('incompleteProgressCompute()', function() {
     it('should return an object containing the new incomplete progress data', function() {
       const {
-        redIncomplete,
-        bluIncomplete
+        redPressTime,
+        bluPressTime
       } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], 'hG9RdwPn1HH4bZLk');
-      assert.isNull(redIncomplete);
-      assert.isNull(bluIncomplete);
+      assert.isNull(redPressTime);
+      assert.isNull(bluPressTime);
     });
     it('should throw if not receiving 3 params', function() {
       assert.throws(() => {
@@ -1499,10 +1571,10 @@ describe('gameStats', function() {
         gameStats.ute(fixtures.initialMetadata, fixtures.timelinePressRelease);
       })
     });
-    it('should gracefully handle an empty redIncomplete or bluIncomplete', function() {
+    it('should gracefully handle an empty redPressTime or bluPressTime', function() {
       const {
-        redIncomplete,
-        bluIncomplete
+        redPressTime,
+        bluPressTime
       } = gameStats.incompleteProgressCompute(fixtures.pressedMetadata, fixtures.timelinePressRelease[1], '');
 
     });

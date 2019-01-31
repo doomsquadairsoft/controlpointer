@@ -12,6 +12,7 @@ import GameList from '@/components/GameList/GameList';
 import PostGame from '@/components/PostGame/PostGame';
 import DeviceList from '@/components/DeviceList/DeviceList';
 import Device from '@/components/Device/Device';
+import Controlpoint from '@/components/ControlPoint/ControlPoint';
 
 Vue.use(Router);
 
@@ -25,6 +26,11 @@ export default new Router({
       path: '/device/:deviceId',
       name: 'Device',
       component: Device
+    },
+    {
+      path: '/device/:deviceId/controlpoint',
+      name: 'Controlpoint',
+      component: Controlpoint
     },
     {
       path: '/postgame/:gameId',

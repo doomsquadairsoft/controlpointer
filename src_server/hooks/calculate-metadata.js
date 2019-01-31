@@ -1,6 +1,8 @@
 // Use this hook to manipulate incoming or outgoing data.
 // For more information on hooks see: http://docs.feathersjs.com/api/hooks.html
 
+// This hook is triggered by timeline creation. Creates metadata.
+
 const gameStats = require('../../src_shared/gameStats');
 const Promise = require('bluebird');
 const R = require('ramda');
@@ -15,10 +17,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       params
     } = context;
 
-    // console.log(context.result)
-    // console.log(`result:${context.result}`)
     const gameId = result.gameId;
-
 
     // Make sure that we always have a list of devices either by wrapping
     // a single device into an array or by getting the `data` from the `find` method result
@@ -38,17 +37,14 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     const gameSettingsLookup = context.app.service('game').find({
       query: {
         _id: gameId,
-        $sort: {
-          createdAt: 1
-        },
-        $limit: 1
       },
     });
-
 
     const waitForMetadataComputation = Promise.all([metadataLookup, gameSettingsLookup]).then((res) => {
       const lastMetadata = res[0][0]; // => { metadata: { remainingGameTime: n, ...}, gameId: xyz }
       const gameSettings = res[1][0];
+      // console.log(res);
+      // console.log(`gameId:${gameId} gameSettings:${JSON.stringify(res[1])}`);
       // console.log(`\n\nlastMetadata: ${JSON.stringify(res[0][0])} (${res[0].length})\n\n`)
       const initialMetadata = { metadata: gameStats.buildInitialMetadata(gameSettings) };
       const lmd = R.ifElse(R.isNil(), R.always(initialMetadata), R.identity())(lastMetadata);
@@ -62,37 +58,15 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
         metadata: thisMetadata,
         gameId: gameId
       };
-      return context.app.service('metadata').create(wrappedMetadata)
+      return context.app.service('metadata').create(wrappedMetadata);
     });
-
 
     waitForMetadataCreation.catch((e) => {
       console.error('Problem calculating metadata! See Error below.')
       console.error(e);
     });
 
-
-
-
-
     return context;
-
-    // using the timeline event that was just created, compute the resulting metadata
-    //const gameId = result.gameId;
-    // context.app.service('metadata').find({
-    //   query: {
-    //     gameId: gameId
-    //   }
-    // }).then((lastMetadata) => {
-    //   const thisMetadata = gameStats.calculateMetadata(lastMetadata, timeline);
-    //   const wrappedMetadata = {
-    //     metadata: thisMetadata,
-    //     gameId: gameId
-    //   };
-    //   context.app.service('metadata').create(wrappedMetadata).then(() => {
-    //     return context;
-    //   });
-    // });
 
   };
 };

@@ -9,6 +9,6 @@ module.exports = { gameStatus: { msg: 'running', code: 0 },
    [ { red: 0,
        blu: 0,
        targetId: 'hG9RdwPn1HH4bZLk',
-       redIncomplete: 0,
-       bluIncomplete: 1546133945459 } ],
+       redPressTime: 0,
+       bluPressTime: 1546133945459 } ],
   gameLength: 7200000 };
