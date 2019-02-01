@@ -25,14 +25,6 @@
           </v-list-tile-title>
         </v-list-tile>
 
-        <v-list-tile avatar>
-          <v-list-tile-avatar>
-            <img src="https://randomuser.me/api/portraits/men/85.jpg">
-          </v-list-tile-avatar>
-          <v-list-tile-content>
-            <v-list-tile-title>Test User</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
 
       </v-list>
 
@@ -136,21 +128,7 @@ export default {
     items: ['tiesto', 'aphex twin', 'kaskade'],
     tab: null,
     drawer: true,
-    menuItems: [{
-        icon: 'home',
-        text: 'Home',
-        path: '/'
-      },
-      {
-        icon: 'subject',
-        text: 'About',
-        path: '/about'
-      },
-      {
-        icon: 'announcement',
-        text: 'Operation: Green Fox III',
-        path: '/green-fox-iii'
-      },
+    menuItems: [
       {
         icon: 'games',
         text: 'Games',
@@ -160,16 +138,6 @@ export default {
         icon: 'card_travel',
         text: 'D3VICES',
         path: '/device'
-      },
-      {
-        icon: 'build',
-        text: 'Utilities',
-        path: '/utilities'
-      },
-      {
-        icon: 'attach_money',
-        text: 'Shop',
-        path: '/shop'
       },
     ]
   })

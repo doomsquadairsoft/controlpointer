@@ -39,8 +39,8 @@ export default new Router({
     },
     {
       path: '/',
-      name: 'Home',
-      component: Home
+      name: 'GameList',
+      component: GameList
     },
     {
       path: '/about',
