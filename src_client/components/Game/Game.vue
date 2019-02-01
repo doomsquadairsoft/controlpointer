@@ -8,7 +8,7 @@
 
         <v-flex xs12 sm12 md8 lg5 xl2>
 
-          {{ myGame }}
+          <div v-if="devmode">{{ myGame }}</div>
           <game-status
             :gameId="myGame._id"
           ></game-status>
@@ -62,7 +62,8 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'theme'
+      'theme',
+      'devmode'
     ]),
     ...mapGetters('metadata', {
       findMetadataInStore: 'find'

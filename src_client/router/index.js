@@ -5,7 +5,6 @@ import Shop from '@/components/Shop/Shop';
 import About from '@/components/About';
 import Map from '@/components/Map/Map';
 import Utilities from '@/components/Utilities';
-import AboutGreenFox from '@/components/AboutGreenFox';
 import ControlPointList from '@/components/ControlPoint/ControlPointList';
 import Game from '@/components/Game/Game';
 import GameList from '@/components/GameList/GameList';
@@ -17,6 +16,7 @@ import Controlpoint from '@/components/ControlPoint/ControlPoint';
 Vue.use(Router);
 
 export default new Router({
+
   routes: [{
       path: '/device',
       name: 'DeviceList',
@@ -39,16 +39,11 @@ export default new Router({
     },
     {
       path: '/',
-      name: 'GameList',
-      component: GameList
-    },
-    {
-      path: '/about',
       name: 'About',
       component: About
     },
     {
-      path: '/game',
+      path: ['/game'],
       name: 'GameList',
       component: GameList
     },
@@ -56,11 +51,6 @@ export default new Router({
       path: '/game/:gameId',
       name: 'Game',
       component: Game
-    },
-    {
-      path: '/green-fox-iii',
-      name: 'AboutGreenFox',
-      component: AboutGreenFox
     },
     {
       path: '/map/:gameId',
