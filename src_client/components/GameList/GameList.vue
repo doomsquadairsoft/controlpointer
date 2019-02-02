@@ -1,6 +1,6 @@
 <template>
 <div v-if="game">
-  <v-container class="pa-0">
+  <v-container  class="pa-0 pt-3">
     <v-card>
       <v-card-title>
         <h3 class="headline mb-0">Existing Games</h3>

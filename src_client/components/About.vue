@@ -1,72 +1,94 @@
 <template>
-      <v-container class="about-doom-squad">
-        <v-layout>
-          <v-flex lg6>
-        <h1>About DooM Squad Airsoft</h1>
+<div>
+  <v-container class="pa-1 ma-1">
+    <v-layout>
+      <v-flex row>
+        <v-card>
 
-        <v-layout align-center>
-            <v-flex lg2>
-                <img style="width: 25vw" :src="doomsquadPeople"></img>
-            </v-flex>
-        </v-layout>
-        <p>Doom Squad Airsoft is an airsoft clan located in the Pacific Northwest, USA. We enjoy running around in the woods and shooting each other with plastic BBs in fast paced, semi-competitive war gaming. We often take ideas from video games such as Counter-Strike, Battlefield, Call of Duty, and apply them to custom airsoft games.</p>
-        <p class="mb40">Our games incorporate pyrotechnics, realistic props, special airsoft weapons, and computerized point tracking systems. We love this action pursuit sport and we are always looking for innovative game experiences. Come out to play sometime, we'd love to have you!</p>
 
-        <h1>About Controlpointer</h1>
-        <v-layout align-center>
-            <v-flex lg2>
-                <img style="width: 25vw" :src="controlpointerExample"></img>
-            </v-flex>
-        </v-layout>
-        <p>Controlpointer solves the problem of players not knowing where to respawn. Created by airsoft field admins for airsoft field admins, Controlpointer is server software which renders a <span class="cRed">LIVE</span> game map that represents the active state of the game.<span class="superscript">*</span></p>
-        <p>Controlpointer makes the airsoft field admin's life easier. Timers, capture states, point tracking, pyrotechnics inventory, and more are handled by Controlpointer.</p>
-        <p>Controlpointer features game modes found in video games such as Counter-Strike Bomb Diffusal, Call-of-Duty Domination, and Battlefield Sector Control.</p>
+          <v-container fluid grid-list-md>
+            <v-layout row wrap>
+              <v-flex d-flex xs12 sm6 md4>
+                <v-card color="purple" dark>
+                  <v-card-title primary class="title">DooM HQ</v-card-title>
+                  <v-card-text><i>You're looking at it!</i><br><br>DooM HQ makes the airsoft field admin's life easier. Game timers, capture states, point tracking, pyrotechnics triggers, and more.</v-card-text>
+                </v-card>
+              </v-flex>
+              <v-flex d-flex xs12 sm6 md3>
+                <v-layout row wrap>
+                  <v-flex d-flex>
+                    <v-card color="blue darken-2" dark>
+                      <v-card-title class="title">DooM D3VICES</v-card-title>
+                      <v-card-text>Hardware placed on the field which interacts with DooM HQ.</v-card-text>
+                    </v-card>
+                  </v-flex>
+                  <v-flex d-flex>
+                    <v-layout row wrap>
+                      <v-flex d-flex xs12>
+                        <v-card color="blue darken-4" dark>
+                          <v-card-title class="title">2 Button DooM D3VICE</v-card-title>
+                          <v-card-text><img class="thumbnail" :src="device2bImg" /> A D3VICE which players can interact with to capture a controlpoint for their team.</v-card-text>
+                        </v-card>
+                      </v-flex>
+                    </v-layout>
+                  </v-flex>
+                </v-layout>
+              </v-flex>
+              <v-flex d-flex xs12 sm6 md5>
+                <v-card color="green darken-1" dark>
+                  <v-card-title primary class="title">Get Started</v-card-title>
+                  <v-card-text><ol><li>Add your <router-link to="/device">D3VICES</router-link> to DooM HQ.</li><li>Create a <router-link to="/game">game</router-link> with your D3VICES.</li></ol></v-card-text>
+                </v-card>
+              </v-flex>
+            </v-layout>
+          </v-container>
 
-        <p>Players visit this webpage on their phone, and instantly they can tell by the color of the displayed flags which control points are available for them to respawn at.</p>
-        <p>Administrators visit the same webpage and are able to select game type, designate hardware or virtual D3VICES placed on the field, start/stop/pause the game, remotely operate controlpoints, trigger sound effects on remote PA systems, launch pyrotechnics, and more.</p>
+        </v-card>
 
-        <p>Finally, rich airsoft experiences for your players all with minimal effort!</p>
-        <v-divider></v-divider>
-
-        <p class="footnote"><span class="superscript">*</span>Controlpointer is a pre-alpha work-in-progress. Alpha status is slated for Q1 2019. Check back for updates!</p>
-
-        <h3>Contact Info</h3>
-        <ul>
-            <li>E-Mail <a href="mailto:info@doomsquadairsoft.com">info@doomsquadairsoft.com</a></li>
-            <li>Twitter <a href="https://twitter.com/DoomAirsoft">@DoomAirsoft</a></li>
-        </ul>
       </v-flex>
-      </v-layout>
-    </v-container>
+    </v-layout>
+  </v-container>
+</div>
 </template>
 
 <script>
-    import doomsquadPeople from '@/assets/doomsquad_0.jpg';
-    import controlpointerExample from '@/assets/controlpointer_example.png';
-    export default {
-        name: 'About',
-        computed: {
-            doomsquadPeople: () => doomsquadPeople,
-            controlpointerExample: () => controlpointerExample
-        }
-    }
+import doomsquadPeople from '@/assets/doomsquad_0.jpg';
+import controlpointerExample from '@/assets/controlpointer_example.png';
+import device2bImage from '@/assets/device-2b.jpg';
+
+export default {
+  name: 'About',
+  data: () => ({
+    lorem: `Lorem ipsum dolor sit amet, mel at clita quando. Te sit oratio vituperatoribus, nam ad ipsum posidonium mediocritatem, explicari dissentiunt cu mea. Repudiare disputationi vim in, mollis iriure nec cu, alienum argumentum ius ad. Pri eu justo aeque torquatos.`
+  }),
+  computed: {
+    device2bImg: () => device2bImage,
+  }
+}
 </script>
 
 
 <style>
+.thumbnail {
+  max-width: 100%;
+}
+
 .cRed {
-    color: red;
+  color: red;
 }
+
 .superscript {
-    position: relative;
-    top: -0.5em;
-    font-size: 80%;
+  position: relative;
+  top: -0.5em;
+  font-size: 80%;
 }
+
 .footnote {
-    color: DarkGray;
-    margin-top: 1em;
+  color: DarkGray;
+  margin-top: 1em;
 }
+
 li {
-    margin-left: 2em;
+  margin-left: 2em;
 }
 </style>

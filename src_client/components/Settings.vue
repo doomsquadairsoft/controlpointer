@@ -1,6 +1,6 @@
 <template>
+<v-container class="pa-0 pt-3">
   <v-card class="e4">
-
     <v-card-media height="200px" :src="settingsImage">
       <v-container fill-height fluid>
         <v-layout fill-height>
@@ -62,14 +62,15 @@
         </v-flex>
       </v-layout>
     </v-container>
-
   </v-card>
+</v-container>
 </template>
 
 <script>
 import gearImage from '@/assets/settings.png'
 import {
-  mapActions
+  mapActions,
+  mapGetters
 } from 'vuex'
 
 
@@ -87,12 +88,14 @@ export default {
     },
   },
   computed: {
+    isDarkTheme() {
+      return this.theme === 'dark'
+    },
     version() {
       return __CONTROLPOINTER_VERSION__;
     }
   }
 }
-
 </script>
 
 <style></style>

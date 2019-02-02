@@ -5,6 +5,7 @@ import Shop from '@/components/Shop/Shop';
 import About from '@/components/About';
 import Map from '@/components/Map/Map';
 import Utilities from '@/components/Utilities';
+import Settings from '@/components/Settings';
 import ControlPointList from '@/components/ControlPoint/ControlPointList';
 import Game from '@/components/Game/Game';
 import GameList from '@/components/GameList/GameList';
@@ -43,7 +44,7 @@ export default new Router({
       component: About
     },
     {
-      path: ['/game'],
+      path: '/game',
       name: 'GameList',
       component: GameList
     },
@@ -58,9 +59,9 @@ export default new Router({
       component: Map
     },
     {
-      path: '/utilities',
-      name: 'Utilities',
-      component: Utilities
+      path: '/settings',
+      name: 'Settings',
+      component: Settings
     },
     {
       path: '/shop',

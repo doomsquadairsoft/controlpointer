@@ -5,7 +5,7 @@
     <v-toolbar color="rgba(33, 33, 33, 1)" fixed app tabs>
       <v-toolbar-side-icon @click.stop="drawer = !drawer">
       </v-toolbar-side-icon>
-      <v-toolbar-title>DooM D3vices</v-toolbar-title>
+      <v-toolbar-title>DooM HQ</v-toolbar-title>
     </v-toolbar>
 
 
@@ -21,7 +21,7 @@
             </v-btn>
           </v-list-tile-action>
           <v-list-tile-title class="title">
-            DooM Squad Airsoft
+            DooM HQ
           </v-list-tile-title>
         </v-list-tile>
 
@@ -130,6 +130,11 @@ export default {
     drawer: true,
     menuItems: [
       {
+        icon: 'live_help',
+        text: 'About',
+        path: '/'
+      },
+      {
         icon: 'games',
         text: 'Games',
         path: '/game'
@@ -138,6 +143,11 @@ export default {
         icon: 'card_travel',
         text: 'D3VICES',
         path: '/device'
+      },
+      {
+        icon: 'settings',
+        text: 'Settings',
+        path: '/settings'
       },
     ]
   })
