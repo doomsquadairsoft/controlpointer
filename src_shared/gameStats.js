@@ -519,18 +519,25 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof deviceId === 'undefined') throw new Error('deriveDevProgress requires three parameters');
   const action = thisStepEvent.action;
   const pointRegex = /(press|release|cap)_(\w{3})/;
-  const detailedAction = R.match(pointRegex, action)[1];
+  const detailedActionActual = R.match(pointRegex, action);
+  const detailedAction = detailedActionActual[1];
   const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
   const ca = moment(thisStepEvent.createdAt);
   const captureRate = lastStepMetadata.captureRate;
   const defaultProgress = { red: 0, blu: 0, bluPressTime: null, redPressTime: null, targetId: deviceId };
   const lastProgress = R.find(R.propEq('targetId', deviceId), devicesProgress);
+  // I use "this" not in the sense that it's the progress computed for this step, but the
+  // progress that is in lastStepMetadata that belongs to *this* deviceId
   const thisProgress = R.ifElse(
     R.isNil(),
     R.always(defaultProgress),
     R.identity()
   )(lastProgress);
   // console.log(`ourDevice:${deviceId}, lastProgress:${JSON.stringify(lastProgress)} fuck:${JSON.stringify(R.prop('devicesProgress', lastStepMetadata))}, thisProgress:${JSON.stringify(thisProgress)}`)
+
+
+  // if the event action is neither of press|release|cap, return last metadata's progress
+  if (R.isEmpty(detailedActionActual)) return thisProgress;
 
 
   if (detailedAction === 'cap') {
@@ -575,7 +582,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     }
   }
 
-  console.log('problum')
+  console.log(`Problum. detailedActionActual:${detailedActionActual} (${R.type(detailedActionActual)}), action:${action}, detailedAction:${detailedAction}`);
 
   // unknown action or a non-device related action
   return thisProgress;

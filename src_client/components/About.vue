@@ -34,7 +34,7 @@
                   </v-flex>
                 </v-layout>
               </v-flex>
-              <v-flex d-flex xs12 sm6 md5>
+              <v-flex d-flex xs12 sm12 md5>
                 <v-card color="green darken-1" dark>
                   <v-card-title primary class="title">Get Started</v-card-title>
                   <v-card-text><ol><li>Add your <router-link to="/device">D3VICES</router-link> to DooM HQ.</li><li>Create a <router-link to="/game">game</router-link> with your D3VICES.</li></ol></v-card-text>
