@@ -1,5 +1,8 @@
 <template>
   <div class="DeviceControls">
+    <v-btn icon color="cyan" @click="goToVirtualControlpoint()">
+      <v-icon>fingerprint</v-icon>
+    </v-btn>
     <v-btn icon color="blue" @click="changeControllingTeam('blu')">
       <v-icon>star</v-icon>
     </v-btn>
@@ -59,23 +62,19 @@ export default {
     associatedGames() {
       return this.myDevice.associatedGames
     },
-    // myGame() {
-    //   const deviceIdViaRoute = this.$route.params.deviceId;
-    //
-    //   return this.findGameInStore({
-    //     query: {
-    //       $sort: {
-    //         createdAt: 1
-    //       },
-    //       _id:
-    //     }
-    //   }).data[0];
-    // }
+    virtualControlpointLink() {
+      return `/device/${this._id}/controlpoint`;
+    },
   },
   methods: {
     ...mapActions('timeline', {
       createTimelineEvent: 'create'
     }),
+    goToVirtualControlpoint() {
+      this.$router.push({
+        path: this.virtualControlpointLink
+      });
+    },
     changeControllingTeam: function(color) {
       if (typeof color === 'undefined') throw new Error('second param sent to changeControllingTeam must be (red|blu|unc). Got undefined.');
       const c = cond([
@@ -113,6 +112,7 @@ export default {
         query: q
       });
     },
+
   }
 }
 </script>

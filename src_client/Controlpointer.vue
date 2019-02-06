@@ -49,6 +49,7 @@
       <router-view :devices="devices.data" :timeline="timeline.data" :game="game.data" :useDarkTheme="useDarkTheme"></router-view>
     </v-content>
     <!-- <v-footer app></v-footer> -->
+    <div id="bottom"></div>
   </div>
 </v-app>
 </template>

@@ -1,8 +1,7 @@
-this.latestMetadata<template>
+<template>
 <v-card class="mt-3 mx-auto" max-width="500">
   <v-card-title primary-title>
     <h3 class="headline">Game Status</h3>
-    <div v-if="devmode">{{ latestMetadata }}</div>
   </v-card-title>
   <div>
     <v-container justify-center class="pt-0 pl-3 pr-3">
@@ -45,12 +44,22 @@ import {
 } from 'vuex'
 import Clock from '@/components/Clock/Clock';
 import moment from 'moment';
+import { ifElse, lt, always, identity, __, isEmpty } from 'ramda';
+import gameStats from '@/../src_shared/gameStats';
 
 export default {
   name: 'GameStatus',
   components: {
     Clock,
   },
+  data: () => ({
+    deletable: 1,
+    clientSideClockDuration: 0,
+    clientSideGamePausedDuration: 0,
+    clientSideGameEndTime: 0,
+    clientSideRemainingGameTime: 0,
+    lastPausedTime: 0,
+  }),
   props: {
     gameId: {
       type: String,
@@ -70,12 +79,13 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
+    rgtNice() {
+      return moment.duration(this.latestMetadata.remainingGameTime).format()
+    },
     clockDuration() {
-      const rgt = this.latestMetadata.remainingGameTime;
       const gl = this.latestMetadata.gameLength;
-      if (rgt === null && gl === null) return 0;
-      if (rgt === null) return gl;
-      return rgt;
+      if (this.clientSideRemainingGameTime === null) return gl;
+      else return this.clientSideRemainingGameTime;
     },
     latestMetadata() {
       const mdis = this.findMetadataInStore({
@@ -93,6 +103,11 @@ export default {
       if (typeof mdis.data[0].metadata === 'undefined') return {};
       return mdis.data[0].metadata;
     },
+    myGame() {
+      return this.findGameInStore({
+        _id: this._id
+      }).data[0];
+    }
   },
   methods: {
     ...mapActions('timeline', {
@@ -106,6 +121,34 @@ export default {
       findGame: 'find',
       removeGame: 'remove'
     }),
+    tick() {
+      // since the metadata only updates after a new timeline event is created,
+      // we don't want to stress the system by creating unecessary timeline events just so we can see the remainingGameTime.
+      // so we work around this by updating the remainingGameTime on the client side
+      // we can derive the remainingGameTime using the gameStats library.
+      // when the gameStatus is running, we update our client-side remainingGameTime every second.
+      // when the gameStatus changes, we can stop updating every second.
+      this.calculateClientSideRemainingGameTime();
+    },
+    calculateClientSideRemainingGameTime() {
+      if (isEmpty(this.latestMetadata)) return this.clientSideRemainingGameTime = this.myGame.gameLength;
+      const gameStatus = this.latestMetadata.gameStatus.msg;
+      const gst = this.latestMetadata.gameStartTime;
+      const rgt = this.latestMetadata.remainingGameTime;
+      const cap = ifElse(lt(__, 1), always(0), identity());
+      const mt = this.latestMetadata.metadataTimestamp;
+
+      const delta = moment().diff(mt) // time since last server update
+
+      if (gameStatus === 'running') {
+        this.clientSideRemainingGameTime = cap(rgt - delta);
+      }
+
+      if (gameStatus === 'paused' || gameStatus === 'stopped') {
+        this.clientSideRemainingGameTime = rgt;
+      }
+      // console.log(`mt:${mt}, delta:${delta.valueOf()}, cscd:${this.clientSideClockDuration} csrgt:${this.clientSideRemainingGameTime}`);
+    },
     createStartEvent() {
       this.createTimelineEvent({
         type: "timeline",
@@ -146,14 +189,11 @@ export default {
     this.findTimeline();
     this.findGame();
     this.findMetadata();
-    this.interval = setInterval(this.tick, 1000)
+    this.tickInterval = setInterval(this.tick, 1000);
   },
   beforeDestroy () {
-    clearInterval(this.interval);
-  },
-  data: () => ({
-    deletable: 1,
-  })
+    clearInterval(this.tickInterval);
+  }
 }
 </script>
 

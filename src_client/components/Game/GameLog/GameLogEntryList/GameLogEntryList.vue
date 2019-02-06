@@ -9,7 +9,6 @@
         <v-btn color="purple" small :to="postgameRoute">
           <v-icon>assignment</v-icon>View Postgame Report
         </v-btn>
-
       </v-flex>
     </v-layout>
   </v-container>
@@ -103,9 +102,10 @@ export default {
     timestamp(t) {
       return moment(t.createdAt).format('HH:mm');
     },
-    scrollToBottom () {
+    scrollToBottom() {
       const t = this.$el.querySelector('#scroll-target');
-      t.scrollTop = t.scrollHeight;
+      t.scrollTop = t.scrollHeight; // scroll the log box
+      this.$vuetify.goTo('#bottom'); // scroll the page
     },
     onScroll(e) {
       if (e.target.scrollTop - (e.target.scrollHeight - e.target.offsetHeight) === 0)
