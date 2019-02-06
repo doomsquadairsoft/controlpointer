@@ -1,23 +1,39 @@
 <template>
   <div class="DeviceControls">
-    <v-btn icon color="cyan" @click="goToVirtualControlpoint()">
-      <v-icon>fingerprint</v-icon>
-    </v-btn>
-    <v-btn icon color="blue" @click="changeControllingTeam('blu')">
-      <v-icon>star</v-icon>
-    </v-btn>
-    <v-btn icon color="red" @click="changeControllingTeam('red')">
-      <v-icon>star</v-icon>
-    </v-btn>
-    <v-btn icon color="grey" @click="changeControllingTeam('unc')">
-      <v-icon>star</v-icon>
-    </v-btn>
-    <v-btn icon color="green" @click="showDeviceLocation(_id)">
-      <v-icon>gps_fixed</v-icon>
-    </v-btn>
-    <v-btn icon color="purple" @click="showDeviceEditor(_id)">
-      <v-icon>edit</v-icon>
-    </v-btn>
+    <v-container>
+      <v-layout row wrap justify-center>
+        <v-flex>
+          <v-btn icon color="cyan" @click="goToVirtualControlpoint()">
+            <v-icon>fingerprint</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex>
+          <v-btn icon color="blue" @click="changeControllingTeam('blu')">
+            <v-icon>star</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex>
+          <v-btn icon color="red" @click="changeControllingTeam('red')">
+            <v-icon>star</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex>
+          <v-btn icon color="grey" @click="changeControllingTeam('unc')">
+            <v-icon>star</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex>
+          <v-btn icon color="green" @click="showDeviceLocation(_id)">
+            <v-icon>gps_fixed</v-icon>
+          </v-btn>
+        </v-flex>
+        <v-flex>
+          <v-btn icon color="purple" @click="showDeviceEditor(_id)">
+            <v-icon>edit</v-icon>
+          </v-btn>
+        </v-flex>
+      </v-layout>
+    </v-container>
   </div>
 </template>
 
@@ -118,4 +134,7 @@ export default {
 </script>
 
 <style>
+.DeviceControls {
+
+}
 </style>

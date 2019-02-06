@@ -3,11 +3,14 @@
   <v-container class="pa-0 pb-2">
     <v-layout>
       <v-flex>
-        <v-btn color="info" small :disabled="isScrolledToBottom" @click="scrollToBottom">
+        <v-btn color="info" small @click="scrollToBottom">
           <v-icon>arrow_downward</v-icon>Scroll to bottom
         </v-btn>
         <v-btn color="purple" small :to="postgameRoute">
           <v-icon>assignment</v-icon>View Postgame Report
+        </v-btn>
+        <v-btn color="green" small @click="goToMap">
+          <v-icon>satellite</v-icon>Map
         </v-btn>
       </v-flex>
     </v-layout>
@@ -91,9 +94,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-        'isScrolledToBottom'
-    ]),
     deviceImage: () => di,
     gameId () { return this.$route.params.gameId },
     postgameRoute () { return `/postgame/${this.gameId}` },
@@ -111,7 +111,12 @@ export default {
       if (e.target.scrollTop - (e.target.scrollHeight - e.target.offsetHeight) === 0)
         this.$store.commit('setScrolledToBottom');
       else this.$store.commit('unsetScrolledToBottom');
-    }
+    },
+    goToMap() {
+      this.$router.push({
+        path: `/map/${this.gameId}`
+      });
+    },
   },
   mounted() {
     this.scrollToBottom();

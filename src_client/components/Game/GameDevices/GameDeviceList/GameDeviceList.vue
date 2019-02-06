@@ -10,6 +10,8 @@
           <v-flex>Associated Games: {{ d.associatedGames }}</v-flex>
         </v-layout>
       </v-container>
+      <device-game-controls :myDevice="d" :gameId="myGame._id"></device-game-controls>
+
       <v-list-tile slot="activator">
         <v-list-tile-content>
           <v-container class="pa-0">
@@ -41,16 +43,6 @@
                 </v-badge>
               </v-flex>
 
-            </v-layout>
-          </v-container>
-        </v-list-tile-content>
-      </v-list-tile>
-
-      <v-list-tile>
-        <v-list-tile-content>
-          <v-container>
-            <v-layout row justify-center fill-height>
-              <device-game-controls :myDevice="d" :gameId="myGame._id"></device-game-controls>
             </v-layout>
           </v-container>
         </v-list-tile-content>

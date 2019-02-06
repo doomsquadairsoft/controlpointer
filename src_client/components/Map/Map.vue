@@ -2,7 +2,7 @@
 <div v-if="myGame">
   <l-map id="map" :zoom="zoom" :center="myDevice.latLng" :options="mapOptions" :maxZoom="maxZoom" @click="updatePOI($event)" ref="map">
     <l-tilelayer :url="url"></l-tilelayer>
-    <l-marker v-for="d in devices" :key="d.key" :title="d.did" :data-index="d._id" :lat-lng="d.latLng" :icon="controlpointIcon(d.bluProgress, d.redProgress)" :draggable="true" @dragend="dragDevice(d, $event)">
+    <l-marker v-for="d in myDevices" :key="d.key" :title="d.did" :data-index="d._id" :lat-lng="d.latLng" :icon="controlpointIcon(d.bluProgress, d.redProgress)" :draggable="true" @dragend="dragDevice(d, $event)">
       <l-popup :ref="d._id">
         <h3>{{ d.name }} ({{ d.did }})</h3>
       </l-popup>
@@ -30,7 +30,8 @@ import {
   ifElse,
   isNil,
   always,
-  identity
+  identity,
+  clone
 } from 'ramda';
 
 import tIcon from '@/assets/target-marker.png'
@@ -109,6 +110,15 @@ export default {
         }
       });
       return mg.data[0];
+    },
+    myDevices() {
+      // return the devices included in this game.
+      const deviceIds = clone(this.myGame.includedDevices);
+      return this.findDevicesInStore({
+        query: {
+          _id: { $in: deviceIds }
+        }
+      }).data;
     },
     myDevice() {
       // return the device passed as a query string, OR the first created device in this game
