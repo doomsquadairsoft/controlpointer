@@ -24,9 +24,9 @@ import {
 } from 'vuex'
 
 import moment from 'moment';
-import {
-  d3Timeline
-} from 'd3-vs';
+// import {
+//   d3Timeline
+// } from 'd3-vs';
 
 export default {
   name: 'Report',
@@ -46,7 +46,7 @@ export default {
     }
   },
   components: {
-    d3Timeline
+    // d3Timeline
   }
 }
 </script>

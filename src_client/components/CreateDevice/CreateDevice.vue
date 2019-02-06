@@ -26,27 +26,28 @@
           </v-flex>
         </v-layout>
 
-        <v-layout row wrap>
+
+        <v-layout column wrap>
+          <v-flex>
+            <h2>Map Coordinates</h2>
+          </v-flex>
+          <v-flex>
+            <v-btn color="info" @click="doUseDefaultLatLng">
+              <v-icon>timer</v-icon> Use default Lat, Lng
+            </v-btn>
+          </v-flex>
+          <v-flex>
+            <v-btn color="green" @click="doChooseCoords">
+              <v-icon>edit_location</v-icon> Pick Coords on Map
+            </v-btn>
+          </v-flex>
           <v-flex>
             <v-text-field @focusout="dirtyLat" v-model.trim="latInput" :error-messages="latErrors" label="D3VICE Latitude (nnn.nnnnn)">
             </v-text-field>
           </v-flex>
           <v-flex>
-            <v-btn color="info" @click="doUseDefaultLat">
-              <v-icon>timer</v-icon> Use default (47.658779)
-            </v-btn>
-          </v-flex>
-        </v-layout>
-
-        <v-layout row wrap class="mt-5">
-          <v-flex>
             <v-text-field @focusout="dirtyLng" :error-messages="lngErrors" v-model.trim="lngInput" label="D3VICE longitude (nnn.nnnnn)">
             </v-text-field>
-          </v-flex>
-          <v-flex>
-            <v-btn color="info" @click="doUseDefaultLng">
-              <v-icon>timer</v-icon> Use default (-117.426048)
-            </v-btn>
           </v-flex>
         </v-layout>
       </v-container>
@@ -96,10 +97,10 @@ export default {
   },
   data() {
     return {
+      nameInput: '',
       didInput: '',
       latInput: '',
       lngInput: '',
-      nameInput: '',
       gameId: null,
       isValidationError: false,
       defaultLat: 47.658779,
@@ -116,6 +117,10 @@ export default {
   },
   created() {
     this.findDevices();
+    this.nameInput = this.$route.query.name;
+    this.didInput = this.$route.query.did;
+    this.latInput = this.$route.query.lat;
+    this.lngInput = this.$route.query.lng;
   },
   computed: {
     ...mapGetters('devices', {
@@ -176,12 +181,21 @@ export default {
         }, {});
       }
     },
-    doUseDefaultLat() {
+    doUseDefaultLatLng() {
       this.latInput = this.defaultLat;
-    },
-    doUseDefaultLng() {
       this.lngInput = this.defaultLng;
     },
+    doChooseCoords() {
+      const address = `/map/chooser`;
+      const q = {
+        name: this.nameInput,
+        did: this.didInput
+      };
+      this.$router.push({
+        path: address,
+        query: q
+      });
+    }
   }
 }
 </script>

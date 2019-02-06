@@ -4,6 +4,7 @@ import Home from '@/components/Home';
 import Shop from '@/components/Shop/Shop';
 import About from '@/components/About';
 import Map from '@/components/Map/Map';
+import ChooserMap from '@/components/ChooserMap/ChooserMap';
 import Utilities from '@/components/Utilities';
 import Settings from '@/components/Settings';
 import ControlPointList from '@/components/ControlPoint/ControlPointList';
@@ -52,6 +53,11 @@ export default new Router({
       path: '/game/:gameId',
       name: 'Game',
       component: Game
+    },
+    {
+      path: '/map/chooser',
+      name: 'ChooserMap',
+      component: ChooserMap
     },
     {
       path: '/map/:gameId',

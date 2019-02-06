@@ -135,14 +135,14 @@ export default {
         path: '/'
       },
       {
-        icon: 'games',
-        text: 'Games',
-        path: '/game'
-      },
-      {
         icon: 'card_travel',
         text: 'D3VICES',
         path: '/device'
+      },
+      {
+        icon: 'games',
+        text: 'Games',
+        path: '/game'
       },
       {
         icon: 'settings',
