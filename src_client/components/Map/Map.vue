@@ -1,12 +1,20 @@
 <template>
 <div v-if="myGame">
-  <l-map id="map" :zoom="zoom" :center="myDevice.latLng" :options="mapOptions" :maxZoom="maxZoom" @click="updatePOI($event)" ref="map">
+  <l-map id="map" :zoom="zoom" :center="mapCenter" :options="mapOptions" :maxZoom="maxZoom" @click="updatePOI($event)" ref="map">
     <l-tilelayer :url="url"></l-tilelayer>
     <l-marker v-for="d in myDevices" :key="d.key" :title="d.did" :data-index="d._id" :lat-lng="d.latLng" :icon="controlpointIcon(d.bluProgress, d.redProgress)" :draggable="true" @dragend="dragDevice(d, $event)">
       <l-popup :ref="d._id">
         <h3>{{ d.name }} ({{ d.did }})</h3>
       </l-popup>
     </l-marker>
+    <l-control ref="mapcontrol" class="custom-control" position="topleft">
+      <v-container class="pa-0 ma-0">
+        <v-layout column>
+          <v-btn icon color="blue" @click="doCenterMap"><v-icon>zoom_out_map</v-icon></v-btn>
+          <v-btn v-if="this.$route.query.deviceId" icon color="green" @click="doCenterDevice"><v-icon>gps_fixed</v-icon></v-btn>
+        </v-layout>
+      </v-container>
+    </l-control>
     <!-- <l-control v-if="isMenuVisible" class="custom-control" position="topright">
       <v-btn icon color="green" @click="createDevice()"><v-icon>add_location</v-icon></v-btn>
     </l-control> -->
@@ -31,7 +39,9 @@ import {
   isNil,
   always,
   identity,
-  clone
+  clone,
+  map,
+  not,
 } from 'ramda';
 
 import tIcon from '@/assets/target-marker.png'
@@ -102,6 +112,25 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
+    mapCenter() {
+      // the center of the map can be one of two things
+      //   * The latLng of the device specified in the query
+      //   * The bounds around all devices on the map
+      const deviceIdViaRoute = this.$route.query.deviceId;
+      const isDeviceInQuery = not(isNil(deviceIdViaRoute));
+
+      if (isDeviceInQuery) {
+        return this.myDevice.latLng;
+      }
+
+      const gatherLatLngs = (val) => {
+        return val.latLng;
+      }
+
+      const arrayOfLatLngs = map(gatherLatLngs, this.myDevices);
+      const bounds = new L.LatLngBounds(arrayOfLatLngs);
+      return bounds.getCenter();
+    },
     myGame() {
       const gameIdViaRoute = this.$route.params.gameId;
       const mg = this.findGameInStore({
@@ -152,6 +181,38 @@ export default {
     //   console.log(this.poi);
     //   this.createDevice();
     // },
+    doCenterMap() {
+      // // center map on the device in the query parameter.
+      // // if there is no device id in the query parameter, center on all devices in this game
+      const deviceIdViaRoute = this.$route.query.deviceId;
+
+      const gatherLatLngs = (val) => {
+        return val.latLng;
+      }
+
+      const arrayOfLatLngs = map(gatherLatLngs, this.myDevices);
+      const bounds = new L.LatLngBounds(arrayOfLatLngs);
+      this.$refs.map.mapObject.fitBounds(bounds);
+
+
+      //const center = ifElse(isNil(), )(deviceIdViaRoute);
+    },
+    doCenterDevice() {
+      // // center map on the device in the query parameter.
+      // // if there is no device id in the query parameter, center on all devices in this game
+      const deviceIdViaRoute = this.$route.query.deviceId;
+
+      // const gatherLatLngs = (val) => {
+      //   return val.latLng;
+      // }
+
+      // const arrayOfLatLngs = map(gatherLatLngs, this.myDevice);
+      // const bounds = new L.LatLngBounds(arrayOfLatLngs);
+      this.$refs.map.mapObject.setView(this.myDevice.latLng, this.zoom);
+
+
+      //const center = ifElse(isNil(), )(deviceIdViaRoute);
+    },
     dragDevice(d, evt) {
       const updatedLatLng = evt.target._latlng;
       const updatedLat = updatedLatLng.lat;

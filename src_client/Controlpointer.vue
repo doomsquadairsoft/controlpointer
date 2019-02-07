@@ -11,7 +11,7 @@
 
 
 
-    <v-navigation-drawer v-model="drawer" app>
+    <v-navigation-drawer touchless v-model="drawer" app>
       <v-list class="pa-1">
 
         <v-list-tile>
