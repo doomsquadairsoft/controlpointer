@@ -2,7 +2,7 @@
 <v-card class="mt-3 mx-auto" max-width="500">
   <v-card-title primary-title>
     <h3 class="headline">Game Status</h3>
-    <v-chip class="ml-3">{{ latestMetadata.gameStatus.msg }}</v-chip>
+    <v-chip class="ml-3">{{ gameStatusChipText }}</v-chip>
   </v-card-title>
   <div>
     <v-container justify-center class="pt-0 pl-3 pr-3">
@@ -80,6 +80,10 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
+    gameStatusChipText() {
+      if (isEmpty(this.latestMetadata)) return 'waiting';
+      return this.latestMetadata.gameStatus.msg;
+    },
     rgtNice() {
       return moment.duration(this.latestMetadata.remainingGameTime).format()
     },
@@ -89,25 +93,27 @@ export default {
       else return this.clientSideRemainingGameTime;
     },
     latestMetadata() {
-      const mdis = this.findMetadataInStore({
-        query: {
-          $sort: {
-            createdAt: -1
-          },
-          $limit: 1,
-          gameId: this.gameId
-        }
-      });
-      if (typeof mdis === 'undefined') return {};
-      if (typeof mdis.data === 'undefined') return {};
-      if (mdis.data.length < 1) return {};
-      if (typeof mdis.data[0].metadata === 'undefined') return {};
-      return mdis.data[0].metadata;
+      // const mdis = this.findMetadataInStore({
+      //   query: {
+      //     $sort: {
+      //       createdAt: -1
+      //     },
+      //     $limit: 1,
+      //     gameId: this.gameId
+      //   }
+      // });
+      // if (typeof mdis === 'undefined') return {};
+      // if (typeof mdis.data === 'undefined') return {};
+      // if (mdis.data.length < 1) return {};
+      // if (typeof mdis.data[0].metadata === 'undefined') return {};
+      // return mdis.data[0].metadata;
+      return {};
     },
     myGame() {
-      return this.findGameInStore({
-        _id: this._id
-      }).data[0];
+      return {};
+      // return this.findGameInStore({
+      //   _id: this._id
+      // }).data[0];
     }
   },
   methods: {
@@ -187,9 +193,9 @@ export default {
     },
   },
   created() {
-    this.findTimeline();
-    this.findGame();
-    this.findMetadata();
+    // this.findTimeline();
+    // this.findGame();
+    // this.findMetadata();
     this.tickInterval = setInterval(this.tick, 1000);
   },
   beforeDestroy () {

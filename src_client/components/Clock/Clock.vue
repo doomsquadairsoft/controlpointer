@@ -8,8 +8,7 @@
 <script>
 // greetz https://github.com/eddyerburgh/vue-digital-clock/blob/master/Clock.vue
 import moment from 'moment';
-import 'dseg/css/dseg.css'
-
+import
 
 module.exports = {
   name: 'Clock',
@@ -72,6 +71,11 @@ module.exports = {
 
 
 <style>
+  @font-face {
+    font-family: "DSEG7";
+    src: url(/DSEG7Modern-Regular.ttf) format("truetype")
+  }
+
   .digital {
     flex-grow: 1;
     background-color: rgba(33, 33, 33, 1);
@@ -82,7 +86,7 @@ module.exports = {
   }
 
   .digital p {
-    font-family: 'DSEG7-Modern';
+    font-family: 'DSEG7', Verdana, Geneva, sans-serif;
     font-size: 34px;
     margin: 0 0 0 0;
     text-align: center;
