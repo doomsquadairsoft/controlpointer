@@ -1,0 +1,17 @@
+      mongoex:
+        image: mongo-express:latest
+        environment:
+        - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+        - ME_CONFIG_MONGODB_SERVER=database
+        - ME_CONFIG_MONGODB_PORT=27017
+        - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+        - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+        ports:
+        - "8081:8081"
+        links:
+        - database
+      database:
+        image: mongo:latest
+        command: --smallfiles
+        ports:
+          - "27017:27017"
