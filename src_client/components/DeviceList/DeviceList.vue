@@ -3,13 +3,13 @@
   <v-container class="pa-0 pt-3">
     <v-card>
       <v-card-title>
-        <h3 class="headline mb-0">Existing D3VICES</h3>
+        <h3 class="headline mb-0" id="existing-devices-header">Existing D3VICES</h3>
       </v-card-title>
       <doom-alert v-if="devices.length < 1" level="warning">
         There are no D3VICES. Please ceate a D3VICE below.
       </doom-alert>
       <v-list>
-        <v-list-tile v-for="d in devices" :key="d._id" avatar>
+        <v-list-tile v-for="d in devices" :key="d._id" :id="d._id" avatar>
 
           <v-list-tile-avatar>
             <img :src="deviceImage">

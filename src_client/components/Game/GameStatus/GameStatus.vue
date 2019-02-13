@@ -45,7 +45,7 @@ import {
 } from 'vuex'
 import Clock from '@/components/Clock/Clock';
 import moment from 'moment';
-import { ifElse, lt, always, identity, __, isEmpty } from 'ramda';
+import { ifElse, lt, always, identity, __, isEmpty, last } from 'ramda';
 import gameStats from '@/../src_shared/gameStats';
 
 export default {
@@ -66,10 +66,6 @@ export default {
       type: String,
       required: true
     },
-    metadata: {
-      type: Array,
-      required: true
-    },
     timeline: {
       type: Array,
       required: true
@@ -78,6 +74,14 @@ export default {
       type: Array,
       required: true
     },
+    myGame: {
+      type: Object,
+      required: true
+    },
+    myMetadata: {
+      type: Array,
+      required: true
+    }
   },
   computed: {
     ...mapGetters([
@@ -105,39 +109,22 @@ export default {
       else return this.clientSideRemainingGameTime;
     },
     latestMetadata() {
-      // const mdis = this.findMetadataInStore({
-      //   query: {
-      //     $sort: {
-      //       createdAt: -1
-      //     },
-      //     $limit: 1,
-      //     gameId: this.gameId
-      //   }
-      // });
-      // if (typeof mdis === 'undefined') return {};
-      // if (typeof mdis.data === 'undefined') return {};
-      // if (mdis.data.length < 1) return {};
-      // if (typeof mdis.data[0].metadata === 'undefined') return {};
-      // return mdis.data[0].metadata;
-      return {};
-    },
-    myGame() {
-      return {};
-      // return this.findGameInStore({
-      //   _id: this._id
-      // }).data[0];
+      const mdis = last(this.myMetadata);
+      if (typeof mdis === 'undefined') return {};
+      if (typeof mdis.metadata === 'undefined') return {};
+      return mdis.metadata;
     }
   },
   methods: {
     ...mapActions('timeline', {
       createTimelineEvent: 'create',
-      findTimeline: 'find'
+      // findTimeline: 'find'
     }),
     ...mapActions('metadata', {
       findMetadata: 'find',
     }),
     ...mapActions('game', {
-      findGame: 'find',
+      // findGame: 'find',
       removeGame: 'remove'
     }),
     tick() {

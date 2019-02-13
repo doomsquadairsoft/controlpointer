@@ -8,7 +8,7 @@
 
       <v-flex xs12 sm12 md8 lg5 xl2>
 
-        <game-status :gameId="myGame._id"></game-status>
+        <game-status :timeline="timeline" :myMetadata="myMetadata" :game="game" :myGame="myGame" :gameId="myGame._id"></game-status>
 
         <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
         <game-log :myTimeline="myTimeline"></game-log>
@@ -64,10 +64,6 @@ export default {
     timeline: {
       type: Array,
       required: true
-    },
-    metadata: {
-      type: Array,
-      required: true
     }
   },
   computed: {
@@ -79,15 +75,15 @@ export default {
       findMetadataInStore: 'find'
     }),
     myMetadata() {
-      if (isEmpty(this.metadata)) return [];
-      const myGameFilter = (obj) => obj.gameId === this.myGame._id;
-      return filter(myGameFilter, this.metadata);
-      // return this.findMetadataInStore({
-      //   $sort: {
-      //     createdAt: 1
-      //   },
-      //   gameId: this.myGame._id
-      // }).data
+      // if (isEmpty(this.metadata)) return [];
+      // const myGameFilter = (obj) => obj.gameId === this.myGame._id;
+      // return filter(myGameFilter, this.metadata);
+      return this.findMetadataInStore({
+        $sort: {
+          createdAt: 1
+        },
+        gameId: this.myGame._id
+      }).data
     },
     latestMetadata() {
       return last(this.myMetadata);
@@ -140,7 +136,7 @@ export default {
     // },
   },
   created() {
-    // this.findMetadata();
+    this.findMetadata();
   }
   // watch: {
   //   myTimeline: 'updateMetadata',

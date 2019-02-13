@@ -12,7 +12,7 @@
 
             <device-stats :deviceId="this.$route.params.deviceId"></device-stats>
 
-            <doom-alert v-if="myDevice.associatedGames.length < 1" level="info">Associate this D3VICE with a <router-link to="/game">game</router-link> to unlock the game controls</doom-alert>
+            <doom-alert v-if="myDevice.associatedGames.length < 1" level="info">This D3VICE is not associated with a <router-link to="/game">game</router-link>.</doom-alert>
             <!-- <device-game-controls v-if="myDevice.associatedGames.length > 0" :myDevice="myDevice"></device-game-controls> -->
             <!-- <v-btn color="teal" :to="virtualControlpointLink">
               <v-icon>fingerprint</v-icon> Virtual Controlpoint

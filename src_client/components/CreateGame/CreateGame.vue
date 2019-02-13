@@ -1,14 +1,14 @@
 <template>
 <v-card class="mt-3 mx-auto" max-width="500">
   <div>
-  <v-card-title primary-title>
-      <v-layout row>
+  <v-card-title primary-title id="create-game-header">
+      <v-layout column>
         <v-flex xs12>
           <span class="headline">Create Game</span>
         </v-flex>
-        <v-flex xs3>
-          <v-btn icon>
-          </v-btn>
+        <v-flex xs12>
+          <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
+          <doom-alert v-if="isGameCreated" level="info">Game created. <router-link :to="this.latestGame.link">{{ this.latestGame.name }}</router-link></doom-alert>
         </v-flex>
       </v-layout>
   </v-card-title>
@@ -93,7 +93,6 @@
             <v-btn color="primary" @click="doCreateGame">
               Create game
             </v-btn>
-            <v-alert :value="isValidationError" type="error">Invalid Input. Fix errors above then try again.</v-alert>
           </v-flex>
         </v-layout>
       </v-container>
@@ -118,7 +117,8 @@ import 'moment-duration-format';
 import {
   helpers,
   required
-} from 'vuelidate/lib/validators'
+} from 'vuelidate/lib/validators';
+import { last } from 'ramda';
 const timeRegex = helpers.regex('time', /^\d\d:\d\d:\d\d$/);
 import di from '@/assets/futuristic_ammo_box_01.png';
 import baseball from '@/assets/baseball-marker.png';
@@ -139,6 +139,7 @@ export default {
       defaultCaptureRate: '00:00:05',
       gameId: null,
       isValidationError: false,
+      isGameCreated: false,
       includedDevices: [],
     }
   },
@@ -174,6 +175,14 @@ export default {
           }
         }
       })
+    },
+    latestGame() {
+      const g = last(this.game.data);
+      if (typeof g === 'undefined') return {};
+      return {
+        link: `/game/${g._id}`,
+        name: g.name || 'link'
+      };
     },
     crErrors() {
       if (
@@ -213,19 +222,21 @@ export default {
       this.$v.gameLengthInput.$touch();
     },
     doCreateGame() {
-      this.$v.$touch();
       if (this.$v.$invalid) {
+        this.$v.$touch();
         this.isValidationError = true;
       } else {
-        this.$vuetify.goTo('head');
         this.isValidationError = false;
+        this.isGameCreated = true;
         this.createGame({
           gameLength: this.gameLength,
           captureRate: this.captureRate,
           gameName: this.gameNameInput,
           includedDevices: this.includedDevices
         }, {});
+        this.$refs.form.reset();
       }
+      this.$vuetify.goTo('#create-game-header');
     },
     doUseDefaultGameLength() {
       this.gameLengthInput = this.defaultGameLength;

@@ -1,10 +1,14 @@
 <template>
 <v-card class="mt-3 mx-auto" max-width="500">
   <div>
-  <v-card-title primary-title>
-      <v-layout row>
+  <v-card-title primary-title id="create-device-header">
+      <v-layout column>
         <v-flex xs12>
           <span class="headline">Create D3VICE</span>
+        </v-flex>
+        <v-flex xs12>
+          <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
+          <doom-alert v-if="isDeviceCreated" level="info">D3VICE created. <router-link :to="this.latestDevice.link">{{ this.latestDevice.name }}</router-link></doom-alert>
         </v-flex>
       </v-layout>
   </v-card-title>
@@ -59,7 +63,6 @@
         <v-btn color="primary" @click="doCreateDevice">
           Create D3VICE
         </v-btn>
-        <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors above then try again.</doom-alert>
       </v-flex>
     </v-layout>
   </div>
@@ -83,6 +86,7 @@ import {
   helpers,
   required
 } from 'vuelidate/lib/validators'
+import { last } from 'ramda';
 // greetz https://stackoverflow.com/a/18690202/1004931
 const latRegex = helpers.regex('latitude', /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/);
 const lngRegex = helpers.regex('longitute', /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/);
@@ -103,15 +107,18 @@ export default {
       lngInput: '',
       gameId: null,
       isValidationError: false,
+      isDeviceCreated: false,
       defaultLat: 47.658779,
       defaultLng: -117.426048,
     }
   },
   validations: {
     latInput: {
+      required,
       latRegex
     },
     lngInput: {
+      required,
       lngRegex
     }
   },
@@ -135,6 +142,14 @@ export default {
           }
         }
       })
+    },
+    latestDevice() {
+      const d = last(this.devices.data);
+      if (typeof d === 'undefined') return {};
+      return {
+        link: `/device/${d._id}`,
+        name: d.name || 'link'
+      };
     },
     latErrors() {
       if (
@@ -168,18 +183,20 @@ export default {
       this.$v.lngInput.$touch();
     },
     doCreateDevice() {
-      this.$v.$touch();
       if (this.$v.$invalid) {
+        this.$v.$touch();
         this.isValidationError = true;
       } else {
-        this.$vuetify.goTo('head');
         this.isValidationError = false;
         this.createDevice({
           name: this.nameInput,
           did: this.didInput,
           latLng: { lat: this.latInput, lng: this.lngInput },
         }, {});
+        this.$refs.form.reset();
+        this.isDeviceCreated = true;
       }
+      this.$vuetify.goTo('#create-device-header');
     },
     doUseDefaultLatLng() {
       this.latInput = this.defaultLat;
