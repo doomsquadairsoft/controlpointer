@@ -46,7 +46,7 @@
     </v-navigation-drawer>
 
     <v-content>
-      <router-view :devices="devices.data" :timeline="timeline.data" :game="game.data" :useDarkTheme="useDarkTheme"></router-view>
+      <router-view :devices="devices.data" :timeline="timeline.data" :game="game.data" :metadata="metadata.data" :useDarkTheme="useDarkTheme"></router-view>
     </v-content>
     <!-- <v-footer app></v-footer> -->
     <div id="bottom"></div>
@@ -78,6 +78,9 @@ export default {
     ...mapGetters('game', {
       findGameInStore: 'find'
     }),
+    ...mapGetters('metadata', {
+      findMetadataInStore: 'find'
+    }),
     game() {
       return this.findGameInStore({
         query: {
@@ -108,6 +111,15 @@ export default {
         }
       })
     },
+    metadata() {
+      return this.findMetadataInStore({
+        query: {
+          $sort: {
+            createdAt: 1
+          }
+        }
+      })
+    },
   },
   methods: {
     ...mapActions('devices', {
@@ -119,11 +131,15 @@ export default {
     ...mapActions('game', {
       findGame: 'find'
     }),
+    ...mapActions('metadata', {
+      findMetadata: 'find'
+    }),
   },
   created() {
     this.findDevices();
     this.findTimeline();
     this.findGame();
+    this.findMetadata();
   },
   data: () => ({
     items: ['tiesto', 'aphex twin', 'kaskade'],

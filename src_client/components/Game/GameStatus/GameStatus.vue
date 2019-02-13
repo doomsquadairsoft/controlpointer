@@ -65,23 +65,35 @@ export default {
     gameId: {
       type: String,
       required: true
-    }
+    },
+    metadata: {
+      type: Array,
+      required: true
+    },
+    timeline: {
+      type: Array,
+      required: true
+    },
+    game: {
+      type: Array,
+      required: true
+    },
   },
   computed: {
     ...mapGetters([
       'devmode'
     ]),
-    ...mapGetters('metadata', {
-      findMetadataInStore: 'find'
-    }),
-    ...mapGetters('timeline', {
-      findTimelineInStore: 'find'
-    }),
-    ...mapGetters('game', {
-      findGameInStore: 'find'
-    }),
+    // ...mapGetters('metadata', {
+    //   findMetadataInStore: 'find'
+    // }),
+    // ...mapGetters('timeline', {
+    //   findTimelineInStore: 'find'
+    // }),
+    // ...mapGetters('game', {
+    //   findGameInStore: 'find'
+    // }),
     gameStatusChipText() {
-      if (isEmpty(this.latestMetadata)) return 'waiting';
+      if (isEmpty(this.latestMetadata)) return 'Ready to begin';
       return this.latestMetadata.gameStatus.msg;
     },
     rgtNice() {

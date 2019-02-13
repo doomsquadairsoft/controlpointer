@@ -1,28 +1,26 @@
 <template>
-  <div>
-    <doom-alert level="error" v-if="!myGame">
-      No game exists with this ID. Return to the <router-link to="/game">Games List</router-link>
-    </doom-alert>
-    <v-container v-if="myGame">
-      <v-layout>
+<div>
+  <doom-alert level="error" v-if="!myGame">
+    No game exists with this ID. Return to the <router-link to="/game">Games List</router-link>
+  </doom-alert>
+  <v-container v-if="myGame">
+    <v-layout>
 
-        <v-flex xs12 sm12 md8 lg5 xl2>
+      <v-flex xs12 sm12 md8 lg5 xl2>
 
-          <game-status
-            :gameId="myGame._id"
-          ></game-status>
+        <game-status :gameId="myGame._id"></game-status>
 
-          <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
-          <game-log :myTimeline="myTimeline"></game-log>
+        <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
+        <game-log :myTimeline="myTimeline"></game-log>
 
-          <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
-            <v-icon>keyboard_arrow_up</v-icon>
-          </v-btn>
+        <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+          <v-icon>keyboard_arrow_up</v-icon>
+        </v-btn>
 
-        </v-flex>
-      </v-layout>
-    </v-container>
-  </div>
+      </v-flex>
+    </v-layout>
+  </v-container>
+</div>
 </template>
 
 <script>
@@ -34,8 +32,17 @@ import GameLog from './GameLog/GameLog';
 import GameStatus from './GameStatus/GameStatus';
 import GameDevices from './GameDevices/GameDevices';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
-import { find, propEq, map, filter, last } from 'ramda';
-import { throttle } from 'lodash';
+import {
+  find,
+  propEq,
+  map,
+  filter,
+  last,
+  isEmpty,
+} from 'ramda';
+import {
+  throttle
+} from 'lodash';
 
 export default {
   name: 'Game',
@@ -58,6 +65,10 @@ export default {
       type: Array,
       required: true
     },
+    metadata: {
+      type: Array,
+      required: true
+    }
   },
   computed: {
     ...mapGetters([
@@ -68,14 +79,15 @@ export default {
       findMetadataInStore: 'find'
     }),
     myMetadata() {
-      return this.findMetadataInStore({
-        query: {
-          $sort: {
-            createdAt: 1
-          },
-          gameId: this.myGame._id
-        }
-      }).data
+      if (isEmpty(this.metadata)) return [];
+      const myGameFilter = (obj) => obj.gameId === this.myGame._id;
+      return filter(myGameFilter, this.metadata);
+      // return this.findMetadataInStore({
+      //   $sort: {
+      //     createdAt: 1
+      //   },
+      //   gameId: this.myGame._id
+      // }).data
     },
     latestMetadata() {
       return last(this.myMetadata);
@@ -128,7 +140,7 @@ export default {
     // },
   },
   created() {
-    this.findMetadata();
+    // this.findMetadata();
   }
   // watch: {
   //   myTimeline: 'updateMetadata',
