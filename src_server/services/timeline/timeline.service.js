@@ -1,24 +1,21 @@
 // Initializes the `messages` service on path `/messages`
-const createService = require('feathers-nedb');
-const createModel = require('../../models/timeline.model');
+const MongoClient = require('mongodb').MongoClient;
+const createService = require('feathers-mongodb');
 const hooks = require('./timeline.hooks');
 
 module.exports = function (app) {
-  const Model = createModel(app);
-  //const paginate = app.get('paginate');
 
-  const options = {
-    name: 'timeline',
-    Model,
-    //paginate
-  };
+  MongoClient.connect('mongodb://localhost:27017/feathers', { useNewUrlParser: true }).then(client => {
 
-  // Initialize our service with any options it requires
-  app.use('/timeline', createService(options));
+    // Initialize our service with any options it requires
+    app.use('/timeline', createService({
+      Model: client.db('feathers').collection('timeline')
+    }));
 
-  // Get our initialized service so that we can register hooks and filters
-  const service = app.service('timeline');
+    // Get our initialized service so that we can register hooks and filters
+    const service = app.service('timeline');
 
-  service.hooks(hooks);
+    service.hooks(hooks);
+  });
 
 };

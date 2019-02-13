@@ -1,24 +1,43 @@
 // Initializes the `messages` service on path `/messages`
-const createService = require('feathers-nedb');
-const createModel = require('../../models/metadata.model');
+const MongoClient = require('mongodb').MongoClient;
+const createService = require('feathers-mongodb');
 const hooks = require('./metadata.hooks');
 
 module.exports = function (app) {
-  const Model = createModel(app);
-  //const paginate = app.get('paginate');
 
   const options = {
-    name: 'metadata',
-    Model,
-    //paginate
+    validator: {
+      $jsonSchema: {
+        bsonType: "object",
+        required: [ "createdAt", "gameId", "metadata", "metadata.theAnswer" ],
+        properties: {
+          createdAt: {
+            bsonType: "int"
+          },
+          gameId: {
+            bsonType: "string"
+          },
+          metadata: {
+            bsonType: "array"
+          },
+          "metadata.theAnswer": {
+            bsonType: "int"
+          }
+        }
+      }
+    }
   };
 
-  // Initialize our service with any options it requires
-  app.use('/metadata', createService(options));
+  MongoClient.connect('mongodb://localhost:27017/feathers', { useNewUrlParser: true }).then(client => {
 
-  // Get our initialized service so that we can register hooks and filters
-  const service = app.service('metadata');
+    // Initialize our service with any options it requires
+    app.use('/metadata', createService({
+      Model: client.db('feathers').collection('metadata', options)
+    }));
 
-  service.hooks(hooks);
+    // Get our initialized service so that we can register hooks and filters
+    const service = app.service('metadata');
 
+    service.hooks(hooks);
+  });
 };
