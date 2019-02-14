@@ -28,6 +28,8 @@ module.exports = function (app) {
     }
   };
 
+  console.log(`HEY THERE\n\n\n\n\n\n\n\n\nHEY THERE!\n\nThe mongo url is ${app.get('mongoUrl')}. FUK YA!`)
+
   MongoClient.connect(app.get('mongoUrl'), { useNewUrlParser: true }).then(client => {
     // Initialize our service with any options it requires
     app.use('/devices', createService({
