@@ -22,8 +22,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
 
     const gameId = result._id;
     const includedDevices = result.includedDevices;
-    console.log(result);
-    console.log(`creating game ${gameId}. The game's associated devices are:${includedDevices}`);
 
 
     const deviceLookup = async (deviceId) => {
