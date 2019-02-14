@@ -16,12 +16,15 @@ const services = require('./services');
 const appHooks = require('./app.hooks');
 const channels = require('./channels');
 
+const config = require('config');
+
 //const authentication = require('./authentication');
 
 const app = express(feathers());
 
 // Load app configuration
 app.configure(configuration());
+app.set('mongoUrl', config.mongoUrl);
 // Enable CORS, security, compression, favicon and body parsing
 app.use(cors());
 app.use(helmet());

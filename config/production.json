@@ -7,6 +7,7 @@
     "max": 50
   },
   "nedb": "../data",
+  "mongoUrl": "MONGO_URL",
   "authentication": {
     "secret": "wehjihuwejr098w3ajfjf093j09fja09j3f9-aj3f9j39fja93jf9aj39fja938fj",
     "strategies": [
