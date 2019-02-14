@@ -9,7 +9,7 @@ module.exports = function (app) {
 
     // Initialize our service with any options it requires
     app.use('/messages', createService({
-      Model: client.db('feathers').collection('messages')
+      Model: client.db('hqdb').collection('messages')
     }));
 
     // Get our initialized service so that we can register hooks and filters

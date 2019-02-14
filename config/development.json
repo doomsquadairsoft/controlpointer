@@ -7,7 +7,7 @@
     "max": 50
   },
   "nedb": "../data",
-  "mongoUrl": "mongodb://localhost:27017/feathers",
+  "mongoUrl": "mongodb://localhost:27017/hqdb",
   "authentication": {
     "secret": "wehjihuwejr098w3ajfjf093j09fja09j3f9-aj3f9j39fja93jf9aj39fja938fj",
     "strategies": [

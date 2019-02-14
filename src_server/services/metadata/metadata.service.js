@@ -32,7 +32,7 @@ module.exports = function (app) {
 
     // Initialize our service with any options it requires
     app.use('/metadata', createService({
-      Model: client.db('feathers').collection('metadata', options)
+      Model: client.db('hqdb').collection('metadata', options)
     }));
 
     // Get our initialized service so that we can register hooks and filters

@@ -7,7 +7,7 @@ module.exports = function (app) {
   MongoClient.connect(app.get('mongoUrl'), { useNewUrlParser: true }).then(client => {
     // Initialize our service with any options it requires
     app.use('/events', createService({
-      Model: client.db('feathers').collection('events')
+      Model: client.db('hqdb').collection('events')
     }));
 
     // Get our initialized service so that we can register hooks and filters

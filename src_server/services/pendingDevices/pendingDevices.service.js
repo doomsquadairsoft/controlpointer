@@ -9,7 +9,7 @@ module.exports = function (app) {
 
     // Initialize our service with any options it requires
     app.use('/pdevices', createService({
-      Model: client.db('feathers').collection('pdevices')
+      Model: client.db('hqdb').collection('pdevices')
     }));
 
     // Get our initialized service so that we can register hooks and filters
