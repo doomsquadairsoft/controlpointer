@@ -66,6 +66,10 @@ export default {
     timeline: {
       type: Array,
       required: true
+    },
+    metadata: {
+      type: Array,
+      required: true
     }
   },
   computed: {
@@ -77,15 +81,9 @@ export default {
       findMetadataInStore: 'find'
     }),
     myMetadata() {
-      // if (isEmpty(this.metadata)) return [];
-      // const myGameFilter = (obj) => obj.gameId === this.myGame._id;
-      // return filter(myGameFilter, this.metadata);
-      return this.findMetadataInStore({
-        $sort: {
-          createdAt: 1
-        },
-        gameId: this.myGame._id
-      }).data
+      if (isEmpty(this.metadata)) return [];
+      const md = filter(propEq('gameId', this.gameIdViaRoute))(this.metadata);
+      return md;
     },
     latestMetadata() {
       return last(this.myMetadata);
@@ -111,13 +109,14 @@ export default {
       return this.metadata.remainingGameTime;
     },
     myGame() {
-      const gameIdViaRoute = this.$route.params.gameId;
-      const mg = find(propEq('_id', gameIdViaRoute))(this.game);
+      const mg = find(propEq('_id', this.gameIdViaRoute))(this.game);
       return mg;
     },
+    gameIdViaRoute() {
+      return this.$route.params.gameId;
+    },
     myTimeline() {
-      const gameIdViaRoute = this.$route.params.gameId;
-      const mt = filter(propEq('gameId', gameIdViaRoute))(this.timeline);
+      const mt = filter(propEq('gameId', this.gameIdViaRoute))(this.timeline);
       return mt;
     },
     includedDevices() {
