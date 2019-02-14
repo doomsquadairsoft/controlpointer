@@ -4,7 +4,7 @@ const createService = require('feathers-mongodb');
 const hooks = require('./events.hooks');
 
 module.exports = function (app) {
-  MongoClient.connect('mongodb://localhost:27017/feathers', { useNewUrlParser: true }).then(client => {
+  MongoClient.connect(app.get('mongoUrl'), { useNewUrlParser: true }).then(client => {
     // Initialize our service with any options it requires
     app.use('/events', createService({
       Model: client.db('feathers').collection('events')
