@@ -7,7 +7,7 @@
           <v-icon>arrow_downward</v-icon>Scroll to bottom
         </v-btn>
         <v-btn color="purple" small :to="postgameRoute">
-          <v-icon>assignment</v-icon>View Postgame Report
+          <v-icon>assignment</v-icon>Postgame Report
         </v-btn>
         <v-btn color="green" small @click="goToMap">
           <v-icon>satellite</v-icon>Map

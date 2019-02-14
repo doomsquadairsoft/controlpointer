@@ -7,6 +7,7 @@
     <v-layout>
 
       <v-flex xs12 sm12 md8 lg5 xl2>
+        <h1>{{ myGame.gameName }}</h1>
 
         <game-status :timeline="timeline" :myMetadata="myMetadata" :game="game" :myGame="myGame" :gameId="myGame._id"></game-status>
 
@@ -16,6 +17,7 @@
         <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
           <v-icon>keyboard_arrow_up</v-icon>
         </v-btn>
+
 
       </v-flex>
     </v-layout>
