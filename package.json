@@ -28,6 +28,7 @@
     "@feathersjs/errors": "^3.3.6",
     "@feathersjs/express": "^1.3.1",
     "@feathersjs/socketio": "^3.2.9",
+    "@feathersjs/feathers": "^3.3.1",
     "bluebird": "^3.5.3",
     "chai": "^4.2.0",
     "chalk": "^2.4.2",
@@ -58,7 +59,6 @@
   ],
   "devDependencies": {
     "@feathersjs/authentication-client": "^1.0.11",
-    "@feathersjs/feathers": "^3.3.1",
     "@feathersjs/socketio-client": "^1.2.1",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
