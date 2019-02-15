@@ -195,6 +195,12 @@ export default {
         }, {});
         this.$refs.form.reset();
         this.isDeviceCreated = true;
+
+        // clear the query params which may fill in the fields if left alone
+        this.$router.replace({
+          path: '/device',
+          query: {}
+        });
       }
       this.$vuetify.goTo('#create-device-header');
     },
