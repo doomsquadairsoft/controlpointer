@@ -41,3 +41,5 @@ If you have used and enjoy this code base, I'd love to hear from you!
   * [Duion](https://opengameart.org/users/duion) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
   * [marionline](https://opengameart.org/users/marionline) for [CC0](https://creativecommons.org/choose/zero/) graphics assets
   * [DSEG](https://www.keshikan.net/fonts-e.html) [SIL Open Font License 1.1.](http://scripts.sil.org/OFL) font
+  * [signal](https://thenounproject.com/term/signal/41314/) by [Garrett Knoll](https://thenounproject.com/g_a.k_/) from the Noun Project
+  * [megaphone_loud_hailer_loud.jpg](https://free-images.com/display/megaphone_loud_hailer_loud.html) [CC0](https://creativecommons.org/choose/zero/)
