@@ -3,13 +3,15 @@
     <div>
 
       <v-flex> <!-- timeline flex -->
-        <h5>Stats</h5>
+        <h3>Stats</h3>
         <ul>
-          <li>Name: {{ name }}</li>
           <li>DID: {{ did }}</li>
+          <li>Description: {{ description }}</li>
           <li>createdAt: {{ createdAt | formatDate }}</li>
           <li>Latitude: {{ lat }}</li>
           <li>Longitude: {{ lng }}</li>
+          <li>Address64: {{ address64 }}</li>
+          <li>RSSI: {{ rssi }}</li>
           <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link>, </template></li>
           <li>{{ associatedGames }}</li>
           <li>_id: {{ _id }}</li>
@@ -56,8 +58,10 @@ export default {
     lat() { return this.myDevice.latLng.lat },
     lng() { return this.myDevice.latLng.lng },
     _id() { return this.myDevice._id },
-    name() { return this.myDevice.name },
-    associatedGames() { return this.myDevice.associatedGames }
+    description() { return this.myDevice.description },
+    associatedGames() { return this.myDevice.associatedGames },
+    rssi() { return this.myDevice.rssi },
+    address64() { return this.myDevice.address64 },
   },
   methods: {
     ...mapActions('devices', {

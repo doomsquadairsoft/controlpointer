@@ -15,6 +15,7 @@ import DeviceList from '@/components/DeviceList/DeviceList';
 import Device from '@/components/Device/Device';
 import Controlpoint from '@/components/ControlPoint/ControlPoint';
 
+
 Vue.use(Router);
 
 export default new Router({
@@ -78,6 +79,6 @@ export default new Router({
       path: '/controlpoint',
       name: 'ControlPointList',
       component: ControlPointList
-    }
+    },
   ]
 })

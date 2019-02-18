@@ -1,6 +1,6 @@
 const R = require('ramda');
 const faker = require('faker');
-
+const types = require('../../src_shared/types');
 
 // greets https://stackoverflow.com/a/7228322/1004931
 
@@ -24,7 +24,8 @@ const isntEmpty = R.compose(R.not(), R.isEmpty());
 const isSectorControl = R.equals('sectorControl');
 const isGte0 = R.gte(R.__, 0);
 const isLte100 = R.lte(R.__, 100);
-
+const isLength16 = R.compose(R.equals(16), R.length());
+const isDeviceType = R.includes(R.__, types.devices);
 
 module.exports = {
   randomIntFromInterval,
@@ -43,4 +44,6 @@ module.exports = {
   isSectorControl,
   isGte0,
   isLte100,
+  isLength16,
+  isDeviceType,
 }

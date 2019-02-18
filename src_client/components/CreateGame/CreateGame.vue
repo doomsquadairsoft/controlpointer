@@ -8,7 +8,7 @@
         </v-flex>
         <v-flex xs12>
           <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
-          <doom-alert v-if="isGameCreated" level="info">Game created. <router-link :to="this.latestGame.link">{{ this.latestGame.gameName }}</router-link></doom-alert>
+          <doom-alert v-if="isGameCreated" level="info">Game created. <router-link :to="this.latestGame.link">{{ this.latestGame.name }}</router-link></doom-alert>
         </v-flex>
       </v-layout>
   </v-card-title>

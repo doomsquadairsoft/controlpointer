@@ -154,7 +154,7 @@ export default {
     },
     deleteDevice: function() {
       if (this.deletable) {
-        this.removeDevice(this._id)
+        this.removeDevice(this._id);
       }
     },
     showEditor: function() {

@@ -1,13 +1,13 @@
 <template>
   <div class="DeviceControls">
-    <v-container>
-      <v-layout row wrap justify-center>
+    <v-container mt-2 mb-4 pa-0 style="width:100%;">
+      <v-layout row wrap text-xs-center>
         <v-flex>
           <v-btn icon color="cyan" @click="goToVirtualControlpoint()">
             <v-icon>fingerprint</v-icon>
           </v-btn>
         </v-flex>
-        <v-flex>
+        <v-flex justify-center>
           <v-btn icon color="blue" @click="changeControllingTeam('blu')">
             <v-icon>star</v-icon>
           </v-btn>

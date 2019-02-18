@@ -9,26 +9,39 @@ module.exports = function (app) {
     validator: {
       $jsonSchema: {
         bsonType: "object",
-        required: [ "name", "did", "createdAt", "latLng", "associatedGames" ],
+        required: [ "did", "createdAt", "latLng", "associatedGames", "type" ],
         properties: {
-          createdAt: {
-            bsonType: "int"
-          },
-          did: {
+          "description": {
             bsonType: "string"
           },
-          latLng: {
+          "createdAt": {
+            bsonType: "int"
+          },
+          "did": {
+            bsonType: "string"
+          },
+          "latLng": {
             bsonType: "object"
           },
           "associatedGames": {
             bsonType: "array"
+          },
+          "address64": {
+            bsonType: "string"
+          },
+          "rssi": {
+            bsonType: "int"
+          },
+          "batt": {
+            bsonType: "int"
+          },
+          "type": {
+            bsonType: "string"
           }
         }
       }
     }
   };
-
-  console.log(`HEY THERE\n\n\n\n\n\n\n\n\nHEY THERE!\n\nThe mongo url is ${app.get('mongoUrl')}. FUK YA!`)
 
   MongoClient.connect(app.get('mongoUrl'), { useNewUrlParser: true }).then(client => {
     // Initialize our service with any options it requires

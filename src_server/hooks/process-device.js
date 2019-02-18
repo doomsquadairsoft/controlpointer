@@ -16,10 +16,10 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       R.always(h.randomName())
     )(context.data.did);
 
-    const name = R.ifElse(
+    const description = R.ifElse(
       R.allPass([h.isSmall, h.isString, h.isntEmpty]),
       R.identity(),
-      R.always(h.randomColorName())
+      R.always('')
     )(context.data.name);
 
     const latLng = R.ifElse(
@@ -46,12 +46,38 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       R.always([])
     )(context.data.associatedGames);
 
+    const address64 = R.ifElse(
+      R.allPass([h.isString, h.isLength16]),
+      R.identity(),
+      R.always('UNVALIDs')
+    )(context.data.address64);
+
+    const rssi = R.ifElse(
+      R.allPass([h.isNumber]),
+      R.identity(),
+      R.always(undefined)
+    )(context.data.rssi);
+
+    const batt = R.ifElse(
+      R.allPass([h.isNumber]),
+      R.identity(),
+      R.always(undefined)
+    )(context.data.batt);
+
+    const type = R.ifElse(
+      R.allPass([h.isString, h.isDeviceType]),
+      R.identity(),
+      R.always(defaults.deviceType)
+    )(context.data.type);
 
     // Override the original data (so that people can't submit additional stuff)
     context.data = {
-      name,
       did,
+      rssi,
+      batt,
       latLng,
+      address64,
+      description,
       redProgress,
       bluProgress,
       associatedGames,

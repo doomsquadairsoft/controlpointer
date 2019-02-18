@@ -8,7 +8,7 @@
         </v-flex>
         <v-flex xs12>
           <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
-          <doom-alert v-if="isDeviceCreated" level="info">D3VICE created. <router-link :to="this.latestDevice.link">{{ this.latestDevice.name }}</router-link></doom-alert>
+          <doom-alert v-if="isDeviceCreated" level="info">D3VICE created. <router-link :to="this.latestDevice.link">{{ this.latestDevice.did }}</router-link></doom-alert>
         </v-flex>
       </v-layout>
   </v-card-title>
@@ -16,22 +16,42 @@
   <div>
     <v-form ref="form">
       <v-container>
+
         <v-layout row wrap>
           <v-flex xs12>
-            <v-text-field v-model.trim="nameInput" label="Name your D3VICE">
+            <v-select
+              @change="doSelectType"
+              :items="deviceTypes"
+              label="D3VICE Type"
+              target="#dropdown-example"
+            ></v-select>
+          </v-flex>
+        </v-layout>
+
+        <v-layout v-if="selectedType" row wrap>
+          <v-flex xs12>
+            <v-text-field required v-model.trim="didInput" label="Device ID">
             </v-text-field>
           </v-flex>
         </v-layout>
 
-        <v-layout row wrap>
+        <v-layout v-if="is2bDevice" row wrap>
           <v-flex xs12>
-            <v-text-field required v-model.trim="didInput" label="Enter your Device ID">
+            <v-text-field required v-model.trim="address64Input" label="Address64">
+            </v-text-field>
+          </v-flex>
+        </v-layout>
+
+        <v-layout v-if="isDescribableDevice" row wrap>
+          <v-flex xs12>
+            <v-text-field v-model.trim="descriptionInput" label="D3VICE Description">
             </v-text-field>
           </v-flex>
         </v-layout>
 
 
-        <v-layout column wrap>
+
+        <v-layout v-if="isMappableDevice" column wrap>
           <v-flex>
             <h2>Map Coordinates</h2>
           </v-flex>
@@ -79,6 +99,7 @@ import {
   mapGetters
 } from 'vuex'
 
+import { test } from 'ramda';
 import store from '@/store';
 import moment from 'moment';
 import 'moment-duration-format';
@@ -90,9 +111,15 @@ import { last } from 'ramda';
 // greetz https://stackoverflow.com/a/18690202/1004931
 const latRegex = helpers.regex('latitude', /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/);
 const lngRegex = helpers.regex('longitute', /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/);
+const didRegex = /^\d-\w+/;
+const address64Regex = /^[0-9a-fA-F]{16}$/;
+const deviceType2BRegex = /^8-\w+/;
+const deviceTypeVirtualRegex = /^9-\w+/;
+const deviceTypeZeroRegex = /^0-\w+/;
 import di from '@/assets/futuristic_ammo_box_01.png';
 import baseball from '@/assets/baseball-marker.png';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
+
 
 export default {
   name: 'CreateDevice',
@@ -101,18 +128,33 @@ export default {
   },
   data() {
     return {
-      nameInput: '',
+      deviceTypes: [
+        { value: '2b', text: 'Two Button (Physical)'},
+        { value: 'virt2b', text: 'Two Button (Virtual)'},
+        { value: 'pa', text: 'Public Address'},
+      ],
+      descriptionInput: '',
       didInput: '',
       latInput: '',
       lngInput: '',
+      address64Input: '',
       gameId: null,
       isValidationError: false,
       isDeviceCreated: false,
       defaultLat: 47.658779,
       defaultLng: -117.426048,
+      selectedType: ''
     }
   },
   validations: {
+    address64Input: {
+      required,
+      address64Regex
+    },
+    didInput: {
+      required,
+      didRegex
+    },
     latInput: {
       required,
       latRegex
@@ -120,11 +162,14 @@ export default {
     lngInput: {
       required,
       lngRegex
-    }
+    },
+    type2b: ['didInput', 'latInput', 'lngInput', 'address64Input'],
+    typeVirtual: ['didInput', 'latInput', 'lngInput'],
+    typePa: ['didInput']
   },
   created() {
     this.findDevices();
-    this.nameInput = this.$route.query.name;
+    this.descriptionInput = this.$route.query.description;
     this.didInput = this.$route.query.did;
     this.latInput = this.$route.query.lat;
     this.lngInput = this.$route.query.lng;
@@ -134,6 +179,21 @@ export default {
       findDevicesInStore: 'find'
     }),
     deviceImage: () => di,
+    is2bDevice() {
+      return (this.selectedType === '2b') ? true : false;
+    },
+    isVirtual2bDevice() {
+      return (this.selectedType === 'virt2b') ? true : false;
+    },
+    isPaDevice() {
+      return (this.selectedType === 'pa') ? true : false;
+    },
+    isDescribableDevice() {
+      return (this.is2bDevice || this.isVirtual2bDevice) ? true : false;
+    },
+    isMappableDevice() {
+      return (this.is2bDevice || this.isVirtual2bDevice || this.isPaDevice) ? true : false;
+    },
     devices() {
       return this.findDevicesInStore({
         query: {
@@ -148,7 +208,7 @@ export default {
       if (typeof d === 'undefined') return {};
       return {
         link: `/device/${d._id}`,
-        name: d.name || 'link'
+        did: d.did || 'link'
       };
     },
     latErrors() {
@@ -182,6 +242,10 @@ export default {
     dirtyLng() {
       this.$v.lngInput.$touch();
     },
+    doSelectType(selection) {
+      console.log(`selection:${selection}`);
+      this.selectedType = selection;
+    },
     doCreateDevice() {
       if (this.$v.$invalid) {
         this.$v.$touch();
@@ -189,8 +253,9 @@ export default {
       } else {
         this.isValidationError = false;
         this.createDevice({
-          name: this.nameInput,
           did: this.didInput,
+          description: this.descriptionInput,
+          address64: this.address64Input,
           latLng: { lat: this.latInput, lng: this.lngInput },
         }, {});
         this.$refs.form.reset();
@@ -211,7 +276,7 @@ export default {
     doChooseCoords() {
       const address = `/map/chooser`;
       const q = {
-        name: this.nameInput,
+        description: this.descriptionInput,
         did: this.didInput
       };
       this.$router.push({

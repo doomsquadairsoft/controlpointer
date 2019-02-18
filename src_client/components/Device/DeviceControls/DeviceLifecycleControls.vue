@@ -2,7 +2,7 @@
   <div class="DeviceLifecycleControls">
     <v-flex shrink>
       <doom-alert v-if="!isDeletable" level="info">Disassociate this device from all games to enable deletion.</doom-alert>
-      <v-btn :disabled="!isDeletable" icon color="grey" @click="removeDevice(_id)">
+      <v-btn :disabled="!isDeletable" color="grey" @click="deleteDevice">
         <v-icon>delete_forever</v-icon>
       </v-btn>
     </v-flex>
@@ -37,7 +37,14 @@ export default {
   methods: {
     ...mapActions('devices', {
       removeDevice: 'remove'
-    })
+    }),
+    deleteDevice() {
+      this.removeDevice(this._id);
+      this.$router.push({
+        path: '/device',
+        query: {}
+      });
+    }
   }
 }
 </script>
