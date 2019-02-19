@@ -1,7 +1,7 @@
 <template>
 <v-container class="pa-0 pt-3">
   <v-card class="e4">
-    <v-card-media height="200px" :src="settingsImage">
+    <v-img height="200px" :src="settingsImage">
       <v-container fill-height fluid>
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
@@ -9,7 +9,7 @@
           </v-flex>
         </v-layout>
       </v-container>
-    </v-card-media>
+    </v-img>
     <v-card-text>
       <v-container fluid grid-list-lg>
         <v-layout row wrap>
