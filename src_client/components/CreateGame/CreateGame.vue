@@ -7,7 +7,7 @@
           <span class="headline">Create Game</span>
         </v-flex>
         <v-flex xs12>
-          <doom-alert v-if="isValidationError" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
+          <doom-alert v-if="isNotifyingInvalid" level="error">Invalid Input. Fix errors below then try again.</doom-alert>
           <doom-alert v-if="isGameCreated" level="info">Game created. <router-link :to="this.latestGame.link">{{ this.latestGame.name }}</router-link></doom-alert>
         </v-flex>
       </v-layout>
@@ -79,8 +79,8 @@
                 </v-list-tile-action>
 
                 <v-list-tile-content>
-                  <v-list-tile-title>{{ d.name }}</v-list-tile-title>
-                  <v-list-tile-sub-title>D3VICE {{d.did}}</v-list-tile-sub-title>
+                  <v-list-tile-title>{{ d.did }}</v-list-tile-title>
+                  <v-list-tile-sub-title>{{d.description ? d.description : d._id}}</v-list-tile-sub-title>
                 </v-list-tile-content>
 
               </v-list-tile>
@@ -138,7 +138,6 @@ export default {
       defaultGameLength: '00:15:00',
       defaultCaptureRate: '00:00:05',
       gameId: null,
-      isValidationError: false,
       isGameCreated: false,
       includedDevices: [],
     }
@@ -167,6 +166,10 @@ export default {
       findGame: 'find'
     }),
     deviceImage: () => di,
+    isNotifyingInvalid() {
+      if (this.$v.$invalid && this.$v.$dirty) return true;
+      return false;
+    },
     game() {
       return this.findGame({
         query: {
@@ -224,9 +227,7 @@ export default {
     doCreateGame() {
       if (this.$v.$invalid) {
         this.$v.$touch();
-        this.isValidationError = true;
       } else {
-        this.isValidationError = false;
         this.isGameCreated = true;
         this.createGame({
           gameLength: this.gameLength,
