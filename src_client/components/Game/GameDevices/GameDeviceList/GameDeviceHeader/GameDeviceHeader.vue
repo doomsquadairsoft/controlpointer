@@ -70,7 +70,7 @@ export default {
     batteryIcon() {
       const batt = this.myDevice.batt;
       if (!batt) return 'battery_unknown';
-      if (batt < 10) return 'battery_alert';
+      if (batt < 5.7) return 'battery_alert';
       return 'battery_std';
     },
     wifiIcon() {
@@ -81,9 +81,9 @@ export default {
     batteryColor() {
       const batt = this.myDevice.batt;
       if (!batt) return 'grey'
-      if (batt < 10) return 'red';
-      if (batt < 33) return 'orange';
-      if (batt < 66) return 'yellow';
+      if (batt < 5.7) return 'red';
+      if (batt < 6.2) return 'orange';
+      if (batt < 6.8) return 'yellow';
       return 'green';
     },
     signalIcon(rssi) {

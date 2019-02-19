@@ -12,6 +12,7 @@
           <li>Longitude: {{ lng }}</li>
           <li>Address64: {{ address64 }}</li>
           <li>RSSI: {{ rssi }}</li>
+          <li>Battery: {{ batt }}</li>
           <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link>, </template></li>
           <li>{{ associatedGames }}</li>
           <li>_id: {{ _id }}</li>
@@ -61,6 +62,7 @@ export default {
     description() { return this.myDevice.description },
     associatedGames() { return this.myDevice.associatedGames },
     rssi() { return this.myDevice.rssi },
+    batt() { return this.myDevice.batt },
     address64() { return this.myDevice.address64 },
   },
   methods: {
