@@ -15,7 +15,7 @@
             <v-flex mb-4>{{ desc }}</v-flex>
             <v-flex><h6>Associated Games</h6></v-flex>
             <v-flex>
-              <v-chip v-for="g in myDevice.associatedGames">{{ gameIdToTitle(g) }}</v-chip>
+              <v-chip v-for="(g, idx) in myDevice.associatedGames" :key="idx">{{ gameIdToTitle(g) }}</v-chip>
             </v-flex>
           </v-layout>
         </v-container>

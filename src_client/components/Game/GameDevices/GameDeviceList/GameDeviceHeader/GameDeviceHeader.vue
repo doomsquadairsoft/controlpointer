@@ -62,12 +62,10 @@ export default {
     wifiColor() {
       const rssi = this.myDevice.rssi;
       if (!rssi) return 'grey'
-      if (rssi < -50) return 'red';
-      if (rssi < -40) return 'orange';
-      if (rssi < -30) return 'yellow';
-      if (rssi < -20) return 'green';
-      if (rssi < -10) return 'lime';
-      return 'blue'
+      if (rssi < -70) return 'red';
+      if (rssi < -60) return 'orange';
+      if (rssi < -50) return 'yellow';
+      return 'green';
     },
     batteryIcon() {
       const batt = this.myDevice.batt;
@@ -78,7 +76,7 @@ export default {
     wifiIcon() {
       const rssi = this.myDevice.rssi;
       if (!rssi) return 'signal_wifi_off'
-      return 'wifi'
+      return 'wifi';
     },
     batteryColor() {
       const batt = this.myDevice.batt;
