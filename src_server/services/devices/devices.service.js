@@ -33,7 +33,7 @@ module.exports = function (app) {
             bsonType: "int"
           },
           "batt": {
-            bsonType: "int"
+            bsonType: "decimal"
           },
           "type": {
             bsonType: "string"
