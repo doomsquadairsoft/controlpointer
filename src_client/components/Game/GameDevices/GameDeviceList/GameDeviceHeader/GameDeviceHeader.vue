@@ -13,6 +13,13 @@
   </v-flex>
   <v-flex pa-1 shrink>
     <v-badge right>
+      <v-icon :color="heartColor">
+        favorite
+      </v-icon>
+    </v-badge>
+  </v-flex>
+  <v-flex pa-1 shrink>
+    <v-badge right>
       <v-icon :color="wifiColor">
         {{ wifiIcon }}
       </v-icon>
@@ -29,6 +36,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import signal5 from '@/assets/signal_5.svg';
 import signal4 from '@/assets/signal_4.svg';
 import signal3 from '@/assets/signal_3.svg';
@@ -51,6 +59,9 @@ export default {
       required: true
     }
   },
+  data: () => ({
+    heartCheckCounter: 0
+  }),
   computed: {
     signal5Image: () => signal5,
     signal4Image: () => signal4,
@@ -59,6 +70,25 @@ export default {
     signal1Image: () => signal1,
     signal0Image: () => signal0,
     signalEImage: () => signalE,
+    msSinceLastXbeeUpdate() {
+      const lastXbeeUpdate = moment(this.myDevice.xbeeUpdatedAt);
+      const delta = moment.duration(now.diff(lastXbeeUpdate)).valueOf();
+      return delta;
+    },
+    heartColor() {
+      // return progressively greyer colours as the time from last update increases
+      this.heartCheckCounter; // this forces updates every 3 seconds;
+      const delta = moment().valueOf() - this.myDevice.xbeeUpdatedAt;
+      const smDuration = moment.duration(2, 'seconds');
+      const mdDuration = moment.duration(20, 'seconds');
+      const lgDuration = moment.duration(1, 'minutes');
+      const xlDuration = moment.duration(2, 'minutes');
+      if (delta > xlDuration.valueOf()) return 'black';
+      if (delta > lgDuration.valueOf()) return 'gray';
+      if (delta > mdDuration.valueOf()) return 'pink lighten-5';
+      if (delta > smDuration.valueOf()) return 'pink lighten-2';
+      return 'pink';
+    },
     wifiColor() {
       const rssi = this.myDevice.rssi;
       if (!rssi) return 'grey'
@@ -81,7 +111,7 @@ export default {
     batteryColor() {
       const batt = this.myDevice.batt;
       if (!batt) return 'grey'
-      if (batt < 5.7) return 'red';
+      if (batt < 6.0) return 'red';
       if (batt < 6.2) return 'orange';
       if (batt < 6.8) return 'yellow';
       return 'green';
@@ -97,6 +127,21 @@ export default {
       return this.signal5Image;
     }
   },
+  methods: {
+    now() {
+      const now = moment();
+      return now.valueOf();
+    },
+    tick() {
+      this.heartCheckCounter ++;
+    }
+  },
+  created() {
+    this.tickInterval = setInterval(this.tick, 5000);
+  },
+  beforeDestroy() {
+    clearInterval(this.tickInterval);
+  }
 }
 </script>
 

@@ -8,6 +8,7 @@
           <li>DID: {{ did }}</li>
           <li>Description: {{ description }}</li>
           <li>createdAt: {{ createdAt | formatDate }}</li>
+          <li>xbeeUpdatedAt: {{ xbeeUpdatedAt | formatDateSeconds }}</li>
           <li>Latitude: {{ lat }}</li>
           <li>Longitude: {{ lng }}</li>
           <li>Address64: {{ address64 }}</li>
@@ -64,6 +65,7 @@ export default {
     rssi() { return this.myDevice.rssi },
     batt() { return this.myDevice.batt },
     address64() { return this.myDevice.address64 },
+    xbeeUpdatedAt() { return this.myDevice.xbeeUpdatedAt },
   },
   methods: {
     ...mapActions('devices', {

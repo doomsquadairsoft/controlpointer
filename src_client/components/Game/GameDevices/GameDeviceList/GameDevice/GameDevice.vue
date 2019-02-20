@@ -79,13 +79,6 @@ export default {
       }
       return description;
     },
-    signal5Image: () => signal5,
-    signal4Image: () => signal4,
-    signal3Image: () => signal3,
-    signal2Image: () => signal2,
-    signal1Image: () => signal1,
-    signal0Image: () => signal0,
-    signalEImage: () => signalE,
     deviceImage() {
       const type = this.myDevice.type;
       if (type === '2b') return device2bImage;
@@ -93,45 +86,6 @@ export default {
       if (type === 'pa') return devicePaImage;
       return di;
     },
-    wifiColor() {
-      const rssi = this.myDevice.rssi;
-      if (!rssi) return 'grey'
-      if (rssi < -50) return 'red';
-      if (rssi < -40) return 'orange';
-      if (rssi < -30) return 'yellow';
-      if (rssi < -20) return 'green';
-      if (rssi < -10) return 'lime';
-      return 'blue'
-    },
-    batteryIcon() {
-      const batt = this.myDevice.batt;
-      if (!batt) return 'battery_unknown';
-      if (batt < 10) return 'battery_alert';
-      return 'battery_std';
-    },
-    wifiIcon() {
-      const rssi = this.myDevice.rssi;
-      if (!rssi) return 'signal_wifi_off'
-      return 'wifi'
-    },
-    batteryColor() {
-      const batt = this.myDevice.batt;
-      if (!batt) return 'grey'
-      if (batt < 10) return 'red';
-      if (batt < 33) return 'orange';
-      if (batt < 66) return 'yellow';
-      return 'green';
-    },
-    signalIcon(rssi) {
-      console.log(`rssi:${rssi} ${typeof rssi}`)
-      if (!rssi) return this.signal0Image;
-      if (rssi < -50) return this.signal0Image;
-      if (rssi < -40) return this.signal1Image;
-      if (rssi < -30) return this.signal5Image;
-      if (rssi < -20) return this.signal3Image;
-      if (rssi < -10) return this.signal4Image;
-      return this.signal5Image;
-    }
   },
 }
 </script>

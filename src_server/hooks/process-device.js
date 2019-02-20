@@ -70,6 +70,12 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       R.always(defaults.deviceType)
     )(context.data.type);
 
+    const xbeeUpdatedAt = R.ifElse(
+      R.allPass([]),
+      R.identity(),
+      R.always(defaults.xbeeUpdatedAt)
+    )(context.data.xbeeUpdatedAt);
+
     // Override the original data (so that people can't submit additional stuff)
     context.data = {
       did,
@@ -81,6 +87,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       redProgress,
       bluProgress,
       associatedGames,
+      xbeeUpdatedAt,
       createdAt: new Date().getTime()
     };
 

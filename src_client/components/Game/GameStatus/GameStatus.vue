@@ -192,12 +192,9 @@ export default {
     },
   },
   created() {
-    // this.findTimeline();
-    // this.findGame();
-    // this.findMetadata();
     this.tickInterval = setInterval(this.tick, 1000);
   },
-  beforeDestroy () {
+  beforeDestroy() {
     clearInterval(this.tickInterval);
   }
 }

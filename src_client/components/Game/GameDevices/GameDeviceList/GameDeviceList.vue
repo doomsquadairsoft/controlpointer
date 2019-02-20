@@ -17,7 +17,7 @@
 
 <script>
 // import GameDevice from './GameDevice/GameDevice';
-//import R from 'ramda';
+// import R from 'ramda';
 import di from '@/assets/futuristic_ammo_box_01.png';
 
 import {

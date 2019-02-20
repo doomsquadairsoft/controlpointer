@@ -37,6 +37,9 @@ module.exports = function (app) {
           },
           "type": {
             bsonType: "string"
+          },
+          "xbeeUpdatedAt": {
+            bsonType: "date"
           }
         }
       }

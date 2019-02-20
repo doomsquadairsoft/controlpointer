@@ -7,3 +7,9 @@ Vue.filter('formatDate', function(value) {
     return moment(String(value), 'x').format('MM/DD/YYYY hh:mm')
   }
 })
+
+Vue.filter('formatDateSeconds', function(value) {
+  if (value) {
+    return moment(String(value), 'x').format('MM/DD/YYYY hh:mm:ss')
+  }
+})
