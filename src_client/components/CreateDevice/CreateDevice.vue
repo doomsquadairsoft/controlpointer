@@ -22,22 +22,23 @@
             <v-select
               @change="doSelectType"
               :items="deviceTypes"
+              :value="typeInput"
               label="D3VICE Type"
               target="#dropdown-example"
             ></v-select>
           </v-flex>
         </v-layout>
 
-        <v-layout v-if="selectedType" row wrap>
+        <v-layout v-if="typeInput" row wrap>
           <v-flex xs12>
-            <v-text-field required v-model.trim="didInput" label="Device ID">
+            <v-text-field @focusout="dirtyDid" required v-model.trim="didInput" :error-messages="didErrors"  label="Device ID">
             </v-text-field>
           </v-flex>
         </v-layout>
 
         <v-layout v-if="is2bDevice" row wrap>
           <v-flex xs12>
-            <v-text-field required v-model.trim="address64Input" label="Address64">
+            <v-text-field @focusout="dirtyAddress64" required v-model.trim="address64Input" :error-messages="address64Errors" label="Address64">
             </v-text-field>
           </v-flex>
         </v-layout>
@@ -99,27 +100,28 @@ import {
   mapGetters
 } from 'vuex'
 
-import { test } from 'ramda';
+import { test, find, propEq } from 'ramda';
 import store from '@/store';
 import moment from 'moment';
 import 'moment-duration-format';
 import {
   helpers,
-  required
+  required,
+  alphaNum,
+  minLength
 } from 'vuelidate/lib/validators'
 import { last } from 'ramda';
 // greetz https://stackoverflow.com/a/18690202/1004931
 const latRegex = helpers.regex('latitude', /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$/);
 const lngRegex = helpers.regex('longitute', /^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/);
-const didRegex = /^\d-\w+/;
-const address64Regex = /^[0-9a-fA-F]{16}$/;
-const deviceType2BRegex = /^8-\w+/;
-const deviceTypeVirtualRegex = /^9-\w+/;
-const deviceTypeZeroRegex = /^0-\w+/;
+const address64Regex = helpers.regex('address64', /^[0-9a-fA-F]{16}$/);
+const deviceType2BRegex = helpers.regex('type2b', /^8-\w+/);
+const deviceTypeVirtualRegex = helpers.regex('typeVirtual', /^9-\w+/);
+const deviceTypeZeroRegex = helpers.regex('typeZero', /^0-\w+/);
 import di from '@/assets/futuristic_ammo_box_01.png';
 import baseball from '@/assets/baseball-marker.png';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
-
+import VueScrollTo from 'vue-scrollto';
 
 export default {
   name: 'CreateDevice',
@@ -143,7 +145,7 @@ export default {
       isDeviceCreated: false,
       defaultLat: 47.658779,
       defaultLng: -117.426048,
-      selectedType: ''
+      typeInput: ''
     }
   },
   validations: {
@@ -153,7 +155,7 @@ export default {
     },
     didInput: {
       required,
-      didRegex
+      minLength: minLength(1)
     },
     latInput: {
       required,
@@ -163,6 +165,9 @@ export default {
       required,
       lngRegex
     },
+    typeInput: {
+      required,
+    },
     type2b: ['didInput', 'latInput', 'lngInput', 'address64Input'],
     typeVirtual: ['didInput', 'latInput', 'lngInput'],
     typePa: ['didInput']
@@ -170,9 +175,11 @@ export default {
   created() {
     this.findDevices();
     this.descriptionInput = this.$route.query.description;
+    this.address64Input = this.$route.query.address64;
     this.didInput = this.$route.query.did;
     this.latInput = this.$route.query.lat;
     this.lngInput = this.$route.query.lng;
+    this.typeInput = this.$route.query.type;
   },
   computed: {
     ...mapGetters('devices', {
@@ -180,13 +187,13 @@ export default {
     }),
     deviceImage: () => di,
     is2bDevice() {
-      return (this.selectedType === '2b') ? true : false;
+      return (this.typeInput === '2b') ? true : false;
     },
     isVirtual2bDevice() {
-      return (this.selectedType === 'virt2b') ? true : false;
+      return (this.typeInput === 'virt2b') ? true : false;
     },
     isPaDevice() {
-      return (this.selectedType === 'pa') ? true : false;
+      return (this.typeInput === 'pa') ? true : false;
     },
     isDescribableDevice() {
       return (this.is2bDevice || this.isVirtual2bDevice) ? true : false;
@@ -211,11 +218,23 @@ export default {
         did: d.did || 'link'
       };
     },
+    didErrors() {
+      if (
+        this.$v.didInput.$dirty &&
+        this.$v.didInput.$invalid
+      ) return 'Must be 1 or more characters'
+    },
     latErrors() {
       if (
         this.$v.latInput.$dirty &&
         this.$v.latInput.$invalid
       ) return 'Must be in the format nnn.nnnnn';
+    },
+    address64Errors() {
+      if (
+        this.$v.address64Input.$dirty &&
+        this.$v.address64Input.$invalid
+      ) return 'Must use a mix of characters A-F and 0-9 and be 16 characters total';
     },
     lngErrors() {
       if (
@@ -236,38 +255,70 @@ export default {
       createDevice: 'create',
       findDevices: 'find',
     }),
+    dirtyDid() {
+      this.$v.didInput.$touch();
+    },
     dirtyLat() {
       this.$v.latInput.$touch();
     },
     dirtyLng() {
       this.$v.lngInput.$touch();
     },
+    dirtyAddress64() {
+      this.$v.address64Input.$touch();
+    },
     doSelectType(selection) {
-      console.log(`selection:${selection}`);
-      this.selectedType = selection;
+      this.typeInput = selection;
+    },
+    doSubmitDevice() {
+      this.isValidationError = false;
+
+      this.createDevice({
+        type: this.typeInput,
+        did: this.didInput,
+        address64: this.address64Input,
+        description: this.descriptionInput,
+        latLng: { lat: this.latInput, lng: this.lngInput },
+      }, {});
+
+
+      // clear the query params by sneakily navigating to /device
+      // The query params may fill in the fields if left alone
+      this.$router.replace({
+        path: '/device',
+        query: {}
+      });
+
+      this.$v.$reset();
+      this.$refs.form.reset();
     },
     doCreateDevice() {
-      if (this.$v.$invalid) {
-        this.$v.$touch();
-        this.isValidationError = true;
-      } else {
-        this.isValidationError = false;
-        this.createDevice({
-          did: this.didInput,
-          description: this.descriptionInput,
-          address64: this.address64Input,
-          latLng: { lat: this.latInput, lng: this.lngInput },
-        }, {});
-        this.$refs.form.reset();
-        this.isDeviceCreated = true;
+      VueScrollTo.scrollTo('#create-device-header');
 
-        // clear the query params which may fill in the fields if left alone
-        this.$router.replace({
-          path: '/device',
-          query: {}
-        });
+      if (this.typeInput === '2b') {
+        if (this.$v.type2b.$invalid) {
+          this.$v.type2b.$touch();
+          this.isValidationError = true;
+        } else {
+          this.doSubmitDevice();
+        }
       }
-      this.$vuetify.goTo('#create-device-header');
+      else if (this.typeInput === 'virt2b') {
+        if (this.$v.typeVirtual.$invalid) {
+          this.$v.typeVirtual.$touch();
+          this.isValidationError = true;
+        } else {
+          this.doSubmitDevice();
+        }
+      }
+      else if (this.typeInput === 'pa') {
+        if (this.$v.typePa.$invalid) {
+          this.$v.typePa.$touch();
+          this.isValidationError = true;
+        } else {
+          this.doSubmitDevice();
+        }
+      }
     },
     doUseDefaultLatLng() {
       this.latInput = this.defaultLat;
@@ -277,7 +328,9 @@ export default {
       const address = `/map/chooser`;
       const q = {
         description: this.descriptionInput,
-        did: this.didInput
+        did: this.didInput,
+        type: this.typeInput,
+        address64: this.address64Input
       };
       this.$router.push({
         path: address,

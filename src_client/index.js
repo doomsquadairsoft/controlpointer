@@ -1,18 +1,18 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify'
-import router from './router'
-import Controlpointer from './Controlpointer.vue'
-import store from './store'
+import Vue from 'vue';
+import Vuetify from 'vuetify';
+import router from './router';
+import Controlpointer from './Controlpointer.vue';
+import store from './store';
 import { L, LMap, LTileLayer, LMarker, LControl, LTooltip, LPopup } from 'vue2-leaflet';
 import 'leaflet/dist/leaflet.css';
-import './filters/formatDate'
-import './api/feathers-client'
+import './filters/formatDate';
+import './api/feathers-client';
 //import 'vuetify/src/stylus/app.styl'
-import 'material-design-icons-iconfont/dist/material-design-icons.css' // this needs to be imported BEFORE vuetify css
-import 'vuetify/dist/vuetify.min.css' // this needs to be imported AFTER material design icons
-import gameStats from '@/../src_shared/gameStats'
+import 'material-design-icons-iconfont/dist/material-design-icons.css'; // this needs to be imported BEFORE vuetify css
+import 'vuetify/dist/vuetify.min.css'; // this needs to be imported AFTER material design icons
+import gameStats from '@/../src_shared/gameStats';
 // import Vs from 'd3-vs';
-import Vuelidate from 'vuelidate'
+import Vuelidate from 'vuelidate';
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 Vue.use(gameStats);

@@ -137,6 +137,15 @@ export default {
     deviceDid() {
       return this.$route.query.did;
     },
+    deviceType() {
+      return this.$route.query.type;
+    },
+    deviceDescription() {
+      return this.$route.query.description;
+    },
+    deviceAddress64() {
+      return this.$route.query.address64;
+    },
     myDevice() {
       // return the device passed as a query string, OR the first created device in this game
       const deviceIdViaRoute = this.$route.query.deviceId;
@@ -171,8 +180,10 @@ export default {
     saveCoordinates(evt) {
       const address = `/device`;
       const q = {
-        name: this.deviceName,
         did: this.deviceDid,
+        type: this.deviceType,
+        address64: this.deviceAddress64,
+        description: this.deviceDescription,
         lat: this.poi.lat,
         lng: this.poi.lng
       };

@@ -14,6 +14,7 @@
           <li>Address64: {{ address64 }}</li>
           <li>RSSI: {{ rssi }}</li>
           <li>Battery: {{ batt }}</li>
+          <li>Type: {{ type }}</li>
           <li>Associated Games: <template v-for="g in myDevice.associatedGames"><router-link :to="gameLink(g)">{{ g }}</router-link>, </template></li>
           <li>{{ associatedGames }}</li>
           <li>_id: {{ _id }}</li>
@@ -64,6 +65,7 @@ export default {
     associatedGames() { return this.myDevice.associatedGames },
     rssi() { return this.myDevice.rssi },
     batt() { return this.myDevice.batt },
+    type() { return this.myDevice.type },
     address64() { return this.myDevice.address64 },
     xbeeUpdatedAt() { return this.myDevice.xbeeUpdatedAt },
   },

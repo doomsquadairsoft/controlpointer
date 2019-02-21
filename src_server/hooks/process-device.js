@@ -49,7 +49,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     const address64 = R.ifElse(
       R.allPass([h.isString, h.isLength16]),
       R.identity(),
-      R.always('UNVALIDs')
+      R.always('')
     )(context.data.address64);
 
     const rssi = R.ifElse(
