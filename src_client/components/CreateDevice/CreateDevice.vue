@@ -291,9 +291,10 @@ export default {
 
       this.$v.$reset();
       this.$refs.form.reset();
+      this.typeInput = ''; // this contracts the creation section forcing the user to re-select a type
     },
     doCreateDevice() {
-      VueScrollTo.scrollTo('#create-device-header');
+      VueScrollTo.scrollTo('head');
 
       if (this.typeInput === '2b') {
         if (this.$v.type2b.$invalid) {

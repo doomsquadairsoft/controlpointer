@@ -81,6 +81,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       did,
       rssi,
       batt,
+      type,
       latLng,
       address64,
       description,
