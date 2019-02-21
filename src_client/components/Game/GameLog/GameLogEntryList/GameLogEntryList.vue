@@ -51,6 +51,21 @@
               check
             </v-icon>
           </v-badge>
+          <v-badge v-if="t.action === 'press_blu'" right>
+            <v-icon large color="blue lighten-1">
+              fingerprint
+            </v-icon>
+          </v-badge>
+          <v-badge v-if="t.action === 'release_blu'" right>
+            <v-icon large color="blue darken-1">
+              fingerprint
+            </v-icon>
+          </v-badge>
+          <v-badge v-if="t.action === 'press_red' || t.action === 'release_red'" right>
+            <v-icon large color="red">
+              fingerprint
+            </v-icon>
+          </v-badge>
         </v-list-tile-avatar>
 
         <v-list-tile-content>
