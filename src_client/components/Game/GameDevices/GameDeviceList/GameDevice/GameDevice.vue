@@ -29,13 +29,6 @@
 </template>
 
 <script>
-import signal5 from '@/assets/signal_5.svg';
-import signal4 from '@/assets/signal_4.svg';
-import signal3 from '@/assets/signal_3.svg';
-import signal2 from '@/assets/signal_2.svg';
-import signal1 from '@/assets/signal_1.svg';
-import signal0 from '@/assets/signal_0.svg';
-import signalE from '@/assets/signal_e.svg';
 import di from '@/assets/futuristic_ammo_box_01.png';
 import device2bImage from '@/assets/device-2b.jpg';
 import devicePaImage from '@/assets/megaphone_loud_hailer_loud.jpg';
