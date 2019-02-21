@@ -5,45 +5,38 @@
       {{ myDevice.did }}
     </v-list-tile-title>
   </v-flex>
-  <v-flex pa-1 shrink>
-    <v-progress-circular :value="myDevice.bluProgress" color="blue">{{ myDevice.bluProgress }}</v-progress-circular>
-  </v-flex>
-  <v-flex pa-1 shrink>
-    <v-progress-circular :value="myDevice.redProgress" color="red">{{ myDevice.redProgress }}</v-progress-circular>
-  </v-flex>
-  <v-flex pa-1 shrink>
+  <v-flex v-if="isType2b" pa-1 shrink>
     <v-badge right>
       <v-icon :color="heartColor">
         favorite
       </v-icon>
     </v-badge>
   </v-flex>
-  <v-flex pa-1 shrink>
+  <v-flex v-if="isType2b" pa-1 shrink>
     <v-badge right>
       <v-icon :color="wifiColor">
         {{ wifiIcon }}
       </v-icon>
     </v-badge>
   </v-flex>
-  <v-flex pa-1 shrink>
+  <v-flex v-if="isType2b" pa-1 shrink>
     <v-badge right>
       <v-icon :color="batteryColor">
         {{ batteryIcon }}
       </v-icon>
     </v-badge>
   </v-flex>
+  <v-flex pa-1 shrink>
+    <v-progress-circular :value="myDevice.bluProgress" color="blue">{{ myDevice.bluProgress }}</v-progress-circular>
+  </v-flex>
+  <v-flex pa-1 shrink>
+    <v-progress-circular :value="myDevice.redProgress" color="red">{{ myDevice.redProgress }}</v-progress-circular>
+  </v-flex>
 </v-layout>
 </template>
 
 <script>
 import moment from 'moment';
-import signal5 from '@/assets/signal_5.svg';
-import signal4 from '@/assets/signal_4.svg';
-import signal3 from '@/assets/signal_3.svg';
-import signal2 from '@/assets/signal_2.svg';
-import signal1 from '@/assets/signal_1.svg';
-import signal0 from '@/assets/signal_0.svg';
-import signalE from '@/assets/signal_e.svg';
 export default {
   name: 'GameDeviceHeader',
   components: {
@@ -63,13 +56,12 @@ export default {
     heartCheckCounter: 0
   }),
   computed: {
-    signal5Image: () => signal5,
-    signal4Image: () => signal4,
-    signal3Image: () => signal3,
-    signal2Image: () => signal2,
-    signal1Image: () => signal1,
-    signal0Image: () => signal0,
-    signalEImage: () => signalE,
+    isType2b() {
+      return (this.myDevice.type === '2b') ? true : false
+    },
+    isTypePa() {
+      return (this.myDevice.type === 'pa') ? true : false
+    },
     msSinceLastXbeeUpdate() {
       const lastXbeeUpdate = moment(this.myDevice.xbeeUpdatedAt);
       const delta = moment.duration(now.diff(lastXbeeUpdate)).valueOf();
