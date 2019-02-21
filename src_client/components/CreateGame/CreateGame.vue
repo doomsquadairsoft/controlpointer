@@ -25,7 +25,7 @@
 
         <v-layout row wrap>
           <v-flex>
-            <v-text-field @focusout="dirtyGl" v-model.trim="gameLengthInput" :error-messages="glErrors" label="Game Length (hh:mm:ss)" type="time-with-seconds">
+            <v-text-field v-model.trim="gameLengthInput" :error-messages="glErrors" label="Game Length (hh:mm:ss)" type="time-with-seconds">
             </v-text-field>
           </v-flex>
           <v-flex>
@@ -37,7 +37,7 @@
 
         <v-layout row wrap class="mt-3">
           <v-flex>
-            <v-text-field required @focusout="dirtyCr" :error-messages="crErrors" v-model.trim="captureRateInput" label="Capture Rate (hh:mm:ss)" type="time-with-seconds">
+            <v-text-field required :error-messages="crErrors" v-model.trim="captureRateInput" label="Capture Rate (hh:mm:ss)" type="time-with-seconds">
             </v-text-field>
           </v-flex>
           <v-flex>
@@ -123,6 +123,7 @@ const timeRegex = helpers.regex('time', /^\d\d:\d\d:\d\d$/);
 import di from '@/assets/futuristic_ammo_box_01.png';
 import baseball from '@/assets/baseball-marker.png';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
+import VueScrollTo from 'vue-scrollto';
 
 export default {
   name: 'CreateGame',
@@ -167,7 +168,7 @@ export default {
     }),
     deviceImage: () => di,
     isNotifyingInvalid() {
-      if (this.$v.$invalid && this.$v.$dirty) return true;
+      if (this.$v.$invalid && this.$v.$error) return true;
       return false;
     },
     game() {
@@ -189,14 +190,12 @@ export default {
     },
     crErrors() {
       if (
-        this.$v.captureRateInput.$dirty &&
-        this.$v.captureRateInput.$invalid
+        this.$v.captureRateInput.$error
       ) return 'Must be in the format hh:mm:ss';
     },
     glErrors() {
       if (
-        this.$v.gameLengthInput.$dirty &&
-        this.$v.gameLengthInput.$invalid
+        this.$v.gameLengthInput.$error
       ) return 'Must be in the format hh:mm:ss';
     },
     gameLength() {
@@ -218,16 +217,21 @@ export default {
     ...mapActions('game', {
       createGame: 'create'
     }),
-    dirtyCr() {
-      this.$v.captureRateInput.$touch();
-    },
-    dirtyGl() {
-      this.$v.gameLengthInput.$touch();
-    },
+    // dirtyCr() {
+    //   this.$v.captureRateInput.$touch();
+    // },
+    // dirtyGl() {
+    //   this.$v.gameLengthInput.$touch();
+    // },
     doCreateGame() {
+      VueScrollTo.scrollTo('#create-game-header');
+
+      this.$v.$touch();
       if (this.$v.$invalid) {
-        this.$v.$touch();
+        console.log('invalid')
+        this.isGameCreated = false;
       } else {
+        console.log('valid')
         this.isGameCreated = true;
         this.createGame({
           gameLength: this.gameLength,
@@ -236,41 +240,14 @@ export default {
           includedDevices: this.includedDevices
         }, {});
         this.$refs.form.reset();
+        this.$v.$reset();
       }
-      this.$vuetify.goTo('#create-game-header');
     },
     doUseDefaultGameLength() {
       this.gameLengthInput = this.defaultGameLength;
     },
     doUseDefaultCaptureRate() {
       this.captureRateInput = this.defaultCaptureRate;
-    },
-    createStartEvent() {
-      console.log('Creating game start timeline event ' + this._id)
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "start",
-        source: "admin",
-        target: "game"
-      }, {});
-    },
-    createPauseEvent() {
-      console.log('creating pause event')
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "pause",
-        source: "admin",
-        target: "game"
-      }, {});
-    },
-    createStopEvent() {
-      console.log('creating stop event')
-      this.createTimelineEvent({
-        type: "timeline",
-        action: "stop",
-        source: "admin",
-        target: "game"
-      }, {});
     }
   }
 }
