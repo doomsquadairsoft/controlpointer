@@ -19,7 +19,7 @@
             </v-btn> -->
             <device-lifecycle-controls :myDevice="myDevice"></device-lifecycle-controls>
 
-            <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+            <v-btn color="red" small fab fixed bottom right @click="VueScrollTo.scrollTo('head')">
               <v-icon>keyboard_arrow_up</v-icon>
             </v-btn>
 
@@ -42,6 +42,7 @@ import DeviceStats from './DeviceStats/DeviceStats';
 import DeviceGameControls from '@/components/Device/DeviceControls/DeviceGameControls';
 import DeviceLifecycleControls from '@/components/Device/DeviceControls/DeviceLifecycleControls';
 import DoomAlert from '@/components/DoomAlert/DoomAlert';
+import VueScrollTo from 'vue-scrollto';
 
 
 export default {

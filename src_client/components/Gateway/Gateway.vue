@@ -14,11 +14,9 @@
         <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
         <game-log :myTimeline="myTimeline"></game-log>
 
-        <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+        <v-btn color="red" small fab fixed bottom right @click="VueScrollTo.scrollTo('head')">
           <v-icon>keyboard_arrow_up</v-icon>
         </v-btn>
-
-
       </v-flex>
     </v-layout>
   </v-container>
@@ -45,6 +43,7 @@ import {
 import {
   throttle
 } from 'lodash';
+import VueScrollTo from 'vue-scrollto';
 
 export default {
   name: 'Game',

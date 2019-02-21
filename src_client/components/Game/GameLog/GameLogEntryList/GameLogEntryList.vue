@@ -77,6 +77,7 @@ import GameLogEntry from './GameLogEntry/GameLogEntry';
 import di from '@/assets/futuristic_ammo_box_01.png';
 import moment from 'moment';
 import { mapGetters } from 'vuex';
+import VueScrollTo from 'vue-scrollto';
 
 export default {
   name: 'GameLogEntryList',
@@ -105,7 +106,7 @@ export default {
     scrollToBottom() {
       const t = this.$el.querySelector('#scroll-target');
       t.scrollTop = t.scrollHeight; // scroll the log box
-      this.$vuetify.goTo('#bottom'); // scroll the page
+      VueScrollTo.scrollTo('#bottom'); // scroll the page
     },
     onScroll(e) {
       if (e.target.scrollTop - (e.target.scrollHeight - e.target.offsetHeight) === 0)
@@ -119,7 +120,6 @@ export default {
     },
   },
   mounted() {
-    this.scrollToBottom();
   }
 }
 </script>

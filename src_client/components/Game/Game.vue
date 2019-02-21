@@ -14,7 +14,7 @@
         <game-devices :iDevs="iDevs" :myGame="myGame"></game-devices>
         <game-log :myTimeline="myTimeline"></game-log>
 
-        <v-btn color="red" small fab fixed bottom right @click="$vuetify.goTo('head')">
+        <v-btn color="red" small fab fixed bottom right @click="scrollTop">
           <v-icon>keyboard_arrow_up</v-icon>
         </v-btn>
 
@@ -45,6 +45,8 @@ import {
 import {
   throttle
 } from 'lodash';
+import VueScrollTo from 'vue-scrollto';
+
 
 export default {
   name: 'Game',
@@ -127,6 +129,9 @@ export default {
     ...mapActions('metadata', {
       findMetadata: 'find'
     }),
+    scrollTop() {
+      VueScrollTo.scrollTo('head');
+    },
     // updateMetadata() {
     //   const doUpdateMetadata = () => {
     //     console.log('updating metadata right meow 🐈')
