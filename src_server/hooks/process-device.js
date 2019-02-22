@@ -19,7 +19,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     const description = R.ifElse(
       R.allPass([h.isSmall, h.isString, h.isntEmpty]),
       R.identity(),
-      R.always('Generic description')
+      R.always('')
     )(context.data.description);
 
     const latLng = R.ifElse(
