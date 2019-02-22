@@ -18,7 +18,26 @@ describe('gameStats', function() {
   describe('helpers', function() {
     describe('parseMetadata', function() {
       it('should return raw values and moments in a tuple', function() {
-        const { rgt, gst, get, gpd, ged, grd, mt, gl, cr, mrgt, mgst, mget, mgpd, mged, mgrd, mmt, mgl, mcr } = gameStats.parseMetadata(fixtures.initialMetadata);
+        const {
+          rgt,
+          gst,
+          get,
+          gpd,
+          ged,
+          grd,
+          mt,
+          gl,
+          cr,
+          mrgt,
+          mgst,
+          mget,
+          mgpd,
+          mged,
+          mgrd,
+          mmt,
+          mgl,
+          mcr
+        } = gameStats.parseMetadata(fixtures.initialMetadata);
         assert.isNull(rgt);
         assert.isNull(gst);
         assert.equal(gpd, 0);
@@ -672,12 +691,29 @@ describe('gameStats', function() {
       const metadata = gameStats.calculateMetadata(fixtures.largeControlpointPressData, fixtures.gameSettings);
 
     });
+
   });
 
   describe('deriveGameStatus()', function() {
     // running, paused, over, stopped -- 0, 1, 2, 3
     it('should show running while remainingGameTime is above 0', function() {
-      const metadata = { "gameStatus": { "msg": "running", "code": 0 }, "remainingGameTime": 4540, "gameStartTime": 1548706437997, "gamePausedDuration": 19085, "gameElapsedDuration": 19545, "gameRunningDuration": 460, "gameEndTime": 1548706443068, "devicesProgress": [], "metadataTimestamp": 1548706457542, "gameLength": 5000, "captureRate": 1000, "theAnswer": 42 };
+      const metadata = {
+        "gameStatus": {
+          "msg": "running",
+          "code": 0
+        },
+        "remainingGameTime": 4540,
+        "gameStartTime": 1548706437997,
+        "gamePausedDuration": 19085,
+        "gameElapsedDuration": 19545,
+        "gameRunningDuration": 460,
+        "gameEndTime": 1548706443068,
+        "devicesProgress": [],
+        "metadataTimestamp": 1548706457542,
+        "gameLength": 5000,
+        "captureRate": 1000,
+        "theAnswer": 42
+      };
       const startEvent = {
         "action": "start",
         "createdAt": 1548706457927
@@ -795,7 +831,23 @@ describe('gameStats', function() {
     });
 
     it('should return \'paused\' when the game is paused, even if the gameEndTime has passed', function() {
-      const metadata = { "gameStatus": { "msg": "paused", "code": 1 }, "remainingGameTime": 3701, "gameStartTime": 1548703652522, "gamePausedDuration": 3144, "gameElapsedDuration": 4443, "gameRunningDuration": 1299, "gameEndTime": 1548703657526, "devicesProgress": [], "metadataTimestamp": 1548703656965, "gameLength": 5000, "captureRate": 1000, "theAnswer": 42 };
+      const metadata = {
+        "gameStatus": {
+          "msg": "paused",
+          "code": 1
+        },
+        "remainingGameTime": 3701,
+        "gameStartTime": 1548703652522,
+        "gamePausedDuration": 3144,
+        "gameElapsedDuration": 4443,
+        "gameRunningDuration": 1299,
+        "gameEndTime": 1548703657526,
+        "devicesProgress": [],
+        "metadataTimestamp": 1548703656965,
+        "gameLength": 5000,
+        "captureRate": 1000,
+        "theAnswer": 42
+      };
       const pauseEvent = {
         action: 'pause',
         createdAt: 1548703658104
@@ -990,7 +1042,23 @@ describe('gameStats', function() {
     });
 
     it('should be reset by a stop event when metadata is over', function() {
-      const metadata = { "gameStatus": { "msg": "over", "code": 2 }, "remainingGameTime": 0, "gameStartTime": 1548703816208, "gamePausedDuration": 12175, "gameElapsedDuration": 14065, "gameRunningDuration": 1890, "gameEndTime": 1548703821225, "devicesProgress": [], "metadataTimestamp": 1548703833021, "gameLength": 5000, "captureRate": 5000, "theAnswer": 42 };
+      const metadata = {
+        "gameStatus": {
+          "msg": "over",
+          "code": 2
+        },
+        "remainingGameTime": 0,
+        "gameStartTime": 1548703816208,
+        "gamePausedDuration": 12175,
+        "gameElapsedDuration": 14065,
+        "gameRunningDuration": 1890,
+        "gameEndTime": 1548703821225,
+        "devicesProgress": [],
+        "metadataTimestamp": 1548703833021,
+        "gameLength": 5000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
       const stopEvent = {
         "action": "stop",
         "createdAt": 1548703834553
@@ -1372,14 +1440,18 @@ describe('gameStats', function() {
         "theAnswer": 42
       };
       const pressEvent = {
-          "action": "press_red",
-          "createdAt": 6000
-        };
+        "action": "press_red",
+        "createdAt": 6000
+      };
       const devicesProgress = gameStats.deriveDevicesProgress(metadata, pressEvent);
       assert.isArray(devicesProgress);
-      assert.deepEqual(devicesProgress, [
-        { "red": 0, "blu": 0, "bluPressTime": null, "redPressTime": 6000, "targetId": "7eKvFstnIIvx4dJg" }
-      ]);
+      assert.deepEqual(devicesProgress, [{
+        "red": 0,
+        "blu": 0,
+        "bluPressTime": null,
+        "redPressTime": 6000,
+        "targetId": "7eKvFstnIIvx4dJg"
+      }]);
 
       const metadata2 = {
         "gameStatus": {
@@ -1405,16 +1477,66 @@ describe('gameStats', function() {
         "theAnswer": 42
       };
       const releaseEvent = {
-          "action": "release_red",
-          "createdAt": 8000
-        };
+        "action": "release_red",
+        "createdAt": 8000
+      };
       const devicesProgress2 = gameStats.deriveDevicesProgress(metadata2, releaseEvent);
       assert.isArray(devicesProgress2);
-      assert.deepEqual(devicesProgress2, [
-        { "red": 100, "blu": 0, "bluPressTime": null, "redPressTime": null, "targetId": "7eKvFstnIIvx4dJg" }
-      ]);
+      assert.deepEqual(devicesProgress2, [{
+        "red": 100,
+        "blu": 0,
+        "bluPressTime": null,
+        "redPressTime": null,
+        "targetId": "7eKvFstnIIvx4dJg"
+      }]);
+    });
 
-
+    it('should modify only the device stated in the event targetId', function() {
+      const metadata = {
+        "gameStatus": {
+          "msg": "stopped",
+          "code": 3
+        },
+        "remainingGameTime": null,
+        "gameStartTime": null,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 0,
+        "gameRunningDuration": 0,
+        "gameEndTime": null,
+        "devicesProgress": [{
+          "red": 0,
+          "blu": 100,
+          "redPressTime": null,
+          "bluPressTime": null,
+          "targetId": "5c6f29072b17d855cb076088"
+        }],
+        "metadataTimestamp": 1550789419509,
+        "gameLength": 900000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
+      const capRedEvent = {
+        "action": "cap_red",
+        "createdAt": 1550789437601,
+        "targetId": "5c6f28f02b17d855cb076087"
+      };
+      const devicesProgress = gameStats.deriveDevicesProgress(metadata, capRedEvent);
+      console.log(devicesProgress)
+      assert.isArray(devicesProgress);
+      assert.equal(devicesProgress, [{
+        "red": 0,
+        "blu": 100,
+        "redPressTime": null,
+        "bluPressTime": null,
+        "targetId": "5c6f29072b17d855cb076088"
+      }, {
+        "red": 100,
+        "blu": 0,
+        "redPressTime": null,
+        "bluPressTime": null,
+        "targetId": "5c6f28f02b17d855cb076087"
+      }]);
+      // { "_id": "5c6f2b3d2b17d855cb076093", "metadata": { "gameStatus": { "msg": "stopped", "code": 3 }, "remainingGameTime": null, "gameStartTime": null, "gamePausedDuration": 0, "gameElapsedDuration": 0, "gameRunningDuration": 0, "gameEndTime": null, "devicesProgress": [ { "red": 0, "blu": 100, "targetId": "5c6f29072b17d855cb076088" }, { "red": 0, "blu": 100, "targetId": "5c6f28f02b17d855cb076087" } ], "metadataTimestamp": 1550789437601, "gameLength": 900000, "captureRate": 5000, "theAnswer": 42 }, "gameId": "5c6f291c2b17d855cb076089", "createdAt": 1550789437606 }
     });
   });
 
@@ -1484,12 +1606,10 @@ describe('gameStats', function() {
         gameStats.deriveDevProgress(fixtures.initialMetadata, fixtures.largeControlpointPressData[13]);
       });
     });
-
-    it('should ')
   });
 
   describe('deriveDevices()', function() {
-    it('should return an Array of devices which have appeard in the timeline and current timeline event step thus far', function() {
+    it('should return an Array of devices which have appeared in the timeline and current timeline event step thus far', function() {
       const devices = gameStats.deriveDevices(fixtures.initialMetadata, fixtures.timelinePressRelease[0]);
       assert.isArray(devices);
       assert.lengthOf(devices, 1);
@@ -1509,6 +1629,42 @@ describe('gameStats', function() {
       assert.isArray(devices);
       assert.lengthOf(devices, 1);
       assert.deepEqual(devices, ['hG9RdwPn1HH4bZLk']);
+    });
+
+    it('Should return an array with 5c6f29072b17d855cb076088 and 5c6f28f02b17d855cb076087', function() {
+      const metadata = {
+        "gameStatus": {
+          "msg": "stopped",
+          "code": 3
+        },
+        "remainingGameTime": null,
+        "gameStartTime": null,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 0,
+        "gameRunningDuration": 0,
+        "gameEndTime": null,
+        "devicesProgress": [{
+          "red": 0,
+          "blu": 100,
+          "redPressTime": null,
+          "bluPressTime": null,
+          "targetId": "5c6f29072b17d855cb076088"
+        }],
+        "metadataTimestamp": 1550789419509,
+        "gameLength": 900000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
+
+      const capBluEvent = {
+        "action": "cap_red",
+        "createdAt": 1550789437601,
+        "targetId": "5c6f28f02b17d855cb076087"
+      };
+
+      const devices = gameStats.deriveDevices(metadata, capBluEvent);
+      assert.isArray(devices);
+      assert.deepEqual(devices, ['5c6f29072b17d855cb076088', '5c6f28f02b17d855cb076087']);
     });
   });
 

@@ -251,6 +251,8 @@ const deriveDevices = (lastStepMetadata, thisStepEvent) => {
     if (R.isEmpty(itm)) return true;
     if (R.equals(itm, 'unknown!')) return true;
   }, R.flatten([d, tid]));
+  console.log(`thisStepEvent:${JSON.stringify(thisStepEvent)}`)
+  console.log(`c:${c} tid:${tid}`)
 
   if (R.lt(R.length(c), 1)) return [];
   return R.uniq(c);
@@ -505,6 +507,7 @@ const deriveDevicesProgress = (lastStepMetadata, thisStepEvent) => {
 
   if (devices.length < 1) return [];
   return R.map((id) => {
+    // if (id !== targetId) return
     return deriveDevProgress(lastStepMetadata, thisStepEvent, id);
   }, devices);
 };
@@ -535,6 +538,8 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   )(lastProgress);
   // console.log(`ourDevice:${deviceId}, lastProgress:${JSON.stringify(lastProgress)} fuck:${JSON.stringify(R.prop('devicesProgress', lastStepMetadata))}, thisProgress:${JSON.stringify(thisProgress)}`)
 
+  // if the event action does not reference this device Id, return last metadata's progress
+  if (thisStepEvent.targetId !== deviceId) return thisProgress;
 
   // if the event action is neither of press|release|cap, return last metadata's progress
   if (R.isEmpty(detailedActionActual)) return thisProgress;
@@ -549,6 +554,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
       blu: isBlu(thisStepEvent) ? 200 : 0
     };
     const { red, blu } = teamProgressCompute(origin, delta);
+    console.log(`origin:${JSON.stringify(origin)}, delta:${JSON.stringify(delta)}, red:${red}, blu:${blu}, deviceId:${deviceId}`)
     return { red: red, blu: blu, targetId: deviceId };
   }
 
