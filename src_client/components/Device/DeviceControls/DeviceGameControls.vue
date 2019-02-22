@@ -99,6 +99,8 @@ export default {
         [equals('unc'), always('cap_unc')],
       ])(color);
 
+      console.log(`  🇦🇹 Changing controlling team to ${color} for point ${this.did} (${this._id}). `)
+
       this.createTimelineEvent({
         type: "timeline",
         action: c,

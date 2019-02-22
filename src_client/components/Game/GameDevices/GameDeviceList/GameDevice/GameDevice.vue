@@ -21,7 +21,6 @@
         </v-container>
       </v-flex>
 
-
     </v-layout>
   </v-container>
   <device-game-controls :myDevice="myDevice" :gameId="myGame._id"></device-game-controls>
