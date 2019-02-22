@@ -251,8 +251,6 @@ const deriveDevices = (lastStepMetadata, thisStepEvent) => {
     if (R.isEmpty(itm)) return true;
     if (R.equals(itm, 'unknown!')) return true;
   }, R.flatten([d, tid]));
-  console.log(`thisStepEvent:${JSON.stringify(thisStepEvent)}`)
-  console.log(`c:${c} tid:${tid}`)
 
   if (R.lt(R.length(c), 1)) return [];
   return R.uniq(c);
@@ -484,8 +482,6 @@ const deriveGameEndTime = (lastStepMetadata, thisStepEvent) => {
   const { mgst, mget, mgl, mgpd, mmt, get } = parseMetadata(lastStepMetadata);
   const elapsed = moment.duration(mmt.diff(mca));
 
-  // /console.log(`mgst:${mgst.valueOf()}, mget:${mget.valueOf()}, mgl:${mgl.valueOf()}, mgpd:${mgpd.valueOf()}, mmt:${mmt.valueOf()}`)
-
   if (mget.valueOf() === 0 || R.isNil(get))
     return mgst.add(mgl).add(mgpd).valueOf();
   if (isPausedMetadata(lastStepMetadata))
@@ -536,7 +532,6 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     R.always(defaultProgress),
     R.identity()
   )(lastProgress);
-  // console.log(`ourDevice:${deviceId}, lastProgress:${JSON.stringify(lastProgress)} fuck:${JSON.stringify(R.prop('devicesProgress', lastStepMetadata))}, thisProgress:${JSON.stringify(thisProgress)}`)
 
   // if the event action does not reference this device Id, return last metadata's progress
   if (thisStepEvent.targetId !== deviceId) return thisProgress;
@@ -554,15 +549,12 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
       blu: isBlu(thisStepEvent) ? 200 : 0
     };
     const { red, blu } = teamProgressCompute(origin, delta);
-    console.log(`origin:${JSON.stringify(origin)}, delta:${JSON.stringify(delta)}, red:${red}, blu:${blu}, deviceId:${deviceId}`)
     return { red: red, blu: blu, targetId: deviceId };
   }
 
   if (detailedAction === 'press') {
     // player press button
     const old = thisProgress;
-    // console.log(`lastoProgressu:${JSON.stringify(thisProgress)}`)
-    // console.log(`old:${JSON.stringify(old)} old.red:${old.red}`);
     const neu = {
       redPressTime: isRed(thisStepEvent) ? ca.valueOf() : null,
       bluPressTime: isBlu(thisStepEvent) ? ca.valueOf() : null,
@@ -654,7 +646,6 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   var count = 0;
   const isTimepointerAfter = (acc, evt) => {
     count ++;
-    //console.log(`count:${chalk.yellow(count)} tp:${chalk.cyan(tp)} ca:${chalk.blue(R.prop('createdAt', evt))} (tp>ca:${R.gt(tp, R.prop('createdAt', evt))}) action:${chalk.red(R.prop('action', evt))}`);
     return R.gte(tp, R.prop('createdAt', evt))
   };
 
