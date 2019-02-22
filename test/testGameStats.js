@@ -1441,6 +1441,7 @@ describe('gameStats', function() {
       };
       const pressEvent = {
         "action": "press_red",
+        "targetId": "7eKvFstnIIvx4dJg",
         "createdAt": 6000
       };
       const devicesProgress = gameStats.deriveDevicesProgress(metadata, pressEvent);
@@ -1478,6 +1479,7 @@ describe('gameStats', function() {
       };
       const releaseEvent = {
         "action": "release_red",
+        "targetId": "7eKvFstnIIvx4dJg",
         "createdAt": 8000
       };
       const devicesProgress2 = gameStats.deriveDevicesProgress(metadata2, releaseEvent);
