@@ -1523,21 +1523,13 @@ describe('gameStats', function() {
         "targetId": "5c6f28f02b17d855cb076087"
       };
       const devicesProgress = gameStats.deriveDevicesProgress(metadata, capRedEvent);
-      console.log(devicesProgress)
       assert.isArray(devicesProgress);
-      assert.equal(devicesProgress, [{
-        "red": 0,
-        "blu": 100,
-        "redPressTime": null,
-        "bluPressTime": null,
-        "targetId": "5c6f29072b17d855cb076088"
-      }, {
-        "red": 100,
-        "blu": 0,
-        "redPressTime": null,
-        "bluPressTime": null,
-        "targetId": "5c6f28f02b17d855cb076087"
-      }]);
+      assert.equal(devicesProgress[0].red, 0);
+      assert.equal(devicesProgress[0].blu, 100);
+      assert.equal(devicesProgress[0].targetId, "5c6f29072b17d855cb076088");
+      assert.equal(devicesProgress[1].red, 100);
+      assert.equal(devicesProgress[1].blu, 0);
+      assert.equal(devicesProgress[1].targetId, "5c6f28f02b17d855cb076087");
       // { "_id": "5c6f2b3d2b17d855cb076093", "metadata": { "gameStatus": { "msg": "stopped", "code": 3 }, "remainingGameTime": null, "gameStartTime": null, "gamePausedDuration": 0, "gameElapsedDuration": 0, "gameRunningDuration": 0, "gameEndTime": null, "devicesProgress": [ { "red": 0, "blu": 100, "targetId": "5c6f29072b17d855cb076088" }, { "red": 0, "blu": 100, "targetId": "5c6f28f02b17d855cb076087" } ], "metadataTimestamp": 1550789437601, "gameLength": 900000, "captureRate": 5000, "theAnswer": 42 }, "gameId": "5c6f291c2b17d855cb076089", "createdAt": 1550789437606 }
     });
   });
@@ -1565,23 +1557,17 @@ describe('gameStats', function() {
     it('should show red: 0, blu: 0 when processing a cap_unc event', function() {
       const tid = 'hG9RdwPn1HH4bZLk';
       const devProgress = gameStats.deriveDevProgress(fixtures.initialMetadata, capUncEvt, tid);
+      assert.propertyVal(devProgress, 'red', 0);
+      assert.propertyVal(devProgress, 'blu', 0);
       assert.propertyVal(devProgress, 'targetId', tid);
-      assert.deepEqual(devProgress, {
-        targetId: tid,
-        red: 0,
-        blu: 0
-      });
     });
 
     it('should handle a cap_red followed by a cap_unc', function() {
       const tid = 'hG9RdwPn1HH4bZLk';
       const devProgress = gameStats.deriveDevProgress(fixtures.redMetadata, capUncEvt, tid);
       assert.propertyVal(devProgress, 'targetId', tid);
-      assert.deepEqual(devProgress, {
-        targetId: tid,
-        red: 0,
-        blu: 0
-      });
+      assert.propertyVal(devProgress, 'blu', 0);
+      assert.propertyVal(devProgress, 'red', 0);
     });
 
     it('should ignore release_(red|blu) events without pre-existing (red|blu)Incomplete data', function() {
