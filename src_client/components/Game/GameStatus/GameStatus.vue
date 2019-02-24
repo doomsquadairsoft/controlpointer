@@ -4,6 +4,38 @@
     <h3 class="headline">Game Status</h3>
     <v-chip class="ml-3">{{ gameStatusChipText }}</v-chip>
   </v-card-title>
+  <div class="score">
+    <v-container>
+      <v-layout row align-center>
+        <v-flex>
+          <v-layout column align-center>
+            <v-flex>
+              <span>Red Team</span>
+            </v-flex>
+            <v-flex>
+              <h1 class="redPtsHeading">{{ redPoints }}</h1>
+            </v-flex>
+            <v-flex>
+              <span>points</span>
+            </v-flex>
+          </v-layout>
+        </v-flex>
+        <v-flex>
+          <v-layout column align-center>
+            <v-flex>
+              <span>Blu Team</span>
+            </v-flex>
+            <v-flex>
+              <h1 class="bluPtsHeading">{{ bluPoints }}</h1>
+            </v-flex>
+            <v-flex>
+              <span>points</span>
+            </v-flex>
+          </v-layout>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </div>
   <div>
     <v-container justify-center class="pt-0 pl-3 pr-3">
       <v-layout row>
@@ -87,15 +119,12 @@ export default {
     ...mapGetters([
       'devmode'
     ]),
-    // ...mapGetters('metadata', {
-    //   findMetadataInStore: 'find'
-    // }),
-    // ...mapGetters('timeline', {
-    //   findTimelineInStore: 'find'
-    // }),
-    // ...mapGetters('game', {
-    //   findGameInStore: 'find'
-    // }),
+    redPoints() {
+      return 9000;
+    },
+    bluPoints() {
+      return 9000;
+    },
     gameStatusChipText() {
       if (isEmpty(this.latestMetadata)) return 'Ready to begin';
       return this.latestMetadata.gameStatus.msg;
@@ -201,6 +230,14 @@ export default {
 </script>
 
 <style>
+.redPtsHeading {
+  color: #f44336;
+}
+
+.bluPtsHeading {
+  color: #2196f3;
+}
+
 .bigchip {
   font-size: 50px;
 }

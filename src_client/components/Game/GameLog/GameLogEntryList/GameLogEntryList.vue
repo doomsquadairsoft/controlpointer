@@ -38,17 +38,17 @@
           </v-badge>
           <v-badge v-if="t.action === 'cap_blu'" right>
             <v-icon large color="blue">
-              check
+              star
             </v-icon>
           </v-badge>
           <v-badge v-if="t.action === 'cap_red'" right>
             <v-icon large color="red">
-              check
+              star
             </v-icon>
           </v-badge>
           <v-badge v-if="t.action === 'cap_unc'" right>
             <v-icon large color="grey">
-              check
+              star
             </v-icon>
           </v-badge>
           <v-badge v-if="t.action === 'press_blu'" right>
@@ -61,8 +61,13 @@
               fingerprint
             </v-icon>
           </v-badge>
-          <v-badge v-if="t.action === 'press_red' || t.action === 'release_red'" right>
-            <v-icon large color="red">
+          <v-badge v-if="t.action === 'press_red'" right>
+            <v-icon large color="red lighten-1">
+              fingerprint
+            </v-icon>
+          </v-badge>
+          <v-badge v-if="t.action === 'release_red'" right>
+            <v-icon large color="red darken-1">
               fingerprint
             </v-icon>
           </v-badge>

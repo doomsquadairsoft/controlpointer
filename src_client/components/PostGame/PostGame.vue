@@ -28,7 +28,6 @@
                 <v-layout row>
                   <v-flex> <!-- timeline flex -->
                     <h5>Event</h5>
-                    {{ t }}
                     <ul>
                       <li>type: {{ t.type }}</li>
                       <li>action: {{ t.action }}</li>
