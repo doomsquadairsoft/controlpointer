@@ -34,7 +34,7 @@ const parseMetadata = (metadata) => {
   const mgpd = moment.duration(get);
   const mged = moment.duration(ged);
   const mgrd = moment.duration(grd);
-  const mmt = moment(mt)
+  const mmt = moment(mt);
   const mgl = moment.duration(gl);
   const mcr = moment.duration(cr);
 
@@ -586,10 +586,71 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   return thisProgress;
 };
 
+const deriveScore = (metadata, evt) => {
+
+  const { mgst, mget, mgl, mgpd, mmt, get } = parseMetadata(metadata);
+  const mca = moment(evt.createdAt);
+  const elapsedTimeSinceLastMetadata = moment.duration(mca.diff(mmt));
+  const devicesProgress = metadata.devicesProgress;
+  const lastMetadataTimestamp = metadata.metadataTimestamp;
+
+  // if devicesProgress.red is at 100
+  //   score.redTotalControlledTime = metadata.metadataTimestamp + elapsedTimeSinceLastMetadata
+
+  // score.red = (score.redTotalControlledTime / 60000) * 100  // 100 pts per min
+  // score.blu = (score.bluTotalControlledTime / 60000) * 100
+
+  const calculateDeviceScore = (deviceProgress) => {
+    const lastMetadataScore = metadata.score;
+    const lastBluScore = lastMetadataScore.blu;
+    const lastRedScore = lastMetadataScore.red;
+    const targetId = deviceProgress.targetId;
+    const lastRedTotalControlledTime = lastMetadataScore.redTotalControlledTime;
+    const lastBluTotalControlledTime = lastMetadataScore.bluTotalControlledTime;
+
+    var redTotalControlledTime, bluTotalControlledTime, redScore, bluScore;
+    if (deviceProgress.red === 100) {
+      redTotalControlledTime = moment.duration(lastRedTotalControlledTime).add(elapsedTimeSinceLastMetadata).valueOf();
+      redScore = (redTotalControlledTime / 60000) * 100; // 100 pts per min
+    }
+
+    else if (deviceProgress.blu === 100) {
+      bluTotalControlledTime = moment.duration(lastBluTotalControlledTime).add(elapsedTimeSinceLastMetadata).valueOf();
+      bluScore = (bluTotalControlledTime / 60000) * 100;
+    }
+
+    const deviceScore = {
+      "red": redScore || lastRedScore,
+      "blu": bluScore || lastBluScore,
+      "targetId": targetId,
+      "redTotalControlledTime": redTotalControlledTime || 0,
+      "bluTotalControlledTime": bluTotalControlledTime || 0
+    };
+    return deviceScore;
+  }
+
+  const devicesScores = R.map(calculateDeviceScore, devicesProgress);
+  const totalRedScore = R.reduce((acc, d) => d.red + acc, 0, devicesScores);
+  const totalBluScore = R.reduce((acc, d) => d.blu + acc, 0, devicesScores);
+
+  return {
+    "devicesScores": devicesScores,
+    "red": totalRedScore,
+    "blu": totalBluScore
+  }
+}
+
 
 const buildInitialMetadata = (gameSettings) => {
   if (typeof gameSettings === 'undefined') throw new Error('buildInitialMetadata requires 1 {Object} gameSettings parameter. got undefined. ')
   const initialMetadata = {
+    score: {
+      devicesScores: [],
+      red: 0,
+      blu: 0,
+      redTotalControlledTime: 0,
+      bluTotalControlledTime: 0
+    },
     gameStatus: { msg: 'stopped', code: 3 },
     remainingGameTime: null,
     gameStartTime: null,
@@ -619,6 +680,7 @@ const _calculateGameMetadata = (lastMetadata, evt) => {
   metadata.gamePausedDuration = deriveGamePausedDuration(metadata, evt); // depends on gameStatus, mt, ca, gpd
   metadata.gameRunningDuration = deriveGameRunningDuration(metadata, evt); // depends on gameStatus, mt, ca, grd
   metadata.gameElapsedDuration = deriveGameElapsedDuration(metadata, evt); // depends on gameStartTime, gameEndTime, and gameStatus
+  metadata.score = deriveScore(metadata, evt);
   metadata.gameStatus = deriveGameStatus(metadata, evt); // needs to be after deriveGame*Duration and deriveRemainingGameTime functions
   metadata.metadataTimestamp = deriveMetadataTimestamp(metadata, evt); // must be last
   return metadata;
@@ -743,6 +805,7 @@ module.exports = {
     Vue.prototype.$gameStats.isOverMetadata = isOverMetadata;
     Vue.prototype.$gameStats.isStoppedMetadata = isStoppedMetadata;
     Vue.prototype.$gameStats.parseMetadata = parseMetadata;
+    Vue.prototype.$gameStats.deriveScore = deriveScore;
   },
   pad,
   capPercentage,
@@ -758,6 +821,7 @@ module.exports = {
   deriveDevicesProgress,
   deriveDevProgress,
   deriveDevices,
+  deriveScore,
   buttonReleaseDeltaCompute,
   incompleteProgressCompute,
   deriveMetadataTimestamp,

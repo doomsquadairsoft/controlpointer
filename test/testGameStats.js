@@ -1725,4 +1725,59 @@ describe('gameStats', function() {
   });
 
 
+  describe('deriveScore()', function() {
+    it('should return blu 100 pts, red 0 pts.', function() {
+      const now = moment();
+      const metadata = {
+        "gameStatus": {
+          "msg": "stopped",
+          "code": 3
+        },
+        "remainingGameTime": null,
+        "gameStartTime": null,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 0,
+        "gameRunningDuration": 0,
+        "gameEndTime": null,
+        "devicesProgress": [{
+          "red": 0,
+          "blu": 100,
+          "redPressTime": null,
+          "bluPressTime": null,
+          "targetId": "5c6f29072b17d855cb076088"
+        }],
+        "score": {
+          "red": 0,
+          "blu": 0
+        },
+        "metadataTimestamp": now.clone().subtract(1, 'minutes').valueOf(),
+        "gameLength": 900000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
+      const evt = {
+        "action": "event_of_no_consequence_just_for_testing",
+        "createdAt": now.valueOf()
+      };
+      const score = gameStats.deriveScore(metadata, evt);
+      assert.propertyVal(score, 'red', 0);
+      assert.propertyVal(score, 'blu', 100);
+      assert.isArray(score.devicesScores);
+      assert.deepEqual(score, {
+        'red': 0,
+        'blu': 100,
+        'devicesScores': [
+          {
+            'red': 0,
+            'blu': 100,
+            'bluTotalControlledTime': 60000,
+            'redTotalControlledTime': 0,
+            'targetId': '5c6f29072b17d855cb076088'
+          }
+        ]
+      })
+    });
+  });
+
+
 });
