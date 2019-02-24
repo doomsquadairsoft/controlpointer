@@ -583,6 +583,13 @@ describe('gameStats', function() {
         gameRunningDuration: 0,
         gameEndTime: null,
         devicesProgress: [],
+        score: {
+          blu: 0,
+          bluTotalControlledTime: 0,
+          devicesScores: [],
+          red: 0,
+          redTotalControlledTime: 0,
+        },
         metadataTimestamp: null,
         gameLength: 7200000,
         captureRate: 5000
