@@ -587,12 +587,14 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
 };
 
 const deriveScore = (metadata, evt) => {
-
   const { mgst, mget, mgl, mgpd, mmt, get } = parseMetadata(metadata);
   const mca = moment(evt.createdAt);
   const elapsedTimeSinceLastMetadata = moment.duration(mca.diff(mmt));
   const devicesProgress = metadata.devicesProgress;
   const lastMetadataTimestamp = metadata.metadataTimestamp;
+  const lastMetadataScore = metadata.score;
+  const lastBluScore = lastMetadataScore.blu;
+  const lastRedScore = lastMetadataScore.red;
 
   // if devicesProgress.red is at 100
   //   score.redTotalControlledTime = metadata.metadataTimestamp + elapsedTimeSinceLastMetadata
@@ -601,42 +603,70 @@ const deriveScore = (metadata, evt) => {
   // score.blu = (score.bluTotalControlledTime / 60000) * 100
 
   const calculateDeviceScore = (deviceProgress) => {
-    const lastMetadataScore = metadata.score;
-    const lastBluScore = lastMetadataScore.blu;
-    const lastRedScore = lastMetadataScore.red;
-    const targetId = deviceProgress.targetId;
-    const lastRedTotalControlledTime = lastMetadataScore.redTotalControlledTime;
-    const lastBluTotalControlledTime = lastMetadataScore.bluTotalControlledTime;
+    // console.log(`comparing deviceProgress ${JSON.stringify(deviceProgress)} with last:${metadata.score.devicesScores}`)
 
-    var redTotalControlledTime, bluTotalControlledTime, redScore, bluScore;
+    const lastDeviceScore = R.find(R.propEq('targetId', deviceProgress.targetId))(metadata.score.devicesScores);
+
+    var lastRedTotal, lastBluTotal;
+    if (R.length(metadata.score.devicesScores) < 1) {
+      lastRedTotal = 0;
+      lastBluTotal = 0;
+    } else {
+      lastRedTotal = lastDeviceScore.redTotalControlledTime;
+      lastBluTotal = lastDeviceScore.bluTotalControlledTime;
+    }
+
+    const targetId = deviceProgress.targetId;
+
+    var redTotalControlledTime, bluTotalControlledTime, redScore, bluScore, devicesScores, totalRedScore, totalBluScore;
     if (deviceProgress.red === 100) {
-      redTotalControlledTime = moment.duration(lastRedTotalControlledTime).add(elapsedTimeSinceLastMetadata).valueOf();
-      redScore = (redTotalControlledTime / 60000) * 100; // 100 pts per min
+      redTotalControlledTime = moment.duration(lastRedTotal).clone().add(elapsedTimeSinceLastMetadata).valueOf();
+      redScore = Math.floor(redTotalControlledTime / 60000) * 100; // 100 pts per min
     }
 
     else if (deviceProgress.blu === 100) {
-      bluTotalControlledTime = moment.duration(lastBluTotalControlledTime).add(elapsedTimeSinceLastMetadata).valueOf();
-      bluScore = (bluTotalControlledTime / 60000) * 100;
+      bluTotalControlledTime = moment.duration(lastBluTotal).clone().add(elapsedTimeSinceLastMetadata).valueOf();
+      bluScore = Math.floor(bluTotalControlledTime / 60000) * 100;
     }
 
     const deviceScore = {
       "red": redScore || lastRedScore,
       "blu": bluScore || lastBluScore,
       "targetId": targetId,
-      "redTotalControlledTime": redTotalControlledTime || 0,
-      "bluTotalControlledTime": bluTotalControlledTime || 0
+      "redTotalControlledTime": redTotalControlledTime || lastRedTotal,
+      "bluTotalControlledTime": bluTotalControlledTime || lastBluTotal
     };
     return deviceScore;
   }
 
-  const devicesScores = R.map(calculateDeviceScore, devicesProgress);
-  const totalRedScore = R.reduce((acc, d) => d.red + acc, 0, devicesScores);
-  const totalBluScore = R.reduce((acc, d) => d.blu + acc, 0, devicesScores);
+  const resetDeviceScore = (deviceProgress) => {
+    return {
+      "red": 0,
+      "blu": 0,
+      "targetId": deviceProgress.targetId,
+      "redTotalControlledTime": 0,
+      "bluTotalControlledTime": 0
+    };
+  };
+
+  if (isRunningMetadata(metadata)) {
+    devicesScores = R.map(calculateDeviceScore, devicesProgress);
+    redScore = R.reduce((acc, d) => d.red + acc, 0, devicesScores);
+    bluScore = R.reduce((acc, d) => d.blu + acc, 0, devicesScores);
+  } else if (isStopEvent(evt)) {
+    devicesScores = R.map(resetDeviceScore, devicesProgress);
+    redScore = R.reduce();
+    bluScore = R.reduce();
+  } else {
+    devicesScores = metadata.score.devicesScores;
+    redScore = lastRedScore;
+    bluScore = lastBluScore;
+  }
 
   return {
     "devicesScores": devicesScores,
-    "red": totalRedScore,
-    "blu": totalBluScore
+    "red": redScore,
+    "blu": bluScore
   }
 }
 

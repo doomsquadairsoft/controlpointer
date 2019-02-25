@@ -120,10 +120,14 @@ export default {
       'devmode'
     ]),
     redPoints() {
-      return 9000;
+      if (!this.latestMetadata.score) return 0;
+      if (!this.latestMetadata.score.red) return 0;
+      return this.latestMetadata.score.red;
     },
     bluPoints() {
-      return 9000;
+      if (!this.latestMetadata.score) return 0;
+      if (!this.latestMetadata.score.blu) return 0;
+      return this.latestMetadata.score.blu;
     },
     gameStatusChipText() {
       if (isEmpty(this.latestMetadata)) return 'Ready to begin';
