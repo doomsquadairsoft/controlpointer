@@ -242,16 +242,19 @@ const capPercentage = (number) => {
 }
 
 
+/**
+ * deriveDevices
+ * Returns an array of devices existing in the game.
+ *
+ */
 const deriveDevices = (lastStepMetadata, thisStepEvent) => {
   const d = R.pluck('targetId', lastStepMetadata.devicesProgress);
   const tid = thisStepEvent.targetId;
-
   const c = R.reject((itm) => {
     if (R.isNil(itm)) return true;
     if (R.isEmpty(itm)) return true;
     if (R.equals(itm, 'unknown!')) return true;
   }, R.flatten([d, tid]));
-
   if (R.lt(R.length(c), 1)) return [];
   return R.uniq(c);
 };
@@ -603,41 +606,26 @@ const deriveScore = (metadata, evt) => {
   // score.blu = (score.bluTotalControlledTime / 60000) * 100
 
   const calculateDeviceScore = (deviceProgress) => {
-    // console.log(`comparing deviceProgress ${JSON.stringify(deviceProgress)} with last:${metadata.score.devicesScores}`)
-
-    const lastDeviceScore = R.find(R.propEq('targetId', deviceProgress.targetId))(metadata.score.devicesScores);
-
-    var lastRedTotal, lastBluTotal;
-    if (R.length(metadata.score.devicesScores) < 1) {
-      lastRedTotal = 0;
-      lastBluTotal = 0;
-    } else {
-      lastRedTotal = lastDeviceScore.redTotalControlledTime;
-      lastBluTotal = lastDeviceScore.bluTotalControlledTime;
-    }
-
     const targetId = deviceProgress.targetId;
-
-    var redTotalControlledTime, bluTotalControlledTime, redScore, bluScore, devicesScores, totalRedScore, totalBluScore;
-    if (deviceProgress.red === 100) {
-      redTotalControlledTime = moment.duration(lastRedTotal).clone().add(elapsedTimeSinceLastMetadata).valueOf();
-      redScore = Math.floor(redTotalControlledTime / 60000) * 100; // 100 pts per min
-    }
-
-    else if (deviceProgress.blu === 100) {
-      bluTotalControlledTime = moment.duration(lastBluTotal).clone().add(elapsedTimeSinceLastMetadata).valueOf();
-      bluScore = Math.floor(bluTotalControlledTime / 60000) * 100;
-    }
-
-    const deviceScore = {
-      "red": redScore || lastRedScore,
-      "blu": bluScore || lastBluScore,
-      "targetId": targetId,
-      "redTotalControlledTime": redTotalControlledTime || lastRedTotal,
-      "bluTotalControlledTime": bluTotalControlledTime || lastBluTotal
+    const defaultDeviceScore = { red: 0, blu: 0, redTotalControlledTime: 0, bluTotalControlledTime: 0, targetId: targetId };
+    const lastDeviceScore = R.find(R.propEq('targetId', targetId))(metadata.score.devicesScores);
+    const basisDevScore = (typeof lastDeviceScore === 'undefined') ? defaultDeviceScore : lastDeviceScore;
+    const redTotalControlledTime =
+      (deviceProgress.red === 100)
+      ? moment.duration(basisDevScore.redTotalControlledTime).clone().add(elapsedTimeSinceLastMetadata).valueOf()
+      : basisDevScore.redTotalControlledTime;
+    const bluTotalControlledTime =
+      (deviceProgress.blu === 100)
+      ? moment.duration(basisDevScore.bluTotalControlledTime).clone().add(elapsedTimeSinceLastMetadata).valueOf()
+      : basisDevScore.bluTotalControlledTime;
+    return {
+      "bluTotalControlledTime": bluTotalControlledTime,
+      "redTotalControlledTime": redTotalControlledTime,
+      "red": Math.floor(redTotalControlledTime / 60000) * 100,
+      "blu": Math.floor(bluTotalControlledTime / 60000) * 100,
+      "targetId": targetId
     };
-    return deviceScore;
-  }
+  };
 
   const resetDeviceScore = (deviceProgress) => {
     return {
@@ -670,9 +658,20 @@ const deriveScore = (metadata, evt) => {
   }
 }
 
+const buildInitialDevicesProgress = (includedDevices) => {
+  const build = (iDev) => {
+    return {
+      targetId: iDev,
+      red: 0,
+      blu: 0
+    }
+  };
+  return R.map(build, includedDevices);
+}
+
 
 const buildInitialMetadata = (gameSettings) => {
-  if (typeof gameSettings === 'undefined') throw new Error('buildInitialMetadata requires 1 {Object} gameSettings parameter. got undefined. ')
+  if (typeof gameSettings === 'undefined') throw new Error('  ❎ buildInitialMetadata requires first param {Object} gameSettings. got undefined. ')
   const initialMetadata = {
     score: {
       devicesScores: [],
@@ -688,7 +687,7 @@ const buildInitialMetadata = (gameSettings) => {
     gameElapsedDuration: 0,
     gameRunningDuration: 0,
     gameEndTime: null,
-    devicesProgress: [],
+    devicesProgress: buildInitialDevicesProgress(gameSettings.includedDevices),
     metadataTimestamp: null,
     gameLength: gameSettings.gameLength,
     captureRate: gameSettings.captureRate
@@ -719,6 +718,8 @@ const _calculateGameMetadata = (lastMetadata, evt) => {
 /**
  * calculateMetadata
  *
+ * **DEPRECATED**. Does not take includedDevices into account when calling buildInitialMetadata
+ *
  * Calculates the state of the entire game based on the timeline, gameSettings, and timePointer it is given.
  */
 const calculateMetadata = (timeline, gameSettings, timePointer) => {
@@ -742,7 +743,7 @@ const calculateMetadata = (timeline, gameSettings, timePointer) => {
   };
 
 
-  const initialMetadata = buildInitialMetadata(gameSettings);
+  const initialMetadata = buildInitialMetadata(gameSettings, []);
 
   return R.reduceWhile(isTimepointerAfter, _calculateGameMetadata, initialMetadata, tl);
 }

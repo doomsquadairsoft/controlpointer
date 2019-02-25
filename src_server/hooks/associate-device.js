@@ -34,7 +34,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     }
 
     const alterDevice = (device, idx) => {
-      console.log(`altering ${device.name}, idx:${idx}`)
       const associatedGameLens = R.lensProp('associatedGames');
       const appendAndEnsureUniq = R.compose(R.uniq(), R.append(gameId));
       const updatedAssociatedGame = R.over(associatedGameLens, appendAndEnsureUniq, device);
@@ -43,24 +42,12 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
 
     const commitDevice = (alteredDevice) => {
       const deviceId = alteredDevice._id;
-      console.log(`updatedDevice:${JSON.stringify(alteredDevice)}  deviceId:${deviceId}`)
       return context.app.service('devices').update(deviceId, alteredDevice);
     };
 
-
-
-
     const devices = await Promise.map(includedDevices, deviceLookup);
-    console.log(`devices:${devices}`)
-    console.log(devices)
     const alteredDevices = await Promise.map(devices, alterDevice);
-    console.log(`alteredDevices:${alteredDevices}`)
-    console.log(alteredDevices)
     const res = await Promise.map(alteredDevices, commitDevice);
-    console.log(`the results are in!`)
-    console.log(res);
-    console.log(`done.`)
-
 
     return context;
 

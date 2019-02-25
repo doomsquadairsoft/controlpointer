@@ -71,6 +71,11 @@
               fingerprint
             </v-icon>
           </v-badge>
+          <v-badge v-if="t.action === 'create'" right>
+            <v-icon large color="green">
+              done
+            </v-icon>
+          </v-badge>
         </v-list-tile-avatar>
 
         <v-list-tile-content>

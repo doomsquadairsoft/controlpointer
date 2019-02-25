@@ -1,5 +1,6 @@
 module.exports = {
   player: require('./player'),
+  devices: require('./devices'),
   timeline: require('./timeline'),
   targetId: require('./targetId'),
   stopEvent: require('./stopEvent'),

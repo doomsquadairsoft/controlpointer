@@ -3,6 +3,7 @@ const processGame = require('../../hooks/process-game');
 const populateGame = require('../../hooks/populate-game');
 const associateDevice = require('../../hooks/associate-device');
 const disassociateDevice = require('../../hooks/disassociate-device');
+const initializeTimeline = require('../../hooks/initialize-timeline');
 
 module.exports = {
   before: {
@@ -21,7 +22,7 @@ module.exports = {
     all: [],
     find: [populateGame()],
     get: [],
-    create: [associateDevice()],
+    create: [associateDevice(), initializeTimeline()],
     update: [],
     patch: [],
     remove: [disassociateDevice()]

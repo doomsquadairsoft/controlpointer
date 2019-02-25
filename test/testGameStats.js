@@ -568,8 +568,8 @@ describe('gameStats', function() {
 
 
   describe('buildInitialMetadata()', function() {
-    it('should accept {Object} gameSettings and return initial metadata defaults', function() {
-      const initialMetadata = gameStats.buildInitialMetadata(fixtures.gameSettings);
+    it('should accept {Object} gameSettings, Array devices and return initial metadata defaults', function() {
+      const initialMetadata = gameStats.buildInitialMetadata(fixtures.gameSettings, fixtures.devices);
       assert.isObject(initialMetadata);
       assert.deepEqual(initialMetadata, {
         gameStatus: {
@@ -582,7 +582,17 @@ describe('gameStats', function() {
         gameElapsedDuration: 0,
         gameRunningDuration: 0,
         gameEndTime: null,
-        devicesProgress: [],
+        devicesProgress: [{
+            targetId: "9802",
+            blu: 0,
+            red: 0
+          },
+          {
+            targetId: "1234",
+            blu: 0,
+            red: 0
+          }
+        ],
         score: {
           blu: 0,
           bluTotalControlledTime: 0,
@@ -599,8 +609,9 @@ describe('gameStats', function() {
     it('should throw if not receiving gameSettings', function() {
       assert.throws(() => {
         gameStats.buildInitialMetadata();
-      }, /parameter/);
+      }, /requires first param/);
     });
+
   });
 
   describe('deriveMetadata()', function() {
@@ -641,7 +652,7 @@ describe('gameStats', function() {
       assert.isNumber(metadata.gameLength);
       assert.propertyVal(metadata, 'theAnswer', 42);
       assert.isArray(metadata.devicesProgress);
-      assert.lengthOf(metadata.devicesProgress, 2);
+      assert.lengthOf(metadata.devicesProgress, 4);
       const validate = (t) => {
         assert.isObject(t);
         assert.isNumber(t.blu);
@@ -679,7 +690,7 @@ describe('gameStats', function() {
       assert.propertyVal(metadata, 'gameLength', 7200000);
       assert.propertyVal(metadata, 'theAnswer', 42);
       assert.isArray(metadata.devicesProgress);
-      assert.lengthOf(metadata.devicesProgress, 0);
+      assert.lengthOf(metadata.devicesProgress, 2);
     });
 
     it('should respect the timePointer parameter', function() {

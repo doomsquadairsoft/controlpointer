@@ -22,9 +22,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
 
     const gameId = result._id;
     const includedDevices = result.includedDevices;
-    console.log(result);
-    console.log(`removing game ${gameId}. The game's associated devices are:${includedDevices}`);
-
 
     const deviceLookup = async (deviceId) => {
       const d = await context.app.service('devices').find({
@@ -36,7 +33,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     }
 
     const alterDevice = (device, idx) => {
-      console.log(`altering ${device.name}, idx:${idx}`)
       const associatedGameLens = R.lensProp('associatedGames');
       const removeMatching = R.compose(R.clone(), R.without([gameId]));
       // const removeMatching = (itm) => ['subaru'];
@@ -48,24 +44,12 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       const deviceId = alteredDevice._id;
       // console.log(`COMMITTING DEVICE updatedDevice:${JSON.stringify(alteredDevice)}  deviceId:${deviceId} `)
       // console.log(alteredDevice)
-      console.log(`目 here it is: ${JSON.stringify(alteredDevice.associatedGames)}`)
       return context.app.service('devices').update(deviceId, alteredDevice);
     };
 
-
-
-
     const devices = await Promise.map(includedDevices, deviceLookup);
-    console.log(`devices:${devices}`)
-    console.log(devices)
     const alteredDevices = await Promise.map(devices, alterDevice);
-    console.log(`alteredDevices:${alteredDevices}`)
-    console.log(alteredDevices)
     const res = await Promise.map(alteredDevices, commitDevice);
-    console.log(`the results are in!`)
-    console.log(res);
-    console.log(`done.`)
-
 
     return context;
 
