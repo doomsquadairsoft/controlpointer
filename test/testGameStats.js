@@ -1829,7 +1829,7 @@ describe('gameStats', function() {
         'devicesScores': [{
           'red': 0,
           'blu': 500,
-          'bluTotalControlledTime': 300000,
+          'bluTotalControlledTime': 301042,
           'redTotalControlledTime': 0,
           'targetId': '5c6f29072b17d855cb076088'
         }]
