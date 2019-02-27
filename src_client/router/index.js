@@ -31,7 +31,7 @@ export default new Router({
       component: Device
     },
     {
-      path: '/device/:deviceId/controlpoint',
+      path: '/game/:gameId/controlpoint/:deviceId',
       name: 'Controlpoint',
       component: Controlpoint
     },

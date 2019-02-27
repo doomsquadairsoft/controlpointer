@@ -110,6 +110,9 @@ export default {
         }
       }).data[0];
     },
+    gameIdViaRoute() {
+      return this.$route.params.gameId;
+    },
   },
   methods: {
     ...mapGetters('devices', {
@@ -160,7 +163,7 @@ export default {
         source: "player",
         target: this.myDevice.did,
         targetId: this.myDevice._id,
-        gameId: this.myDevice.associatedGames[0]
+        gameId: this.gameIdViaRoute
       }, {});
     },
     mouseupBlu() {
@@ -172,7 +175,7 @@ export default {
         source: "player",
         target: this.myDevice.did,
         targetId: this.myDevice._id,
-        gameId: this.myDevice.associatedGames[0]
+        gameId: this.gameIdViaRoute
       }, {});
     },
     mousedownRed() {
@@ -183,7 +186,7 @@ export default {
         source: "player",
         target: this.myDevice.did,
         targetId: this.myDevice._id,
-        gameId: this.myDevice.associatedGames[0]
+        gameId: this.gameIdViaRoute
       }, {});
     },
     mouseupRed() {
@@ -194,7 +197,7 @@ export default {
         source: "player",
         target: this.myDevice.did,
         targetId: this.myDevice._id,
-        gameId: this.myDevice.associatedGames[0]
+        gameId: this.gameIdViaRoute
       }, {});
     },
     deleteDevice: function() {

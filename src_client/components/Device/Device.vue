@@ -13,10 +13,6 @@
             <device-stats :deviceId="this.$route.params.deviceId"></device-stats>
 
             <doom-alert v-if="myDevice.associatedGames.length < 1" level="info">This D3VICE is not associated with a <router-link to="/game">game</router-link>.</doom-alert>
-            <!-- <device-game-controls v-if="myDevice.associatedGames.length > 0" :myDevice="myDevice"></device-game-controls> -->
-            <!-- <v-btn color="teal" :to="virtualControlpointLink">
-              <v-icon>fingerprint</v-icon> Virtual Controlpoint
-            </v-btn> -->
             <device-lifecycle-controls :myDevice="myDevice"></device-lifecycle-controls>
 
             <v-btn color="red" small fab fixed bottom right @click="VueScrollTo.scrollTo('head')">

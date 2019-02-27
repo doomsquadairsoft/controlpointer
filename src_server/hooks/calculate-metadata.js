@@ -43,9 +43,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     const waitForMetadataComputation = Promise.all([metadataLookup, gameSettingsLookup]).then((res) => {
       const lastMetadata = res[0][0]; // => { metadata: { remainingGameTime: n, ...}, gameId: xyz }
       const gameSettings = res[1][0];
-      // console.log(res);
-      console.log(`gameId:${gameId} gameSettings:${JSON.stringify(res[1])}`);
-      // console.log(`\n\nlastMetadata: ${JSON.stringify(res[0][0])} (${res[0].length})\n\n`)
       const initialMetadata = { metadata: gameStats.buildInitialMetadata(gameSettings) };
       const lmd = R.ifElse(R.isNil(), R.always(initialMetadata), R.identity())(lastMetadata);
       const metadata = gameStats.deriveMetadata(lmd.metadata, result);

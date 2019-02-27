@@ -16,7 +16,7 @@
     </v-layout>
   </v-container>
 
-  <div style="max-height: 400px" class="scroll-y" id="scroll-target">
+  <div style="height: 400px;" class="scroll-y" id="scroll-target">
     <v-list v-scroll:#scroll-target="onScroll">
       <v-list-tile v-for="t in myTimeline" :key="t._id" avatar>
 
@@ -129,9 +129,12 @@ export default {
       return moment(t.createdAt).format('HH:mm');
     },
     scrollToBottom() {
+      this.scrollLogToBottom();
+      VueScrollTo.scrollTo('#bottom'); // scroll the page
+    },
+    scrollLogToBottom() {
       const t = this.$el.querySelector('#scroll-target');
       t.scrollTop = t.scrollHeight; // scroll the log box
-      VueScrollTo.scrollTo('#bottom'); // scroll the page
     },
     onScroll(e) {
       if (e.target.scrollTop - (e.target.scrollHeight - e.target.offsetHeight) === 0)
@@ -145,6 +148,10 @@ export default {
     },
   },
   mounted() {
+    this.scrollLogToBottom();
+  },
+  updated() {
+    this.scrollLogToBottom();
   }
 }
 </script>

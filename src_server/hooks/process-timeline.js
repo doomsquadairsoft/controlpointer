@@ -44,10 +44,6 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       R.always(defaults.unknown)
     )(context.data.gameId);
 
-    const gid = context.data.gameId;
-    console.log(`  🕰️ [HOOK] process-timeline - gameId isntEmpty?${h.isntEmpty(gid)}, isString?${h.isString(gid)}, isSmall?${h.isSmall(gid)}`);
-
-
 
     // Override the original data (so that people can't submit additional stuff)
     context.data = {

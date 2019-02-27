@@ -79,7 +79,7 @@ export default {
       return this.myDevice.associatedGames
     },
     virtualControlpointLink() {
-      return `/device/${this._id}/controlpoint`;
+      return `/game/${this.gameId}/controlpoint/${this._id}`;
     },
   },
   methods: {

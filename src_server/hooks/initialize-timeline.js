@@ -44,20 +44,11 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       type: 'timeline'
     };
 
-    // console.log(context);
-    console.log(`gameId:${JSON.stringify(gameId)} type:${R.type(gameId)} converted:${R.type(JSON.stringify(gameId))}`)
-    console.log(`  🐱 typeOf gameId: ${R.type(gameId)} creationEvent:${JSON.stringify(creationEvent)}`)
-
     const initialize = (evt) => {
       return context.app.service('timeline').create(evt);
     };
 
     initialize(creationEvent)
-    .then((idk) => {
-      //   return context.app.service('devices').update(deviceId, alteredDevice);
-      console.log(`  ✈️ Game timeline initialized!`);
-      console.log(idk);
-    })
     .catch((e) => {
       console.log(e);
     })

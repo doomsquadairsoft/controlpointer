@@ -185,7 +185,7 @@ export default {
       if (typeof g === 'undefined') return {};
       return {
         link: `/game/${g._id}`,
-        name: g.name || 'link'
+        name: g.gameName
       };
     },
     crErrors() {
@@ -228,10 +228,8 @@ export default {
 
       this.$v.$touch();
       if (this.$v.$invalid) {
-        console.log('invalid')
         this.isGameCreated = false;
       } else {
-        console.log('valid')
         this.isGameCreated = true;
         this.createGame({
           gameLength: this.gameLength,
