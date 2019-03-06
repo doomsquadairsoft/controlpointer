@@ -32,28 +32,7 @@
         </v-layout>
       </v-container>
     </v-card-text>
-    <v-card-text>
-      <v-container fluid grid-list-lg>
-        <v-layout row wrap>
-          <v-card-title>
-            <div>
-              <span class="grey--text">Development Mode</span><br>
-            </div>
-          </v-card-title>
-          </v-flex>
-        </v-layout>
-        <v-layout row wrap>
-          <v-flex xs12 sm4 text-xs-center>
-            <div>
-              <v-btn @click="$store.commit('setDevmodeOn')" depressed large color="primary">Dev mode on</v-btn>
-            </div>
-            <div>
-              <v-btn @click="$store.commit('setDevmodeOff')" depressed large color="primary">Dev mode off</v-btn>
-            </div>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </v-card-text>
+
 
     <v-container>
       <v-layout>
