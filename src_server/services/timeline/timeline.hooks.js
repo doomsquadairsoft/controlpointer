@@ -2,6 +2,7 @@
 const processTimeline = require('../../hooks/process-timeline');
 const populateTimeline = require('../../hooks/populate-timeline');
 const calculateMetadata = require('../../hooks/calculate-metadata');
+const patchPressedDevice = require('../../hooks/patch-pressed-device');
 
 module.exports = {
   before: {
@@ -20,7 +21,7 @@ module.exports = {
     all: [],
     find: [populateTimeline()],
     get: [],
-    create: [calculateMetadata()],
+    create: [calculateMetadata(), patchPressedDevice()],
     update: [],
     patch: [],
     remove: []

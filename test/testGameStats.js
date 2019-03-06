@@ -164,8 +164,42 @@ describe('gameStats', function() {
       });
     });
 
+    describe('isPressEvent', function() {
+      it('should return true for press_blu or press_red timeline events', function() {
+        const pr = gameStats.isPressEvent({
+          action: 'press_red'
+        });
+        const pb = gameStats.isPressEvent({
+          action: 'press_blu'
+        });
+        const rr = gameStats.isPressEvent({
+          action: 'release_red'
+        });
+        const rb = gameStats.isPressEvent({
+          action: 'release_blu'
+        });
+        assert.isTrue(pr);
+        assert.isTrue(pb);
+        assert.isFalse(rr);
+        assert.isFalse(rb);
+      });
+    })
+
+    describe('isOverEvent', function() {
+      it('should return true for over timeline events', function() {
+        const oe = gameStats.isOverEvent({
+          action: 'over'
+        });
+        const se = gameStats.isOverEvent({
+          action: 'stop'
+        });
+        assert.isTrue(oe);
+        assert.isFalse(se);
+      });
+    })
+
     describe('isProgressEvent', function() {
-      it('should return true for cap_*, press_*, or release_* events', function() {
+      it('should return true for cap_*, press_*, release_*, or hold_* events', function() {
         const capUnc = gameStats.isProgressEvent({
           action: 'cap_unc'
         });
@@ -174,6 +208,9 @@ describe('gameStats', function() {
         });
         const releaseRed = gameStats.isProgressEvent({
           action: 'release_red'
+        });
+        const holdRed = gameStats.isProgressEvent({
+          action: 'hold_red'
         });
         const capRed = gameStats.isProgressEvent({
           action: 'cap_red'
@@ -184,15 +221,20 @@ describe('gameStats', function() {
         const releaseBlu = gameStats.isProgressEvent({
           action: 'release_blu'
         });
+        const holdBlu = gameStats.isProgressEvent({
+          action: 'hold_blu'
+        });
         const capBlu = gameStats.isProgressEvent({
           action: 'cap_blu'
         });
         assert.isTrue(capUnc);
         assert.isTrue(pressRed);
         assert.isTrue(releaseRed);
+        assert.isTrue(holdRed);
         assert.isTrue(capUnc);
         assert.isTrue(pressBlu);
         assert.isTrue(releaseBlu);
+        assert.isTrue(holdBlu);
         assert.isTrue(capBlu);
       });
 
@@ -1401,6 +1443,70 @@ describe('gameStats', function() {
       assert.equal(devicesProgress[0].red, 100);
       assert.equal(devicesProgress[0].blu, 0);
       assert.propertyVal(devicesProgress[0], 'targetId', 'hG9RdwPn1HH4bZLk');
+    });
+
+    it('should show the appropriate values after a hold_red action', function() {
+      const metadata = {
+        "score": {
+          "devicesScores": [{
+            "bluTotalControlledTime": 0,
+            "redTotalControlledTime": 0,
+            "red": 0,
+            "blu": 0,
+            "targetId": "5c741f68f9ea250f12518646"
+          }, {
+            "bluTotalControlledTime": 0,
+            "redTotalControlledTime": 0,
+            "red": 0,
+            "blu": 0,
+            "targetId": "5c741fe9f9ea250f12518647"
+          }],
+          "red": 0,
+          "blu": 0
+        },
+        "gameStatus": {
+          "msg": "running",
+          "code": 0
+        },
+        "remainingGameTime": 894253,
+        "gameStartTime": 1551834474904,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 5747,
+        "gameRunningDuration": 5747,
+        "gameEndTime": 1551835374904,
+        "devicesProgress": [{
+          "redPressTime": 1551834480651,
+          "bluPressTime": null,
+          "red": 0,
+          "blu": 0,
+          "targetId": "5c741f68f9ea250f12518646"
+        }, {
+          "targetId": "5c741fe9f9ea250f12518647",
+          "red": 0,
+          "blu": 0
+        }],
+        "metadataTimestamp": 1551834480651,
+        "gameLength": 900000,
+        "captureRate": 5000,
+        "theAnswer": 42
+      };
+      const evt = {
+        'type': 'timeline',
+        'action': 'hold_red',
+        'createdAt': 1551834491161,
+        'target': 'proto',
+        'targetId': '5c741f68f9ea250f12518646',
+        'gameId': '5c7f1d646048363fcfafd4bb',
+        '_id': '5c7f1d7b6048363fcfafd4c2'
+      };
+      const devicesProgress = gameStats.deriveDevicesProgress(metadata, evt);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 2);
+      assert.equal(devicesProgress[0].redPressTime, 1551834491161, 'redPressTime should update to the timestamp of the hold_red event');
+      assert.isNull(devicesProgress[0].bluPressTime);
+      assert.equal(devicesProgress[0].red, 100);
+      assert.equal(devicesProgress[0].blu, 0);
+      assert.propertyVal(devicesProgress[0], 'targetId', '5c741f68f9ea250f12518646');
     });
 
     it('should return an array containing device progress objects when evaluating an admin cap_red action', function() {

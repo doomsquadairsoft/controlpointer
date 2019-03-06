@@ -9,10 +9,12 @@ const isOdd = R.complement(isEven);
 const isRed = R.compose(R.test(/_red$/), R.prop('action'));
 const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
 const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
-const isProgressEvent = R.compose(R.test(/^(cap|press|release)_\w{3}$/), R.prop('action'));
+const isPressEvent = R.compose(R.test(/^(press)_\w{3}$/), R.prop('action'));
+const isProgressEvent = R.compose(R.test(/^(cap|press|release|hold)_\w{3}$/), R.prop('action'));
 const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
 const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
 const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
+const isOverEvent = R.compose(R.equals('over'), R.prop('action'));
 const isPausedMetadata = R.compose(R.equals('paused'), R.prop('msg'), R.prop('gameStatus'));
 const isRunningMetadata = R.compose(R.equals('running'), R.prop('msg'), R.prop('gameStatus'));
 const isOverMetadata = R.compose(R.equals('over'), R.prop('msg'), R.prop('gameStatus'));
@@ -520,7 +522,7 @@ const deriveMetadataTimestamp = (lastStepMetadata, thisStepEvent) => {
 const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof deviceId === 'undefined') throw new Error('deriveDevProgress requires three parameters');
   const action = thisStepEvent.action;
-  const pointRegex = /(press|release|cap)_(\w{3})/;
+  const pointRegex = /(press|release|cap|hold)_(\w{3})/;
   const detailedActionActual = R.match(pointRegex, action);
   const detailedAction = detailedActionActual[1];
   const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
@@ -579,6 +581,25 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
       blu: blu,
       redPressTime: redPressTime,
       bluPressTime: bluPressTime,
+      targetId: deviceId
+    }
+  }
+
+  if (detailedAction === 'hold') {
+    // server initiated hold action.
+    const original = thisProgress;
+    const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
+    const { red, blu } = teamProgressCompute(original, delta);
+    const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
+    // const { redPressTime, bluPressTime } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
+    const lastRedPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).redPressTime;
+    const lastBluPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).bluPressTime;
+    console.log(`  lastRedPressTime:${lastRedPressTime}, lastBluPressTime:${lastBluPressTime}`);
+    return {
+      red: red,
+      blu: blu,
+      redPressTime: isRed(thisStepEvent) ? thisStepEvent.createdAt : null,
+      bluPressTime: isBlu(thisStepEvent) ? thisStepEvent.createdAt : null,
       targetId: deviceId
     }
   }
@@ -831,6 +852,8 @@ module.exports = {
     Vue.prototype.$gameStats.isStopEvent = isStopEvent;
     Vue.prototype.$gameStats.isStartEvent = isStartEvent;
     Vue.prototype.$gameStats.isPauseEvent = isPauseEvent;
+    Vue.prototype.$gameStats.isOverEvent = isOverEvent;
+    Vue.prototype.$gameStats.isPressEvent = isPressEvent;
     Vue.prototype.$gameStats.isPausedMetadata = isPausedMetadata;
     Vue.prototype.$gameStats.isRunningMetadata = isRunningMetadata;
     Vue.prototype.$gameStats.isOverMetadata = isOverMetadata;
@@ -863,10 +886,12 @@ module.exports = {
   isRed,
   isBlu,
   isLifeCycleEvent,
+  isPressEvent,
   isProgressEvent,
   isStopEvent,
   isStartEvent,
   isPauseEvent,
+  isOverEvent,
   isPausedMetadata,
   isRunningMetadata,
   isOverMetadata,
