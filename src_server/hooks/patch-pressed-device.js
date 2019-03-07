@@ -36,7 +36,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
         const lastReleaseEvent = evts[0];
         if (typeof lastReleaseEvent === 'undefined') return false;
         const isReleased = (pressEvt.createdAt < lastReleaseEvent.createdAt);
-        console.log(`  \n\n🎮  EVALUATRON! \n\n the button HAS${isReleased ? ' ' : ' NOT '}released!`)
+        // console.log(`  \n\n🎮  [PRESSED] EVALUATRON! \n\n the button HAS${isReleased ? ' ' : ' NOT '}released!`)
         if (isReleased) return true
         return false;
       })
@@ -110,7 +110,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
           // If a release event has not yet been seen, create a hold event.
 
           waitForReleasedDetermination(evt).then((isReleased) => {
-            if (isReleased) clearInterval(timer);
+            if (isReleased) return clearInterval(timer);
             waitForHoldEventCreation(evt);
           });
         }, 5000);
@@ -118,6 +118,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
         // clear the interval timer either when a release_(blu|red) event is seen,
         // or the maximum timeout occurs
         setTimeout(() => {
+          // console.log(`  ⌚ Button Hold Timeout.`)
           clearInterval(timer);
         }, (cr*2.3));
       }

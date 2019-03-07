@@ -183,7 +183,94 @@ describe('gameStats', function() {
         assert.isFalse(rr);
         assert.isFalse(rb);
       });
-    })
+    });
+
+    describe('isReleaseEvent', function() {
+      it('should return true for release_blu or release_red timeline events', function() {
+        const pr = gameStats.isReleaseEvent({
+          action: 'press_red'
+        });
+        const pb = gameStats.isReleaseEvent({
+          action: 'press_blu'
+        });
+        const rr = gameStats.isReleaseEvent({
+          action: 'release_red'
+        });
+        const rb = gameStats.isReleaseEvent({
+          action: 'release_blu'
+        });
+        assert.isTrue(rr);
+        assert.isTrue(rb);
+        assert.isFalse(pr);
+        assert.isFalse(pb);
+      });
+    });
+
+    describe('isHoldEvent', function() {
+      it('should return true for hold_blu or hold_red timeline events', function() {
+        const hr = gameStats.isHoldEvent({
+          action: 'hold_red'
+        });
+        const hb = gameStats.isHoldEvent({
+          action: 'hold_blu'
+        });
+        const ur = gameStats.isHoldEvent({
+          action: 'unhold_red'
+        });
+        const ub = gameStats.isHoldEvent({
+          action: 'unhold_blu'
+        });
+        assert.isTrue(hr);
+        assert.isTrue(hb);
+        assert.isFalse(ur);
+        assert.isFalse(ub);
+      });
+    });
+
+    describe('isUnholdEvent', function() {
+      it('should return true for unhold_blu or unhold_red timeline events', function() {
+        const ur = gameStats.isUnholdEvent({
+          action: 'unhold_red'
+        });
+        const ub = gameStats.isUnholdEvent({
+          action: 'unhold_blu'
+        });
+        const hr = gameStats.isUnholdEvent({
+          action: 'hold_red'
+        });
+        const hb = gameStats.isUnholdEvent({
+          action: 'hold_blu'
+        });
+        assert.isTrue(ur);
+        assert.isTrue(ub);
+        assert.isFalse(hr);
+        assert.isFalse(hb);
+      });
+    });
+
+
+    describe('isCapEvent', function() {
+      it('should return true for cap_blu or cap_red timeline events', function() {
+        const cr = gameStats.isCapEvent({
+          action: 'cap_red'
+        });
+        const cb = gameStats.isCapEvent({
+          action: 'cap_blu'
+        });
+        const rr = gameStats.isCapEvent({
+          action: 'release_red'
+        });
+        const rb = gameStats.isCapEvent({
+          action: 'release_blu'
+        });
+        assert.isTrue(cr);
+        assert.isTrue(cb);
+        assert.isFalse(rr);
+        assert.isFalse(rb);
+      });
+    });
+
+
 
     describe('isOverEvent', function() {
       it('should return true for over timeline events', function() {
@@ -199,7 +286,7 @@ describe('gameStats', function() {
     })
 
     describe('isProgressEvent', function() {
-      it('should return true for cap_*, press_*, release_*, or hold_* events', function() {
+      it('should return true for cap_*, press_*, release_*, hold_*, or unhold_* events', function() {
         const capUnc = gameStats.isProgressEvent({
           action: 'cap_unc'
         });
@@ -211,6 +298,9 @@ describe('gameStats', function() {
         });
         const holdRed = gameStats.isProgressEvent({
           action: 'hold_red'
+        });
+        const unholdRed = gameStats.isProgressEvent({
+          action: 'unhold_red'
         });
         const capRed = gameStats.isProgressEvent({
           action: 'cap_red'
@@ -224,6 +314,9 @@ describe('gameStats', function() {
         const holdBlu = gameStats.isProgressEvent({
           action: 'hold_blu'
         });
+        const unholdBlu = gameStats.isProgressEvent({
+          action: 'unhold_blu'
+        });
         const capBlu = gameStats.isProgressEvent({
           action: 'cap_blu'
         });
@@ -231,10 +324,12 @@ describe('gameStats', function() {
         assert.isTrue(pressRed);
         assert.isTrue(releaseRed);
         assert.isTrue(holdRed);
+        assert.isTrue(unholdRed);
         assert.isTrue(capUnc);
         assert.isTrue(pressBlu);
         assert.isTrue(releaseBlu);
         assert.isTrue(holdBlu);
+        assert.isTrue(unholdBlu);
         assert.isTrue(capBlu);
       });
 
@@ -604,6 +699,111 @@ describe('gameStats', function() {
       }, /two parameters/);
       assert.throws(() => {
         gameStats.teamProgressCompute(origin);
+      }, /two parameters/);
+    });
+  });
+
+
+
+  describe('teamLossCompute()', function() {
+    it('should cope with an empty origin object', function() {
+      const origin = {};
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 50
+      })
+    });
+    it('should cope with an undefined origin object', function() {
+      const origin = undefined;
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 50
+      })
+    });
+    it('should subtract the controlling team progress when opposing team holds button', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 50,
+        blu: 0
+      });
+    });
+
+    it('should increment the capturing teams progress when the opposing teams progress is 0', function() {
+      const origin = {
+        red: 0,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 50
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 50
+      });
+    });
+
+    it('should flip the score when red origin is 100 but then blu comes along with a delta of 200', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 200
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 100
+      });
+    });
+
+    it('should be a gentle bb', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      const delta = {
+        red: 0,
+        blu: 125
+      };
+      const score = gameStats.teamLossCompute(origin, delta);
+      assert.deepEqual(score, {
+        red: 0,
+        blu: 25
+      });
+    });
+
+    it('should throw if not receiving 2 params', function() {
+      const origin = {
+        red: 100,
+        blu: 0
+      };
+      assert.throws(() => {
+        gameStats.teamLossCompute();
+      }, /two parameters/);
+      assert.throws(() => {
+        gameStats.teamLossCompute(origin);
       }, /two parameters/);
     });
   });
@@ -1505,6 +1705,54 @@ describe('gameStats', function() {
       assert.equal(devicesProgress[0].redPressTime, 1551834491161, 'redPressTime should update to the timestamp of the hold_red event');
       assert.isNull(devicesProgress[0].bluPressTime);
       assert.equal(devicesProgress[0].red, 100);
+      assert.equal(devicesProgress[0].blu, 0);
+      assert.propertyVal(devicesProgress[0], 'targetId', '5c741f68f9ea250f12518646');
+    });
+
+    it('should show the appropriate values after an unhold_blu action', function() {
+      const metadata = {
+        "score": {
+          "devicesScores": [],
+          "red": 0,
+          "blu": 0
+        },
+        "gameStatus": {
+          "msg": "running",
+          "code": 0
+        },
+        "remainingGameTime": null,
+        "gameStartTime": null,
+        "gamePausedDuration": 0,
+        "gameElapsedDuration": 0,
+        "gameRunningDuration": 0,
+        "gameEndTime": null,
+        "devicesProgress": [{
+          "red": 86,
+          "blu": 0,
+          "redPressTime": null,
+          "bluPressTime": null,
+          "targetId": "5c741f68f9ea250f12518646"
+        }],
+        "metadataTimestamp": 1551924973293,
+        "gameLength": 900000,
+        "captureRate": 45000,
+        "theAnswer": 42
+      };
+      const evt = {
+        'type': 'timeline',
+        'action': 'unhold_blu',
+        'createdAt': 1551925018293,
+        'target': 'proto',
+        'targetId': '5c741f68f9ea250f12518646',
+        'gameId': '5c7f1d646048363fcfafd4bb',
+        '_id': '5c7f1d7b6048363fcfafd4c2'
+      };
+      const devicesProgress = gameStats.deriveDevicesProgress(metadata, evt);
+      assert.isArray(devicesProgress);
+      assert.lengthOf(devicesProgress, 1);
+      assert.isNull(devicesProgress[0].redPressTime);
+      assert.isNull(devicesProgress[0].bluPressTime);
+      assert.equal(devicesProgress[0].red, 0);
       assert.equal(devicesProgress[0].blu, 0);
       assert.propertyVal(devicesProgress[0], 'targetId', '5c741f68f9ea250f12518646');
     });

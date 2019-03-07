@@ -56,6 +56,7 @@
               <v-radio default label="Sector Control" value="sectorControl"></v-radio>
               <v-radio disabled label="Domination (coming soon)" value="domination"></v-radio>
               <v-radio disabled label="Bomb Diffusal (coming soon)" value="bombDiffusal"></v-radio>
+              <v-radio disabled label="Foxteam (coming soon)" value="foxTeam"></v-radio>
             </v-radio-group>
           </v-flex>
         </v-layout>

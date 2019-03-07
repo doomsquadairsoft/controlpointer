@@ -10,7 +10,11 @@ const isRed = R.compose(R.test(/_red$/), R.prop('action'));
 const isBlu = R.compose(R.test(/_blu$/), R.prop('action'));
 const isLifeCycleEvent = R.compose(R.test(/start|pause|stop/), R.prop('action'));
 const isPressEvent = R.compose(R.test(/^(press)_\w{3}$/), R.prop('action'));
-const isProgressEvent = R.compose(R.test(/^(cap|press|release|hold)_\w{3}$/), R.prop('action'));
+const isHoldEvent = R.compose(R.test(/^(hold)_\w{3}$/), R.prop('action'));
+const isUnholdEvent = R.compose(R.test(/^(unhold)_\w{3}$/), R.prop('action'));
+const isReleaseEvent = R.compose(R.test(/^(release)_\w{3}$/), R.prop('action'));
+const isCapEvent = R.compose(R.test(/^(cap)_\w{3}$/), R.prop('action'));
+const isProgressEvent = R.compose(R.test(/^(cap|press|release|hold|unhold)_\w{3}$/), R.prop('action'));
 const isStopEvent = R.compose(R.equals('stop'), R.prop('action'));
 const isStartEvent = R.compose(R.equals('start'), R.prop('action'));
 const isPauseEvent = R.compose(R.equals('pause'), R.prop('action'));
@@ -125,7 +129,56 @@ const buildParameters = (findTimelineInStore, findGameInStore, timePointer) => {
 
 
 
+/**
+ * buttonProgressLossDeltaCompute
+ *
+ * Compute the loss of progress between the last event and now
+ */
+const buttonProgressLossDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
+  if (typeof lastStepMetadata === 'undefined') throw new Error('first param lastStepMetadata passed to buttonReleaseDeltaCompute is not defined')
+  if (typeof deviceId === 'undefined') throw new Error('buttonReleaseDeltaCompute requires 3 params');
+  if (typeof lastStepMetadata.captureRate === 'undefined') throw new Error('lastStepMetadata.captureRate passed to buttonReleaseDeltaCompute() is undefined!');
+  const captureRate = lastStepMetadata.captureRate;
+  const devicesProgress = lastStepMetadata.devicesProgress;
+  const ca = moment(thisStepEvent.createdAt);
+  const old = R.find(R.propEq('targetId', deviceId), devicesProgress);
 
+  const emptyDelta = { blu: 0, red: 0, targetId: deviceId };
+  if (
+    (isRed(thisStepEvent) && old.redPressTime === null) ||
+    (isBlu(thisStepEvent) && old.bluPressTime === null)
+  ) return emptyDelta;
+
+  const lastRedPressTime = moment(R.prop('redPressTime', old));
+  const lastBluPressTime = moment(R.prop('bluPressTime', old));
+
+  const _redHeldDuration = moment.duration(ca.diff(lastRedPressTime)).valueOf();
+  const _bluHeldDuration = moment.duration(ca.diff(lastBluPressTime)).valueOf();
+
+  const capDuration = R.ifElse(
+    R.gt(R.__, R.multiply(captureRate, 2)),
+    R.always(R.multiply(captureRate, 2)),
+    R.identity()
+  );
+
+  const redHeldDuration = isRed(thisStepEvent) ? capDuration(_redHeldDuration) : 0;
+  const bluHeldDuration = isBlu(thisStepEvent) ? capDuration(_bluHeldDuration) : 0;
+
+  const redDelta = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
+  const bluDelta = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
+
+  const delta = {
+    red: redDelta * -1,
+    blu: bluDelta * -1,
+    targetId: deviceId
+  }
+}
+
+/**
+ * buttonReleaseDeltaCompute
+ *
+ * Compute the progress change between the last button press and now
+ */
 const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof lastStepMetadata === 'undefined') throw new Error('first param lastStepMetadata passed to buttonReleaseDeltaCompute is not defined')
   if (typeof deviceId === 'undefined') throw new Error('buttonReleaseDeltaCompute requires 3 params');
@@ -160,6 +213,7 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
   const redProgressSinceLastPress = Math.floor(R.multiply(R.divide(redHeldDuration, captureRate), 100));
   const bluProgressSinceLastPress = Math.floor(R.multiply(R.divide(bluHeldDuration, captureRate), 100));
 
+
   const pre = {
     blu: bluProgressSinceLastPress,
     red: redProgressSinceLastPress,
@@ -174,6 +228,12 @@ const buttonReleaseDeltaCompute = (lastStepMetadata, thisStepEvent, deviceId) =>
 
 }
 
+
+/**
+ * teamProgressCompute
+ *
+ * Compute the progress of the devices based on an original progress object and a delta progress object
+ */
 const teamProgressCompute = (origin, delta) => {
   if (typeof delta === 'undefined') throw new Error('teamProgressCompute requires two parameters!')
   const o = R.ifElse(
@@ -222,6 +282,45 @@ const teamProgressCompute = (origin, delta) => {
     blu: capPercentage(
       (delta.blu) ?
       gainingAlgo('blu', o, delta) :
+      losingAlgo('blu', o, delta)
+    )
+  };
+}
+
+const teamLossCompute = (origin, delta) => {
+  if (typeof delta === 'undefined') throw new Error('teamLossCompute requires two parameters!')
+  const o = R.ifElse(
+    R.either(R.isNil(), R.isEmpty()),
+    R.always({red: 0, blu: 0}),
+    R.identity()
+  )(origin);
+
+  const gainingAlgo = (color, origin, delta) => {
+    if (color === 'red')
+      if (origin.blu - delta.red < 0)
+        return (origin.red + delta.red - origin.blu);
+
+    if (color === 'blu')
+      if (origin.red - delta.blu < 0)
+        return (origin.blu + delta.blu - origin.red);
+
+    return 0;
+  };
+
+  console.log(`  losing! origin.red:${origin.red}, delta.blu:${delta.blu}, remainder:${origin.red-delta.blu}`)
+  console.log(`  losing! origin.blu:${origin.blu}, delta.red:${delta.red}, remainder:${origin.blu-delta.red}`)
+
+  const losingAlgo = (color, origin, delta) => {
+    if (color === 'red') return (origin.red-delta.red);
+    if (color === 'blu') return (origin.blu-delta.blu);
+    return 0;
+  }
+
+  return {
+    red: capPercentage(
+      losingAlgo('red', o, delta)
+    ),
+    blu: capPercentage(
       losingAlgo('blu', o, delta)
     )
   };
@@ -522,9 +621,9 @@ const deriveMetadataTimestamp = (lastStepMetadata, thisStepEvent) => {
 const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   if (typeof deviceId === 'undefined') throw new Error('deriveDevProgress requires three parameters');
   const action = thisStepEvent.action;
-  const pointRegex = /(press|release|cap|hold)_(\w{3})/;
-  const detailedActionActual = R.match(pointRegex, action);
-  const detailedAction = detailedActionActual[1];
+  // const pointRegex = /(press|release|cap|hold|unhold)_(\w{3})/;
+  // const detailedActionActual = R.match(pointRegex, action);
+  // const detailedAction = detailedActionActual[1];
   const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
   const ca = moment(thisStepEvent.createdAt);
   const captureRate = lastStepMetadata.captureRate;
@@ -541,11 +640,8 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
   // if the event action does not reference this device Id, return last metadata's progress
   if (thisStepEvent.targetId !== deviceId) return thisProgress;
 
-  // if the event action is neither of press|release|cap, return last metadata's progress
-  if (R.isEmpty(detailedActionActual)) return thisProgress;
 
-
-  if (detailedAction === 'cap') {
+  if (isCapEvent(thisStepEvent)) {
     // admin action
     if (action === 'cap_unc') return { red: 0, blu: 0, targetId: deviceId };
     const origin = thisProgress;
@@ -557,7 +653,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     return { red: red, blu: blu, targetId: deviceId };
   }
 
-  if (detailedAction === 'press') {
+  if (isPressEvent(thisStepEvent)) {
     // player press button
     const old = thisProgress;
     const neu = {
@@ -570,7 +666,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     return neu;
   }
 
-  if (detailedAction === 'release') {
+  if (isReleaseEvent(thisStepEvent)) {
     // player release button
     const original = thisProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
@@ -585,7 +681,7 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     }
   }
 
-  if (detailedAction === 'hold') {
+  if (isHoldEvent(thisStepEvent)) {
     // server initiated hold action.
     const original = thisProgress;
     const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
@@ -594,7 +690,6 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     // const { redPressTime, bluPressTime } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
     const lastRedPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).redPressTime;
     const lastBluPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).bluPressTime;
-    console.log(`  lastRedPressTime:${lastRedPressTime}, lastBluPressTime:${lastBluPressTime}`);
     return {
       red: red,
       blu: blu,
@@ -604,9 +699,28 @@ const deriveDevProgress = (lastStepMetadata, thisStepEvent, deviceId) => {
     }
   }
 
-  console.log(`Problum. detailedActionActual:${detailedActionActual} (${R.type(detailedActionActual)}), action:${action}, detailedAction:${detailedAction}`);
+  if (isUnholdEvent(thisStepEvent)) {
+    // the button is no longer held (but was previously)
+    // our goal here is to reduce the device progress until it gets to 0.
+    const original = thisProgress;
+    const delta = buttonReleaseDeltaCompute(lastStepMetadata, thisStepEvent, deviceId);
+    const { red, blu } = teamLossCompute(original, delta);
+    const devicesProgress = R.prop('devicesProgress', lastStepMetadata);
+    const { redPressTime, bluPressTime } = incompleteProgressCompute(lastStepMetadata, thisStepEvent, deviceId);
+    const lastRedPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).redPressTime;
+    const lastBluPressTime = R.find(R.propEq('targetId', deviceId), devicesProgress).bluPressTime;
+    console.log(`  lastRedPressTime:${lastRedPressTime}, lastBluPressTime:${lastBluPressTime} red:${red}, blu:${blu}`);
+    return {
+      red: red,
+      blu: blu,
+      redPressTime: isRed(thisStepEvent) ? thisStepEvent.createdAt : null,
+      bluPressTime: isBlu(thisStepEvent) ? thisStepEvent.createdAt : null,
+      targetId: deviceId
+    }
+  }
 
   // unknown action or a non-device related action
+  console.log(`  💂🏼 Problum. action:${action} is not supported.`);
   return thisProgress;
 };
 
@@ -827,6 +941,7 @@ module.exports = {
     Vue.prototype.$gameStats.capPercentage = capPercentage;
     Vue.prototype.$gameStats.pad = pad;
     Vue.prototype.$gameStats.teamProgressCompute = teamProgressCompute;
+    Vue.prototype.$gameStats.teamLossCompute = teamLossCompute;
     Vue.prototype.$gameStats.calculateMetadata = calculateMetadata;
     Vue.prototype.$gameStats.deriveGameStatus = deriveGameStatus;
     Vue.prototype.$gameStats.deriveRemainingGameTime = deriveRemainingGameTime;
@@ -852,8 +967,12 @@ module.exports = {
     Vue.prototype.$gameStats.isStopEvent = isStopEvent;
     Vue.prototype.$gameStats.isStartEvent = isStartEvent;
     Vue.prototype.$gameStats.isPauseEvent = isPauseEvent;
+    Vue.prototype.$gameStats.isCapEvent = isCapEvent;
     Vue.prototype.$gameStats.isOverEvent = isOverEvent;
     Vue.prototype.$gameStats.isPressEvent = isPressEvent;
+    Vue.prototype.$gameStats.isHoldEvent = isHoldEvent;
+    Vue.prototype.$gameStats.isUnholdEvent = isUnholdEvent;
+    Vue.prototype.$gameStats.isReleaseEvent = isReleaseEvent;
     Vue.prototype.$gameStats.isPausedMetadata = isPausedMetadata;
     Vue.prototype.$gameStats.isRunningMetadata = isRunningMetadata;
     Vue.prototype.$gameStats.isOverMetadata = isOverMetadata;
@@ -864,6 +983,7 @@ module.exports = {
   pad,
   capPercentage,
   teamProgressCompute,
+  teamLossCompute,
   calculateMetadata,
   deriveGameStatus,
   deriveRemainingGameTime,
@@ -887,6 +1007,10 @@ module.exports = {
   isBlu,
   isLifeCycleEvent,
   isPressEvent,
+  isReleaseEvent,
+  isHoldEvent,
+  isUnholdEvent,
+  isCapEvent,
   isProgressEvent,
   isStopEvent,
   isStartEvent,

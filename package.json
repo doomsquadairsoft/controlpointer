@@ -12,7 +12,7 @@
     "npm": "^6.4.1"
   },
   "scripts": {
-    "dev": "npx concurrently --kill-others \"npx supervisor -w src_server,src_shared src_server\" \"npx supervisor -w src_game,src_shared src_game\" \"npx webpack-dev-server --hot --mode=development\"",
+    "dev": "npx concurrently --kill-others \"npx supervisor -w src_server,src_shared src_server\" \"npx webpack-dev-server --hot --mode=development\"",
     "dev:server": "npx supervisor -w src_server,src_shared src_server",
     "dev:client": "npx webpack-dev-server --hot --mode=development",
     "build": "NODE_ENV=production webpack --progress --hide-modules",
