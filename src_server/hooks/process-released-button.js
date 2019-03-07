@@ -21,7 +21,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     // [x] the timer runs every 5 seconds
     //   [x] the timer creates a unhold_(red|blu) event in the timeline
     //   [x] the timer is cancelled when it expires after (captureRate*2);
-    //   [ ] the timer is cancelled if a press_* event occurs with the same targetId
+    //   [x] the timer is cancelled if a press_* event occurs with the same targetId
     //   [x] the timer is cancelled if (color) progress reaches 0
     //   [ ] the timer is cancelled if (color) progress reaches 100
 
@@ -48,9 +48,9 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
       }).then((evts) => {
         const lastPressEvent = evts[0];
         const isPressed = (releaseEvt.createdAt < lastPressEvent.createdAt);
-        console.log(`  \n\n👷🏽  [RELEASED] EVALUATRON! \n\n the button HAS${isPressed ? ' ' : ' NOT '}pressed!`)
-        console.log(evts)
-        console.log(lastPressEvent)
+        // console.log(`  \n\n👷🏽  [RELEASED] EVALUATRON! \n\n the button HAS${isPressed ? ' ' : ' NOT '}pressed!`)
+        // console.log(evts)
+        // console.log(lastPressEvent)
         if (typeof lastPressEvent === 'undefined') return false;
         if (isPressed) return true;
         return false;
@@ -101,8 +101,8 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
         },
       }).then((res) => {
         const d = res[0];
-        console.log(`  device in question:`)
-        console.log(d)
+        // console.log(`  device in question:`)
+        // console.log(d)
         const isProgressMaxed = (color === 'red') ? (d.redProgress === 100) : (d.bluProgress === 100);
         const isProgressNil = (color === 'red') ? (d.redProgress === 0) : (d.bluProgress === 0);
         return [ isProgressMaxed, isProgressNil ];
@@ -117,8 +117,8 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
     const evt = timeline[0];
 
     if (gameStats.isReleaseEvent(evt)) {
-      console.log(`  🕴️process-released-button`)
-      console.log(evt);
+      // console.log(`  🕴️process-released-button`)
+      // console.log(evt);
 
       // Get the game ID from the timeline event we are inspecting
       const gameId = evt.gameId;
@@ -168,7 +168,7 @@ module.exports = function(options = {}) { // eslint-disable-line no-unused-vars
               waitForPressedDetermination(evt),
               waitForProgressDetermination(evt),
             ]).then((p) => {
-              console.log(p)
+              // console.log(p)
               const isPressed = p[0];
               const isProgressMaxed = p[1][0];
               const isProgressNil = p[1][1];
