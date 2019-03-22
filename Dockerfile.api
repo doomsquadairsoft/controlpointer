@@ -1,0 +1,34 @@
+FROM node:8-alpine as builder
+
+WORKDIR /controlpointer
+
+## Install build toolchain, install node deps and compile native add-ons
+RUN apk add --no-cache --virtual autoconf
+
+COPY package.json /controlpointer/
+
+RUN ls -la
+RUN npm install
+
+
+
+
+
+
+
+
+
+
+FROM node:alpine as app
+
+WORKDIR /controlpointer
+EXPOSE 5001
+
+## Copy built node modules and binaries without including the toolchain
+COPY --from=builder /controlpointer/package.json /controlpointer/
+COPY --from=builder /controlpointer/node_modules /controlpointer/node_modules
+COPY src_server /controlpointer/src_server/
+COPY src_shared /controlpointer/src_shared/
+COPY config /controlpointer/config/
+
+CMD ["npm", "start"]

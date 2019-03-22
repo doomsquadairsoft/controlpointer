@@ -4,7 +4,6 @@ const compress = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const logger = require('winston');
-const favicon = require('serve-favicon');
 
 const feathers = require('@feathersjs/feathers');
 const configuration = require('@feathersjs/configuration');
@@ -31,7 +30,7 @@ app.use(helmet());
 app.use(compress());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
+// app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Serve the public (dist) folder
 app.use('/', express.static(app.get('public')));
 

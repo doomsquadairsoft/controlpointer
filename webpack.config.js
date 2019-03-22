@@ -6,6 +6,8 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const config = require('config');
 const controlpointerVersion = require('./package.json').version;
 const CompressionPlugin = require('compression-webpack-plugin');
+// const OfflinePlugin = require('offline-plugin');
+
 
 
 module.exports = {
@@ -118,6 +120,7 @@ module.exports = {
     new CompressionPlugin({
       test: /\.js(\?.*)?$/i
     }),
+    // new OfflinePlugin()
   ]
 }
 

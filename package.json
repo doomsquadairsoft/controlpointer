@@ -15,7 +15,9 @@
     "dev": "npx concurrently --kill-others \"npx supervisor -w src_server,src_shared src_server\" \"npx webpack-dev-server --hot --mode=development\"",
     "dev:server": "npx supervisor -w src_server,src_shared src_server",
     "dev:client": "npx webpack-dev-server --hot --mode=development",
-    "build": "NODE_ENV=production webpack --progress --hide-modules",
+    "build": "npm run build:webpack && npm run build:docker",
+    "build:webpack": "NODE_ENV=production webpack --progress --hide-modules",
+    "build:docker": "./build-docker.sh",
     "test": "mocha",
     "start": "node src_server"
   },
