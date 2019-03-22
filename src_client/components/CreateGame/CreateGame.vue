@@ -30,7 +30,7 @@
           </v-flex>
           <v-flex>
             <v-btn color="info" @click="doUseDefaultGameLength">
-              <v-icon>timer</v-icon> Use default (15 minutes)
+              <v-icon>timer</v-icon> Use default (30 minutes)
             </v-btn>
           </v-flex>
         </v-layout>
@@ -42,7 +42,7 @@
           </v-flex>
           <v-flex>
             <v-btn color="info" @click="doUseDefaultCaptureRate">
-              <v-icon>timer</v-icon> Use default (5 seconds)
+              <v-icon>timer</v-icon> Use default (45 seconds)
             </v-btn>
           </v-flex>
         </v-layout>
@@ -137,7 +137,7 @@ export default {
       gameLengthInput: '',
       captureRateInput: '',
       gameNameInput: '',
-      defaultGameLength: '00:15:00',
+      defaultGameLength: '00:30:00',
       defaultCaptureRate: '00:00:45',
       gameId: null,
       isGameCreated: false,
