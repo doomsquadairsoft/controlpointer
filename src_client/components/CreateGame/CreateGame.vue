@@ -138,7 +138,7 @@ export default {
       captureRateInput: '',
       gameNameInput: '',
       defaultGameLength: '00:15:00',
-      defaultCaptureRate: '00:00:05',
+      defaultCaptureRate: '00:00:45',
       gameId: null,
       isGameCreated: false,
       includedDevices: [],
